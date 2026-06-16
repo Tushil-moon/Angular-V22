@@ -4,7 +4,7 @@
 
 import { Injectable, computed, inject, resource } from '@angular/core';
 import { HttpClientService } from './http-client.service';
-import { DashboardStats } from '@utils/api-mappers';
+import { DashboardStats, mapApiDashboardStats, ApiDashboardStatsPayload } from '@utils/api-mappers';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
 import { AuthService } from './auth.service';
@@ -35,11 +35,11 @@ export class DashboardService {
         async () => {
           throwIfAborted(abortSignal);
 
-          const response = await this.httpClient.get<DashboardStats>('/dashboard/stats');
+          const response = await this.httpClient.get<ApiDashboardStatsPayload>('/dashboard/stats');
           throwIfAborted(abortSignal);
 
           if (response.data) {
-            return response.data;
+            return mapApiDashboardStats(response.data);
           }
 
           return EMPTY_STATS;

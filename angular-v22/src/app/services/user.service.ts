@@ -5,7 +5,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClientService } from './http-client.service';
 import { User, PaginatedResponse, FilterOptions } from '@models/index';
-import { mapApiUser, ApiUserPayload } from '@utils/api-mappers';
+import { mapApiUser, mapApiPaginated, ApiUserPayload, ApiPaginatedPayload } from '@utils/api-mappers';
 
 @Injectable({
   providedIn: 'root',
@@ -30,13 +30,14 @@ export class UserService {
     }
 
     try {
-      const response = await this.httpClient.get<PaginatedResponse<ApiUserPayload>>('/users', {
+      const response = await this.httpClient.get<ApiPaginatedPayload<ApiUserPayload>>('/users', {
         params: filters,
       });
 
       if (response.data) {
-        this.usersSignal.set(response.data.data.map(mapApiUser));
-        this.totalUsersSignal.set(response.data.total);
+        const page = mapApiPaginated(response.data, mapApiUser);
+        this.usersSignal.set(page.data);
+        this.totalUsersSignal.set(page.total);
       }
     } catch (error) {
       console.error('Failed to fetch users:', error);

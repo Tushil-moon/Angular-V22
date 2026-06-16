@@ -38,8 +38,8 @@ export const swaggerSpec = swaggerJsdoc({
         TokenPair: {
           type: "object",
           properties: {
-            accessToken: { type: "string" },
-            refreshToken: { type: "string" },
+            access_token: { type: "string" },
+            refresh_token: { type: "string" },
           },
         },
       },

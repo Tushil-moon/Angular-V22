@@ -12,7 +12,7 @@ import axios, {
 } from 'axios';
 import { environment } from '@env';
 import { ApiResponse, ApiError, HttpConfig } from '@models/index';
-import { ApiRefreshResponse } from '@utils/api-mappers';
+import { ApiRefreshResponsePayload, mapApiRefreshResponse } from '@utils/api-mappers';
 import { TokenService } from './token.service';
 
 type AuthRequestConfig = InternalAxiosRequestConfig & {
@@ -169,7 +169,7 @@ export class HttpClientService {
       throw new Error('No refresh token available');
     }
 
-    const response = await axios.post<ApiResponse<ApiRefreshResponse>>(
+    const response = await axios.post<ApiResponse<ApiRefreshResponsePayload>>(
       `${environment.apiBaseUrl}/auth/refresh`,
       { refreshToken },
       {
@@ -179,7 +179,7 @@ export class HttpClientService {
       },
     );
 
-    const tokens = response.data.data;
+    const tokens = response.data.data ? mapApiRefreshResponse(response.data.data) : null;
     if (!tokens?.accessToken || !tokens?.refreshToken) {
       throw new Error('Invalid refresh token response');
     }

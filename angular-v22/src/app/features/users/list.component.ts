@@ -23,8 +23,8 @@ import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
 import { UserCreateDialogResult } from './user-create-dialog.component';
 import { UserDetailDialogData, UserDetailDialogResult } from './user-detail-dialog.component';
-import { User, PaginatedResponse, FilterOptions } from '@models/index';
-import { mapApiUser, ApiUserPayload } from '@utils/api-mappers';
+import { User, FilterOptions } from '@models/index';
+import { mapApiUser, mapApiPaginated, ApiUserPayload, ApiPaginatedPayload } from '@utils/api-mappers';
 import { formatUserDate } from './user.utils';
 
 interface UsersPageResult {
@@ -171,7 +171,7 @@ export class UsersListComponent {
             search: params.search || undefined,
           };
 
-          const response = await this.httpClient.get<PaginatedResponse<ApiUserPayload>>('/users', {
+          const response = await this.httpClient.get<ApiPaginatedPayload<ApiUserPayload>>('/users', {
             params: filters,
           });
 
@@ -181,9 +181,11 @@ export class UsersListComponent {
             return EMPTY_USERS_PAGE;
           }
 
+          const page = mapApiPaginated(response.data, mapApiUser);
+
           return {
-            users: response.data.data.map(mapApiUser),
-            total: response.data.total,
+            users: page.data,
+            total: page.total,
           } satisfies UsersPageResult;
         },
         {

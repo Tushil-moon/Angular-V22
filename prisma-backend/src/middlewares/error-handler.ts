@@ -3,6 +3,7 @@ import { ZodError } from "zod";
 import { isProduction } from "../config/env";
 import { logger } from "../config/logger";
 import { AppError } from "../shared/errors/app-error";
+import { toSnakeCaseDeep } from "../shared/utils/snake-case";
 
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) return error.message;
@@ -60,7 +61,7 @@ export const errorHandler = (error: unknown, req: Request, res: Response, _next:
       success: false,
       message: error.message,
       code: error.code,
-      details: error.details,
+      ...(error.details ? { details: toSnakeCaseDeep(error.details) } : {}),
     });
   }
 

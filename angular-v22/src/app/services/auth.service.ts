@@ -10,9 +10,11 @@ import { TokenService } from './token.service';
 import { User, SignInRequest, SignUpRequest, Session, ApiError } from '@models/index';
 import {
   mapApiUser,
+  mapApiAuthResponse,
+  mapApiRefreshResponse,
   ApiUserPayload,
-  ApiAuthResponse,
-  ApiRefreshResponse,
+  ApiAuthResponsePayload,
+  ApiRefreshResponsePayload,
 } from '@utils/api-mappers';
 import { environment } from '@env';
 
@@ -134,7 +136,7 @@ export class AuthService {
     this.errorSignal.set(null);
 
     try {
-      const response = await this.httpClient.post<ApiAuthResponse>(
+      const response = await this.httpClient.post<ApiAuthResponsePayload>(
         '/auth/register',
         {
           email: request.email,
@@ -161,7 +163,7 @@ export class AuthService {
     this.errorSignal.set(null);
 
     try {
-      const response = await this.httpClient.post<ApiAuthResponse>('/auth/login', request, {
+      const response = await this.httpClient.post<ApiAuthResponsePayload>('/auth/login', request, {
         skipAuth: true,
       });
 
@@ -200,14 +202,14 @@ export class AuthService {
       throw new Error('No refresh token available');
     }
 
-    const response = await this.httpClient.post<ApiRefreshResponse>(
+    const response = await this.httpClient.post<ApiRefreshResponsePayload>(
       '/auth/refresh',
       { refreshToken },
       { skipAuth: true },
     );
 
     if (response.data) {
-      this.applyTokens(response.data);
+      this.applyTokens(mapApiRefreshResponse(response.data));
     }
   }
 
@@ -272,17 +274,17 @@ export class AuthService {
     this.saveUserToStorage(user);
   }
 
-  private setAuthState(authResponse: ApiAuthResponse): void {
-    this.applyTokens(authResponse);
+  private setAuthState(authResponse: ApiAuthResponsePayload): void {
+    const mapped = mapApiAuthResponse(authResponse);
+    this.applyTokens(mapped);
 
-    const user = mapApiUser(authResponse.user);
-    this.currentUserSignal.set(user);
+    this.currentUserSignal.set(mapped.user);
     this.isAuthenticatedSignal.set(true);
-    this.saveUserToStorage(user);
+    this.saveUserToStorage(mapped.user);
     this.errorSignal.set(null);
   }
 
-  private applyTokens(tokens: ApiRefreshResponse): void {
+  private applyTokens(tokens: { accessToken: string; refreshToken: string }): void {
     this.httpClient.setAuthToken(tokens.accessToken);
     this.httpClient.setRefreshToken(tokens.refreshToken);
   }

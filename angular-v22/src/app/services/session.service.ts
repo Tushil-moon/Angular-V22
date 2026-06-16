@@ -7,18 +7,9 @@ import { HttpClientService } from './http-client.service';
 import { AuthService } from './auth.service';
 import { runResourceLoader } from '@shared/utils/resource-error';
 import { throwIfAborted } from '@shared/utils/abort-signal';
+import { mapApiSession, ApiSessionPayload } from '@utils/api-mappers';
 
-export interface UserSession {
-  id: string;
-  deviceId: string;
-  deviceName?: string | null;
-  userAgent?: string | null;
-  ipAddress?: string | null;
-  createdAt: string;
-  lastActiveAt: string;
-  revokedAt?: string | null;
-  current?: boolean;
-}
+export type UserSession = ReturnType<typeof mapApiSession>;
 
 @Injectable({
   providedIn: 'root',
@@ -33,9 +24,9 @@ export class SessionService {
       return runResourceLoader(
         async () => {
           throwIfAborted(abortSignal);
-          const response = await this.httpClient.get<UserSession[]>('/sessions');
+          const response = await this.httpClient.get<ApiSessionPayload[]>('/sessions');
           throwIfAborted(abortSignal);
-          return response.data ?? [];
+          return response.data?.map(mapApiSession) ?? [];
         },
         { fallback: [], logMessage: 'Failed to load sessions:' },
       );

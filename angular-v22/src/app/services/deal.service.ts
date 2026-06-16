@@ -5,7 +5,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClientService } from './http-client.service';
 import { Deal, PaginatedResponse, PipelineStageSummary, FilterOptions } from '@models/index';
-import { mapApiDeal, ApiDealPayload } from '@utils/api-mappers';
+import { mapApiDeal, mapApiPaginated, ApiDealPayload, ApiPaginatedPayload } from '@utils/api-mappers';
 
 @Injectable({
   providedIn: 'root',
@@ -14,15 +14,15 @@ export class DealService {
   private readonly httpClient = inject(HttpClientService);
 
   async listDeals(filters?: FilterOptions): Promise<PaginatedResponse<Deal>> {
-    const response = await this.httpClient.get<PaginatedResponse<ApiDealPayload>>('/deals', {
+    const response = await this.httpClient.get<ApiPaginatedPayload<ApiDealPayload>>('/deals', {
       params: filters,
     });
 
-    const payload = response.data ?? { data: [], total: 0, page: 1, pageSize: 20, totalPages: 0, hasMore: false };
-    return {
-      ...payload,
-      data: payload.data.map(mapApiDeal),
-    };
+    if (!response.data) {
+      return { data: [], total: 0, page: 1, pageSize: 20, totalPages: 0, hasMore: false };
+    }
+
+    return mapApiPaginated(response.data, mapApiDeal);
   }
 
   async getPipeline(): Promise<PipelineStageSummary[]> {

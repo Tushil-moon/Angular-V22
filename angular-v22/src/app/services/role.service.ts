@@ -5,7 +5,7 @@
 import { Injectable, computed, inject, resource, signal } from '@angular/core';
 import { HttpClientService } from './http-client.service';
 import { Role, Permission } from '@models/index';
-import { mapApiRole } from '@utils/api-mappers';
+import { mapApiRole, ApiRolePayload } from '@utils/api-mappers';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
 import { AuthService } from './auth.service';
@@ -25,7 +25,7 @@ export class RoleService {
         async () => {
           throwIfAborted(abortSignal);
 
-          const response = await this.httpClient.get<Role[]>('/roles');
+          const response = await this.httpClient.get<ApiRolePayload[]>('/roles');
           throwIfAborted(abortSignal);
 
           return response.data?.map(mapApiRole) ?? [];
@@ -55,7 +55,7 @@ export class RoleService {
 
   async createRole(payload: { name: string; description?: string }): Promise<Role | null> {
     try {
-      const response = await this.httpClient.post<Role>('/roles', payload);
+      const response = await this.httpClient.post<ApiRolePayload>('/roles', payload);
       if (response.data) {
         const role = mapApiRole(response.data);
         void this.rolesResource.reload();
