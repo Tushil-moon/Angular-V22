@@ -11,6 +11,11 @@ declare global {
     interface Request {
       user?: AuthUser;
       deviceId?: string;
+      validated?: {
+        body?: unknown;
+        query?: unknown;
+        params?: unknown;
+      };
     }
   }
 }

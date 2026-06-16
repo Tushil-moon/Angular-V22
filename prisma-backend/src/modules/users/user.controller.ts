@@ -1,6 +1,7 @@
 import { asyncHandler } from "../../shared/utils/async-handler";
+import { getValidatedQuery } from "../../middlewares/validate";
 import { sendCreated, sendSuccess } from "../../shared/utils/response";
-import { listUsersQuerySchema } from "./user.validation";
+import type { ListUsersQuery } from "./user.validation";
 import { userService } from "./user.service";
 
 export const me = asyncHandler(async (req, res) => {
@@ -9,7 +10,7 @@ export const me = asyncHandler(async (req, res) => {
 });
 
 export const listUsers = asyncHandler(async (req, res) => {
-  const query = listUsersQuerySchema.parse(req.query);
+  const query = getValidatedQuery<ListUsersQuery>(req);
   const result = await userService.listUsers(query);
   return sendSuccess(res, result);
 });
