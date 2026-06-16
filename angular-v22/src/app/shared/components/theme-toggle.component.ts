@@ -18,14 +18,17 @@ import { IconComponent } from './icon.component';
   template: `
     <button
       type="button"
-      class="btn btn-outline btn-sm theme-toggle-btn"
+      class="theme-toggle-btn"
+      [class.btn]="!sidebar()"
+      [class.btn-outline]="!sidebar()"
+      [class.btn-sm]="!sidebar()"
       [class.sidebar-theme-toggle-btn]="sidebar()"
       (click)="themeService.toggle()"
       [attr.aria-label]="label()"
       [attr.title]="sidebar() ? label() : null"
       [attr.aria-pressed]="themeService.isDark()"
     >
-      <app-icon [name]="iconName()" [size]="16" className="shrink-0 text-foreground" />
+      <app-icon [name]="iconName()" [size]="16" className="shrink-0" />
       @if (!sidebar()) {
         <span>{{ actionLabel() }}</span>
       }

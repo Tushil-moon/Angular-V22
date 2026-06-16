@@ -79,7 +79,7 @@ export class AuthLayoutComponent {}
               <div class="sidebar-brand-icon shrink-0">
                 <svg
                   viewBox="0 0 24 24"
-                  class="h-4 w-4 text-sidebar-foreground"
+                  class="h-4 w-4"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="2"
