@@ -88,7 +88,7 @@ export class AuthLayoutComponent {}
                   <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" />
                 </svg>
               </div>
-              <div class="sidebar-brand-text sidebar-collapsible-text">
+              <div class="sidebar-brand-text">
                 <span class="sidebar-brand-title">Shadcn UI Kit</span>
                 <span class="sidebar-brand-subtitle">Enterprise</span>
               </div>
@@ -112,7 +112,7 @@ export class AuthLayoutComponent {}
 
           <div class="sidebar-footer">
             <div class="sidebar-theme">
-              <app-theme-toggle [compact]="sidebarService.collapsed()" />
+              <app-theme-toggle [sidebar]="true" />
             </div>
             <div class="sidebar-user">
               <app-avatar [fallback]="userInitials()" size="sm" />
@@ -164,7 +164,7 @@ export class AuthLayoutComponent {}
               (click)="sidebarService.toggle()"
               aria-label="Toggle sidebar"
             >
-              <app-icon name="panel-left" [size]="18" />
+              <app-icon name="panel-left" [size]="18" className="sidebar-trigger-icon" />
             </button>
             <button
               type="button"
@@ -188,7 +188,6 @@ export class AuthLayoutComponent {}
 
           <div class="flex items-center gap-2 shrink-0">
             <span class="site-header-title hidden xl:inline">{{ pageTitle() }}</span>
-            <app-theme-toggle />
             <button
               type="button"
               class="btn btn-outline btn-sm hidden sm:inline-flex"

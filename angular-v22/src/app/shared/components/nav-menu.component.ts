@@ -24,7 +24,7 @@ import type { NavItem } from '@shared/config/navigation.config';
           [attr.title]="collapsed() ? item.label : null"
           (click)="itemSelected.emit(item)"
         >
-          <app-icon [name]="item.icon" [size]="18" [className]="iconClass()" />
+          <app-icon [name]="item.icon" [size]="16" [className]="iconClass()" />
           <span [class]="labelClass()">{{ item.label }}</span>
         </a>
       }

@@ -10,18 +10,23 @@ import { IconComponent } from './icon.component';
   selector: 'app-theme-toggle',
   imports: [IconComponent],
   host: {
-    class: 'inline-flex shrink-0',
+    '[class.inline-flex]': 'true',
+    '[class.shrink-0]': 'true',
+    '[class.w-full]': 'sidebar()',
+    '[class.justify-start]': 'sidebar()',
   },
   template: `
     <button
       type="button"
       class="btn btn-outline btn-sm theme-toggle-btn"
+      [class.sidebar-theme-toggle-btn]="sidebar()"
       (click)="themeService.toggle()"
       [attr.aria-label]="label()"
+      [attr.title]="sidebar() ? label() : null"
       [attr.aria-pressed]="themeService.isDark()"
     >
-      <app-icon [name]="iconName()" [size]="14" className="shrink-0 text-foreground" />
-      @if (!compact()) {
+      <app-icon [name]="iconName()" [size]="16" className="shrink-0 text-foreground" />
+      @if (!sidebar()) {
         <span>{{ actionLabel() }}</span>
       }
     </button>
@@ -29,7 +34,7 @@ import { IconComponent } from './icon.component';
 })
 export class ThemeToggleComponent {
   readonly themeService = inject(ThemeService);
-  compact = input(false);
+  sidebar = input(false);
 
   readonly iconName = computed(() => (this.themeService.isDark() ? 'sun' : 'moon'));
   readonly actionLabel = computed(() => (this.themeService.isDark() ? 'Light' : 'Dark'));

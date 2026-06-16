@@ -49,8 +49,11 @@
     --selection-foreground: lab(98.26% 0 0);
     --overlay-backdrop: rgb(0 0 0 / 0.25);
     --radius: 0.625rem;
-    --sidebar-width: 15rem;
-    --sidebar-width-icon: 3.5rem;
+    --sidebar-width: 16rem;
+    --sidebar-width-icon: 3rem;
+    --sidebar-item-size: 2rem;
+    --sidebar-transition-duration: 200ms;
+    --sidebar-transition-easing: ease-in-out;
     --shell-padding: 0.5rem;
     --inset-radius: 1rem;
     --z-sidebar-rail: 20;
@@ -516,7 +519,7 @@
     @apply flex flex-1 flex-col gap-4 overflow-auto bg-card p-4 md:gap-6 md:p-6;
   }
 
-  /* Sidebar — shadcn UI kit shell (inset main panel + collapsible nav) */
+  /* Sidebar — single width transition; inner layout stays stable */
   .sidebar-wrapper {
     @apply flex h-svh w-full overflow-hidden bg-background;
     padding: var(--shell-padding);
@@ -525,11 +528,12 @@
 
   .sidebar {
     position: relative;
+    flex-shrink: 0;
     width: var(--sidebar-width);
     height: 100%;
-    transition: width 200ms ease-linear;
-    @apply shrink-0 flex-col text-sidebar-foreground;
     overflow: hidden;
+    transition: width var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+    @apply flex flex-col text-sidebar-foreground;
     background: transparent;
   }
 
@@ -538,7 +542,7 @@
   }
 
   .sidebar-inner {
-    @apply flex h-full w-full flex-col;
+    @apply flex h-full w-full min-w-0 flex-col;
   }
 
   .sidebar-inset {
@@ -548,28 +552,26 @@
   }
 
   .sidebar-header {
-    @apply flex h-14 shrink-0 items-center gap-2 px-2;
+    @apply relative flex h-12 shrink-0 items-center gap-2 px-2;
   }
 
   .sidebar-brand {
-    @apply flex min-w-0 flex-1 items-center gap-2.5 overflow-hidden;
+    @apply flex min-w-0 flex-1 items-center gap-2 overflow-hidden;
   }
 
   .sidebar-wrapper[data-state='collapsed'] .sidebar-header {
-    @apply justify-center px-0;
+    @apply justify-center;
   }
 
   .sidebar-wrapper[data-state='collapsed'] .sidebar-brand {
-    @apply h-9 w-9 flex-none items-center justify-center gap-0;
-  }
-
-  .sidebar-wrapper[data-state='collapsed'] .sidebar-brand-text,
-  .sidebar-wrapper[data-state='collapsed'] .sidebar-header-toggle {
-    @apply hidden;
+    @apply flex-none justify-center;
+    width: var(--sidebar-item-size);
   }
 
   .sidebar-brand-icon {
-    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-sidebar-border bg-sidebar text-sidebar-foreground;
+    @apply flex shrink-0 items-center justify-center rounded-md border border-sidebar-border bg-sidebar text-sidebar-foreground;
+    width: var(--sidebar-item-size);
+    height: var(--sidebar-item-size);
   }
 
   .sidebar-brand-text {
@@ -585,21 +587,47 @@
   }
 
   .sidebar-header-toggle {
-    @apply btn btn-ghost btn-icon h-8 w-8 shrink-0 text-muted-foreground;
+    @apply btn btn-ghost btn-icon shrink-0 text-muted-foreground;
+    width: var(--sidebar-item-size);
+    height: var(--sidebar-item-size);
   }
 
+  .sidebar-wrapper[data-state='collapsed'] .sidebar-brand-text,
+  .sidebar-wrapper[data-state='collapsed'] .sidebar-header-toggle {
+    @apply sr-only;
+  }
+
+  .sidebar-fade,
   .sidebar-collapsible-text {
-    @apply transition-all duration-200 ease-linear;
-    overflow: hidden;
-    white-space: nowrap;
+    @apply min-w-0 overflow-hidden whitespace-nowrap;
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 120ms ease,
+      visibility 0s linear 0s;
   }
 
+  .sidebar-wrapper[data-state='collapsed'] .sidebar-fade,
   .sidebar-wrapper[data-state='collapsed'] .sidebar-collapsible-text {
-    width: 0;
     opacity: 0;
-    margin: 0;
-    padding: 0;
-    pointer-events: none;
+    visibility: hidden;
+    transition:
+      opacity 80ms ease,
+      visibility 0s linear 80ms;
+  }
+
+  .sidebar-wrapper[data-state='expanded'] .sidebar-fade,
+  .sidebar-wrapper[data-state='expanded'] .sidebar-collapsible-text {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 150ms ease 120ms,
+      visibility 0s linear 120ms;
+  }
+
+  .sidebar-wrapper[data-state='collapsed'] .sidebar-menu-button .sidebar-collapsible-text {
+    @apply sr-only;
+    transition: none;
   }
 
   .sidebar-content {
@@ -612,37 +640,29 @@
 
   .sidebar-group-label {
     @apply px-2 pb-1.5 pt-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground;
-    height: auto;
     line-height: 1.25rem;
   }
 
-  .sidebar-wrapper[data-state='collapsed'] .sidebar-group {
-    @apply items-center gap-0.5 px-0 py-1;
-  }
-
   .sidebar-wrapper[data-state='collapsed'] .sidebar-group-label {
-    @apply h-0 overflow-hidden p-0 opacity-0;
+    @apply sr-only;
   }
 
   .sidebar-menu {
-    @apply flex w-full flex-col gap-0.5;
-  }
-
-  .sidebar-wrapper[data-state='collapsed'] .sidebar-menu {
-    @apply items-center;
+    @apply flex w-full min-w-0 flex-col gap-0.5;
   }
 
   .sidebar-menu-button {
-    @apply relative flex h-9 w-full items-center gap-2.5 overflow-hidden rounded-lg px-2.5 text-sm font-medium transition-colors;
+    @apply relative flex w-full min-w-0 items-center overflow-hidden rounded-md text-sm font-medium;
+    height: var(--sidebar-item-size);
+    gap: 0.625rem;
+    padding-inline: 0.5rem;
     color: color-mix(in oklab, var(--sidebar-foreground) 72%, transparent);
+    transition: background-color 150ms ease, color 150ms ease;
   }
 
   .sidebar-wrapper[data-state='collapsed'] .sidebar-menu-button {
-    @apply h-9 w-9 max-w-9 shrink-0 justify-center gap-0 px-0;
-  }
-
-  .sidebar-wrapper[data-state='collapsed'] .sidebar-menu-button .sidebar-collapsible-text {
-    @apply hidden;
+    @apply justify-center gap-0;
+    padding-inline: 0;
   }
 
   .sidebar-menu-button:hover {
@@ -656,23 +676,36 @@
   }
 
   .sidebar-footer {
-    @apply mt-auto shrink-0 px-2 pb-2 pt-1;
-  }
-
-  .sidebar-wrapper[data-state='collapsed'] .sidebar-footer {
-    @apply flex justify-center px-0 pb-2;
+    @apply mt-auto flex w-full shrink-0 flex-col gap-2 p-2;
   }
 
   .sidebar-user {
-    @apply flex min-w-0 items-center gap-2 overflow-hidden rounded-lg p-1.5 transition-colors hover:bg-sidebar-accent;
+    @apply flex min-w-0 w-full items-center overflow-hidden rounded-md;
+    height: var(--sidebar-item-size);
+    gap: 0.5rem;
+    padding: 0.25rem;
+    transition: background-color 150ms ease;
+  }
+
+  .sidebar-user:hover {
+    @apply bg-sidebar-accent;
   }
 
   .sidebar-wrapper[data-state='collapsed'] .sidebar-user {
-    @apply w-9 justify-center p-0 hover:bg-transparent;
+    @apply justify-center gap-0 p-0;
+  }
+
+  .sidebar-wrapper[data-state='collapsed'] .sidebar-user:hover {
+    @apply bg-transparent;
   }
 
   .sidebar-user-info {
     @apply flex min-w-0 flex-1 flex-col;
+  }
+
+  .sidebar-wrapper[data-state='collapsed'] .sidebar-user-info,
+  .sidebar-wrapper[data-state='collapsed'] .sidebar-user-menu {
+    @apply sr-only;
   }
 
   .sidebar-user-name {
@@ -684,16 +717,30 @@
   }
 
   .sidebar-user-menu {
-    @apply btn btn-ghost btn-icon h-7 w-7 shrink-0 text-muted-foreground;
-  }
-
-  .sidebar-wrapper[data-state='collapsed'] .sidebar-user-info,
-  .sidebar-wrapper[data-state='collapsed'] .sidebar-user-menu {
-    @apply hidden;
+    @apply btn btn-ghost btn-icon shrink-0 text-muted-foreground;
+    width: var(--sidebar-item-size);
+    height: var(--sidebar-item-size);
   }
 
   .sidebar-trigger {
     @apply text-muted-foreground;
+  }
+
+  .sidebar-trigger-icon {
+    transition: transform var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+  }
+
+  .sidebar-wrapper[data-state='collapsed'] .sidebar-trigger-icon {
+    transform: rotate(-180deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar,
+    .sidebar-fade,
+    .sidebar-collapsible-text,
+    .sidebar-trigger-icon {
+      transition: none !important;
+    }
   }
 
   /* Site header — inside rounded inset panel */
@@ -721,16 +768,32 @@
     @apply h-9 w-full rounded-lg border border-border bg-secondary pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
   }
 
-  .theme-toggle-btn {
-    @apply gap-2 text-foreground;
+  .sidebar-theme {
+    @apply flex w-full;
   }
 
-  .sidebar-theme {
-    @apply px-2 pb-2;
+  .theme-toggle-btn {
+    @apply gap-2 overflow-hidden text-foreground;
+  }
+
+  .sidebar-theme-toggle-btn {
+    @apply shrink-0 justify-center;
+    width: var(--sidebar-item-size);
+    height: var(--sidebar-item-size);
+    padding: 0;
+    border-color: var(--sidebar-border);
+    background: transparent;
+    color: var(--sidebar-foreground);
+    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  }
+
+  .sidebar-theme-toggle-btn:hover {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+    border-color: transparent;
   }
 
   .sidebar-wrapper[data-state='collapsed'] .sidebar-theme {
-    @apply flex justify-center px-0 pb-2;
+    @apply justify-center;
   }
 
   /* Avatar */
