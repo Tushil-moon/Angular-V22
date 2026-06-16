@@ -1,0 +1,48 @@
+---
+description: REST API design and HTTP conventions
+globs: src/routes.ts,src/modules/**/*.routes.ts
+alwaysApply: false
+---
+
+# API Design
+
+Base path: **`/api/v1`**
+
+## Response envelope
+
+```json
+{ "success": true, "message": "OK", "data": { } }
+{ "success": false, "message": "...", "code": "ERROR_CODE", "details": { } }
+```
+
+Use `sendSuccess` / `sendCreated` helpers only.
+
+## HTTP verbs
+
+| Method | Use | Idempotent |
+|--------|-----|------------|
+| GET | Read, list | Yes |
+| POST | Create, actions (login, logout) | No |
+| PATCH | Partial update | No |
+| PUT | Full replace (rare) | Yes |
+| DELETE | Delete / revoke | Yes |
+
+## REST naming
+
+- Nouns for resources: `/users`, `/roles`, `/sessions`
+- Actions as subpaths: `/auth/login`, `/auth/refresh`, `/password/forgot`
+- No verbs in URLs except action endpoints
+
+## Status codes
+
+200, 201, 400, 401, 403, 404, 409, 429, 503, 500
+
+## Versioning
+
+Breaking changes → new prefix `/api/v2`. Never silently change response shapes.
+
+## Route middleware order
+
+```typescript
+router.patch("/:id", authenticate, authorize("admin"), validate({ params, body }), controller.update);
+```

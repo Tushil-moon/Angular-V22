@@ -1,0 +1,36 @@
+---
+description: Controller layer — thin HTTP adapters
+globs: src/modules/**/*.controller.ts
+alwaysApply: false
+---
+
+# Controller Rules
+
+Controllers are thin HTTP adapters. They:
+
+1. Extract request context (body, params, meta)
+2. Call the service
+3. Return standardized response
+
+## Required
+
+- Wrap every handler with `asyncHandler`
+- Use `sendSuccess(res, data, message?)` or `sendCreated(res, data, message?)`
+- Pass request meta to services:
+
+```typescript
+const meta = (req: Request) => ({
+  ipAddress: req.ip,
+  userAgent: req.get("user-agent"),
+  deviceId: req.get("x-device-id") ?? req.ip ?? "unknown-device",
+});
+```
+
+## Never
+
+- Prisma calls in controllers
+- Business logic, branching auth rules, or token generation
+- Ad-hoc `res.status().json({ ... })` shapes
+- try/catch that swallows errors (let error middleware handle)
+
+Max ~15 lines per handler after extraction.

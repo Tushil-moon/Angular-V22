@@ -1,0 +1,38 @@
+---
+description: Centralized error handling with AppError
+globs: src/middlewares/error-handler.ts,src/shared/errors/**/*
+alwaysApply: false
+---
+
+# Error Handling
+
+Use centralized `errorHandler` middleware. Never throw bare `Error("...")` in application code.
+
+## AppError (this project)
+
+```typescript
+throw new AppError(404, "User not found", "NOT_FOUND");
+throw new AppError(409, "Email already exists", "EMAIL_EXISTS", { field: "email" });
+```
+
+## Mapping
+
+| Type | Status | Code |
+|------|--------|------|
+| ZodError | 400 | VALIDATION_ERROR |
+| AppError | `error.statusCode` | `error.code` |
+| Prisma/DB | 503 | DATABASE_UNAVAILABLE |
+| Unknown | 500 | INTERNAL_SERVER_ERROR |
+
+## Production vs development
+
+- **Production:** generic 500/503 messages; no stack traces
+- **Development:** include helpful DB connection hints in details
+
+## Never
+
+- Catch and swallow errors in controllers
+- Return inconsistent error JSON shapes
+- Expose Prisma/SQL internals to clients
+
+Use stable `code` strings for frontend handling (`UNAUTHENTICATED`, `FORBIDDEN`, `CONFLICT`).

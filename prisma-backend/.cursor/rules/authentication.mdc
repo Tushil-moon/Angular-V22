@@ -1,0 +1,40 @@
+---
+description: JWT authentication, sessions, and token handling
+globs: src/modules/auth/**/*,src/middlewares/authenticate.ts,src/shared/utils/jwt.ts,src/shared/utils/crypto.ts
+alwaysApply: false
+---
+
+# Authentication
+
+## Stack (this project)
+
+- **Access token:** short-lived JWT in `Authorization: Bearer`
+- **Refresh token:** opaque random token; **SHA-256 hash only** in DB
+- **Passwords:** Argon2id (not bcrypt)
+- **Sessions:** DB-backed; validated on every authenticated request
+
+## Middleware
+
+`authenticate` must:
+
+1. Extract Bearer token
+2. Verify JWT signature/expiry
+3. Load session + user + roles from DB
+4. Reject if session revoked or user not `ACTIVE`
+5. Set `req.user = { id, sessionId, roles }`
+
+## Token rules
+
+- Rotate refresh token on every refresh; revoke previous
+- Never store raw refresh/OTP/reset tokens in DB
+- Never trust client JWT payload without verification
+- Never log tokens or passwords
+
+## Auth routes
+
+Apply `authLimiter` to: register, login, OTP, email verify request, forgot/reset password.
+
+## Account security
+
+- Track `failedLoginAttempts`; lock per `MAX_LOGIN_ATTEMPTS` / `LOCKOUT_MINUTES`
+- Revoke sessions on password reset when appropriate

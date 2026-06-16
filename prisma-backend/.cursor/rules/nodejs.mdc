@@ -1,0 +1,35 @@
+---
+description: Node.js runtime and Express server conventions
+globs: src/server.ts,src/app.ts,src/**/*.ts
+alwaysApply: false
+---
+
+# Node.js & Express
+
+## Runtime
+
+- Node.js 22+; async/await only (no callback-style routes)
+- Graceful shutdown: `SIGINT`/`SIGTERM` → close HTTP server → `prisma.$disconnect()`
+- Verify DB on startup (`SELECT 1`)
+
+## Express app (`app.ts`)
+
+Middleware order (preserve):
+
+1. `trust proxy`, `helmet`, `cors`, `compression`
+2. `express.json({ limit: "1mb" })`, `urlencoded`, `cookieParser`
+3. `pino-http`, `generalLimiter`
+4. Routes `/docs`, `/api/v1`
+5. `notFoundHandler`, `errorHandler`
+
+## Async handlers
+
+Wrap all route handlers with `asyncHandler` from `shared/utils/async-handler`.
+
+Never leave floating promises in middleware or controllers.
+
+## Do not
+
+- Add Fastify, Koa, or alternate frameworks
+- Use `console.log` — use Pino logger
+- Block the event loop with sync crypto on hot paths beyond existing Argon2 usage

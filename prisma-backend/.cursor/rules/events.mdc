@@ -1,0 +1,42 @@
+---
+description: Domain events and audit logging
+globs: src/modules/**/*.service.ts,prisma/schema.prisma
+alwaysApply: false
+---
+
+# Events & Audit
+
+This project uses **AuditLog** table for security/domain events, not an event bus.
+
+## Audit actions (enum)
+
+Log via `prisma.auditLog.create` inside `$transaction` with main mutation:
+
+- REGISTER, LOGIN_SUCCESS, LOGIN_FAILED, LOGOUT, LOGOUT_ALL
+- REFRESH_ROTATED, TOKEN_REVOKED
+- EMAIL_VERIFIED, PASSWORD_RESET_COMPLETED, PASSWORD_CHANGED
+- ROLE_ASSIGNED, ROLE_REMOVED, ACCOUNT_LOCKED
+
+## Required fields
+
+```typescript
+{ userId, action: AuditAction.LOGIN_SUCCESS, ipAddress, userAgent, metadata? }
+```
+
+## Rules
+
+- Security-sensitive mutations **must** write audit log in same transaction when possible
+- Never log passwords/tokens in `metadata`
+- Pino logs are operational; audit table is compliance trail
+
+## Future event bus
+
+Do not add Kafka/RabbitMQ unless requested. If added:
+
+- Emit after successful commit only
+- Idempotent consumers
+- Outbox table for reliability
+
+## Domain events pattern (future)
+
+`user.registered`, `password.reset` — not implemented; use audit log + service methods today.

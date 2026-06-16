@@ -1,0 +1,50 @@
+---
+description: Code style, imports, comments, and function size
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# Code Style
+
+## Functions
+
+- Single responsibility; prefer early return / guard clauses
+- Target ≤ 50 lines per function; split larger service methods
+- Pure helpers in `shared/utils/`
+- Avoid deep nesting (>3 levels)
+
+## Naming
+
+- Descriptive names: `verifyAccessToken`, not `verify`
+- No magic numbers — use constants or env
+- Match existing module naming: `auth.service.ts`, `auth.controller.ts`
+
+## Imports order
+
+1. Node built-ins
+2. External packages
+3. Internal aliases / shared
+4. Relative imports
+
+Alphabetical within each group. Match surrounding file style.
+
+## Comments
+
+- No obvious comments (`// get user`)
+- Comment only: complex business rules, workarounds, non-obvious algorithms
+
+## Duplication
+
+- Extract repeated Zod fields to shared schemas
+- Extract repeated Prisma `select` shapes to constants
+
+## Formatting
+
+- Match existing file indentation and quote style
+- Run TypeScript compiler before claiming done
+
+## Avoid
+
+- Large god classes/files
+- Duplicate error handling outside middleware
+- Copy-paste across modules — extract to shared when third use appears

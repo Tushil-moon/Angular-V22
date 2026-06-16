@@ -1,0 +1,39 @@
+---
+description: Prisma ORM client usage and schema conventions
+globs: prisma/**/*,src/config/prisma.ts,src/**/prisma/**
+alwaysApply: false
+---
+
+# Prisma ORM
+
+Before changing Prisma, inspect: `schema.prisma`, `prisma.config.ts`, `package.json`, existing client usage.
+
+## Client
+
+- Single shared client: `config/prisma.ts`
+- Regenerate after schema changes: `npm run prisma:generate`
+- Do not hand-edit `src/generated/prisma`
+
+## Schema conventions
+
+- UUID `@id @default(uuid())`
+- `createdAt`, `updatedAt` on mutable models
+- Soft delete via `deletedAt` where applicable
+- `@@index` on filters/joins; `@@map` for table names
+- Use Prisma enums for fixed sets
+
+## Queries
+
+- Prefer `findUnique` over `findFirst` when querying by unique key
+- Prefer `select` over heavy `include`; never overfetch relations
+- Paginate all `findMany` with `take`/`skip` or cursor
+- Avoid N+1: batch with `include` or `$transaction`
+- Never expose raw Prisma errors to clients
+
+## Errors
+
+- `P2002` unique → `409 CONFLICT`
+- `P2025` not found → `404 NOT_FOUND`
+- Connection failures → `503` via error handler
+
+Do not change Prisma provider/config unless explicitly requested.

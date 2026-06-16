@@ -1,0 +1,37 @@
+---
+description: TypeScript strict typing conventions
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# TypeScript
+
+Strict typing always enabled. Never use `any`, `@ts-ignore`, or `@ts-nocheck`.
+
+## Prefer
+
+- `interface` for object contracts exported across modules
+- `type` for unions, intersections, mapped types
+- `readonly` on immutable fields
+- `const` over `let`
+- Type inference when obvious from assignment
+- `unknown` + narrowing over `any`
+
+## Avoid
+
+- Non-null assertion (`!`) unless unavoidable with comment why
+- Enums when string union + `as const` suffices (Prisma enums are OK)
+
+## This project
+
+- CommonJS modules (`"type": "commonjs"`)
+- Express types from `@types/express`
+- Extend Express `Request` via `src/shared/types/express.d.ts` for `req.user`
+
+```typescript
+// ✅
+const payload = verifyAccessToken(token);
+
+// ❌
+const payload = verifyAccessToken(token) as any;
+```

@@ -1,0 +1,31 @@
+---
+description: PostgreSQL database design and query performance
+globs: prisma/schema.prisma,prisma/migrations/**/*
+alwaysApply: false
+---
+
+# Database (PostgreSQL)
+
+## Connections
+
+- **Runtime API:** `DATABASE_URL` (transaction pooler, port 6543)
+- **Migrations/CLI:** `DIRECT_URL` (direct or session pooler, port 5432)
+- Never run migrations against pgbouncer transaction pooler
+
+## Design
+
+- Add indexes for `where`, `orderBy`, foreign keys, status columns
+- Use unique constraints on natural keys (`email`, `phone`)
+- Cascade deletes explicit on relations — avoid orphan rows
+
+## Query rules
+
+- Never fetch entire tables without pagination
+- Cap list `limit` (max 100) at validation layer
+- Batch writes inside `$transaction`
+- Avoid offset pagination on very large tables when cursor-based is needed later
+
+## Never
+
+- Raw SQL with string interpolation (`$queryRaw` with template vars is OK for static queries only)
+- Duplicate identical queries in one request — use `Promise.all` when independent

@@ -1,0 +1,30 @@
+---
+description: Background jobs and queues — not in project by default
+globs: src/**/*
+alwaysApply: false
+---
+
+# Background Jobs
+
+**This project does not use Bull, Agenda, or queue workers by default.**
+
+Email/OTP sending is synchronous or stubbed in services until a queue is added.
+
+## Do not add unless requested
+
+- Redis + BullMQ
+- Cron schedulers
+- Separate worker processes
+
+## When jobs are introduced
+
+- Idempotent job handlers
+- Dead letter queue for failures
+- Retry with exponential backoff
+- Never process payment/auth-critical flows only in memory without persistence
+
+## Current pattern
+
+Audit logs and token writes happen synchronously in `$transaction` with the main operation.
+
+If async email is needed later, outbox pattern preferred over fire-and-forget.

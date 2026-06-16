@@ -1,0 +1,37 @@
+---
+description: CI/CD pipeline conventions
+globs: .github/**/*,Dockerfile,docker-compose.yml
+alwaysApply: false
+---
+
+# CI/CD
+
+No CI config in repo yet — follow this when adding GitHub Actions / Azure Pipelines.
+
+## Pipeline stages
+
+1. **Install** — `npm ci`
+2. **Lint** — add ESLint when configured
+3. **Test** — `npm test` with test DB env
+4. **Build** — `npm run prisma:generate && npm run build`
+5. **Migrate** — `npm run prisma:deploy` (staging/prod)
+6. **Deploy** — push Docker image / restart service
+
+## Rules
+
+- Never deploy without passing tests
+- Never commit secrets to CI YAML — use platform secrets
+- Run migrations once per deploy (leader job), not per replica simultaneously
+- Tag Docker images with git SHA
+
+## Environments
+
+- **development** — local `npm run dev`
+- **staging** — mirrors production schema
+- **production** — `NODE_ENV=production`, managed secrets
+
+## Health check
+
+Use `GET /api/v1/health` for load balancer readiness after deploy.
+
+Do not force-push `main`/`master` unless explicitly requested.

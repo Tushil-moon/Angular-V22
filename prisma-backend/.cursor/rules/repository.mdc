@@ -1,0 +1,37 @@
+---
+description: Repository layer — Prisma data access only
+globs: src/**/repositories/**/*.ts,src/modules/**/*.service.ts
+alwaysApply: false
+---
+
+# Repository Layer
+
+This project uses **module services** for data access (no separate `repositories/` folder yet). Treat service Prisma calls as the data layer until repositories are introduced.
+
+## When adding repositories
+
+Repositories must:
+
+- Only communicate with Prisma
+- Never contain business logic, HTTP, or auth checks
+- Return domain-shaped data, not Express types
+- Use `select` to fetch only required fields
+
+```typescript
+// ✅ Repository
+async findByEmail(email: string) {
+  return prisma.user.findUnique({
+    where: { email },
+    select: { id: true, email: true, passwordHash: true, status: true },
+  });
+}
+
+// ❌ Repository with business logic
+async login(email: string, password: string) { ... }
+```
+
+## Services call repositories
+
+When refactored: `controller → service → repository → Prisma`. Until then, keep Prisma in services but isolated in private methods or clear sections.
+
+Never fetch unnecessary fields or deep relation trees by default.

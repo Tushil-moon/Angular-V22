@@ -1,0 +1,42 @@
+---
+description: Application security hardening
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# Security
+
+## HTTP hardening
+
+- `helmet()` enabled
+- CORS allowlist via `CORS_ORIGIN` — no wildcard with credentials in production
+- `trust proxy` when behind reverse proxy
+- `express.json({ limit: "1mb" })`
+- Rate limiting: `generalLimiter` + `authLimiter` on auth routes
+
+## Input
+
+- Zod validation on all mutating endpoints
+- Prisma parameterized queries only — no interpolated `$queryRaw`
+- Sanitize user-provided strings before logging
+
+## Auth secrets
+
+- JWT secrets ≥ 32 chars from env
+- Argon2id for passwords with configurable cost
+- Hash refresh/OTP/reset tokens before storage
+
+## Prevent
+
+- SQL injection (Prisma + no raw interpolation)
+- IDOR (ownership checks in services)
+- Mass assignment (explicit Zod schemas, no spread of `req.body` into Prisma)
+
+## Responses
+
+- Never return stack traces in production
+- Never expose internal paths or config in error messages
+
+## Dependencies
+
+Run `npm audit` in CI; pin versions; no untrusted packages without review.

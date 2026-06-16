@@ -1,0 +1,35 @@
+---
+description: Docker containerization and runtime image
+globs: Dockerfile,docker-compose.yml,.dockerignore
+alwaysApply: false
+---
+
+# Docker
+
+Multi-stage **Dockerfile** pattern (preserve):
+
+1. **deps** — `npm ci`
+2. **build** — `prisma generate` + `tsc`
+3. **runtime** — `npm ci --omit=dev`, copy `dist`, `prisma`, generated client
+
+## Runtime
+
+- Base: `node:22-alpine`
+- `ENV NODE_ENV=production`
+- `EXPOSE 3000`
+- `CMD ["node", "dist/server.js"]`
+
+## Rules
+
+- Never bake `.env` secrets into image
+- Pass env at runtime via orchestrator/compose
+- Run `prisma migrate deploy` in CI/CD before or during deploy — not race across replicas without lock
+
+## docker-compose.yml
+
+Use for local PostgreSQL only if documented; production DB is typically Supabase/managed Postgres.
+
+## Do not
+
+- Run as root unnecessarily in production hardening passes
+- Include devDependencies in final image

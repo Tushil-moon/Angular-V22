@@ -1,0 +1,46 @@
+---
+description: Performance optimization patterns
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# Performance
+
+## Database
+
+- Paginate all lists; cap `limit`
+- Use `select` over deep `include`
+- Avoid N+1 queries
+- Use `$transaction` batch instead of sequential awaits when related
+
+## Parallelism
+
+```typescript
+// ✅ Independent queries
+const [items, total] = await prisma.$transaction([
+  prisma.user.findMany({ where, skip, take }),
+  prisma.user.count({ where }),
+]);
+
+// ✅ Independent unrelated calls
+await Promise.all([sendEmail(), updateCache()]);
+```
+
+## Avoid
+
+- Duplicate identical Prisma calls in one request
+- Unnecessary JSON serialization round-trips
+- Sync blocking on hot paths
+
+## HTTP
+
+- `compression()` enabled globally
+- Keep response payloads minimal — DTO/select fields only
+
+## Caching
+
+Do not add Redis/in-memory cache unless explicitly requested. See `caching.mdc` when introduced.
+
+## Measure first
+
+Do not optimize prematurely. Add indexes for proven slow queries.

@@ -1,0 +1,34 @@
+---
+description: OpenAPI Swagger documentation standards
+globs: src/docs/**/*,src/modules/**/*.routes.ts
+alwaysApply: false
+---
+
+# OpenAPI / Swagger
+
+Swagger UI at **`/docs`**, spec in `src/docs/swagger.ts`.
+
+## Rules
+
+- Document every **public** `/api/v1` endpoint
+- Include: method, path, summary, tags, auth requirement
+- Request body schema matches Zod validation
+- Response examples use `{ success, message, data }` envelope
+- Document error codes: 400, 401, 403, 404, 409, 429
+
+## When adding endpoints
+
+1. Implement route + validation + controller + service
+2. Add Swagger definition in same PR
+3. Verify `/docs` renders without spec errors
+
+## Security
+
+- Mark protected routes with `security: [{ bearerAuth: [] }]`
+- Do not document internal/admin-only fields in public schemas
+
+## Production
+
+Consider protecting or disabling `/docs` on public production deployments unless product requires public API docs.
+
+Use `swagger-jsdoc` patterns already in project — do not switch to alternate doc generators unless requested.

@@ -1,0 +1,48 @@
+---
+description: Prisma transaction patterns for atomic operations
+globs: src/modules/**/*.service.ts
+alwaysApply: false
+---
+
+# Transactions
+
+Use `prisma.$transaction` when multiple writes must succeed or fail together.
+
+## When required
+
+- Register user + default role + audit log
+- Password reset + revoke sessions + audit log
+- Email verify + update user + audit log
+- Any multi-table mutation with business invariants
+
+## Pattern
+
+```typescript
+await prisma.$transaction([
+  prisma.user.update({ where: { id }, data: { passwordHash } }),
+  prisma.session.updateMany({ where: { userId: id }, data: { revokedAt: new Date() } }),
+  prisma.auditLog.create({ data: { userId: id, action: AuditAction.PASSWORD_RESET_COMPLETED, ...meta } }),
+]);
+```
+
+## Interactive transactions
+
+Use callback form when later steps depend on earlier results:
+
+```typescript
+await prisma.$transaction(async (tx) => {
+  const user = await tx.user.create({ data });
+  await tx.auditLog.create({ data: { userId: user.id, action: "REGISTER" } });
+  return user;
+});
+```
+
+## Rules
+
+- Keep transactions short — no external API calls inside
+- Handle unique constraint failures → `409`
+- Avoid long-held transactions under load
+
+## Read + write
+
+For read-then-write race conditions, use unique constraints or `updateMany` with conditions rather than blind read-modify-write.

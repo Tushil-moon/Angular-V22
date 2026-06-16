@@ -1,0 +1,40 @@
+---
+description: Prisma migration workflow and safety
+globs: prisma/migrations/**/*,prisma/schema.prisma
+alwaysApply: false
+---
+
+# Migrations
+
+## Dev workflow
+
+1. Edit `prisma/schema.prisma`
+2. `npm run prisma:migrate` — creates SQL in `prisma/migrations/`
+3. `npm run prisma:generate`
+4. Commit schema + migration folder together
+
+## Production deploy
+
+```bash
+npm run prisma:deploy
+```
+
+Use **`DIRECT_URL`**, not transaction pooler, for migrate commands.
+
+## Rules
+
+- Never edit applied migration SQL in production
+- Never delete migration history from repo
+- Descriptive migration folder names
+- Test destructive migrations on staging first
+- Back up database before dropping columns/tables
+
+## Shadow DB
+
+Optional `SHADOW_DATABASE_URL` for migrate dev in CI if needed.
+
+## Rollback
+
+Prisma has no automatic down migrations — plan forward-fix migrations for production issues.
+
+Do not change `prisma.config.ts` unless explicitly requested.

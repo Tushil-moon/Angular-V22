@@ -1,0 +1,47 @@
+---
+description: Pagination for list endpoints
+globs: src/modules/**/*.service.ts,src/modules/**/*.validation.ts,src/modules/**/*.controller.ts
+alwaysApply: false
+---
+
+# Pagination
+
+All list endpoints must paginate. Never return unbounded collections.
+
+## Query params (standardize)
+
+```typescript
+const paginationSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+```
+
+## Service pattern
+
+```typescript
+const skip = (page - 1) * limit;
+const [items, total] = await prisma.$transaction([
+  prisma.user.findMany({ where, skip, take: limit, select: { ... } }),
+  prisma.user.count({ where }),
+]);
+return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+```
+
+## Response shape
+
+Include in `data`:
+
+```json
+{ "items": [], "total": 0, "page": 1, "limit": 20, "totalPages": 0 }
+```
+
+## Large datasets
+
+- Cap `limit` at 100 in validation
+- For very large tables, plan cursor-based pagination (`cursor`, `take`) instead of deep offset
+
+## Never
+
+- `findMany()` without `take`
+- Fetch all IDs then slice in memory

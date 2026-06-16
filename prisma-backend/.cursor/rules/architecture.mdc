@@ -1,0 +1,53 @@
+---
+description: Project overview, stack, and architecture principles for prisma-backend
+alwaysApply: true
+---
+
+# Project Overview
+
+Production-grade backend API:
+
+- **Node.js 22+**, **TypeScript (strict)**, **Express 5**
+- **Prisma ORM** + **PostgreSQL**
+- **JWT** auth, **Zod** validation, **Pino** logging
+- **Jest** + **Supertest**, **Docker**
+- Frontend: `../angular-v22` (Angular 22)
+
+## Actual structure (preserve this)
+
+```
+src/
+  app.ts, server.ts, routes.ts
+  config/          # env, logger, prisma, cors
+  middlewares/     # auth, validate, rate-limit, errors
+  modules/<feature>/
+    *.routes.ts, *.controller.ts, *.service.ts, *.validation.ts
+  shared/          # errors, utils, constants, types
+  docs/            # Swagger
+  tests/
+prisma/schema.prisma, prisma/migrations/
+```
+
+## Layer flow
+
+```
+routes → rateLimit → validate → authenticate → authorize → controller → service → Prisma
+```
+
+## General rules
+
+- Read existing code before modifying; keep changes minimal
+- Never break public `/api/v1` APIs without versioning
+- Never introduce new libraries unless explicitly requested
+- Follow SOLID; prefer composition; small functions; early returns
+- Business logic in **services** only; controllers stay thin
+- Never remove existing features; never disable TS/lint errors
+
+## Cursor behavior
+
+1. Read relevant files first
+2. Match existing patterns in the same module
+3. Minimize diff scope
+4. Verify: TypeScript builds, tests pass, Prisma client compiles
+
+If unsure about architecture changes, ask first.

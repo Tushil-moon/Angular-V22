@@ -1,0 +1,34 @@
+---
+description: Zod request validation at the HTTP boundary
+globs: src/modules/**/*.validation.ts,src/middlewares/validate.ts
+alwaysApply: false
+---
+
+# Validation
+
+All input validated with **Zod** before reaching services.
+
+## Where
+
+- Schemas in `modules/<feature>/*.validation.ts`
+- Applied in routes: `validate({ body, params, query })`
+
+## Rules
+
+- Never trust `req.body`, `req.query`, or `req.params` without parsing
+- Use `z.coerce.number()` for numeric query params
+- Reject unknown keys when appropriate (`z.object({...}).strict()`)
+- Share reusable schemas (email, password, uuid, pagination)
+- Validation runs **before** `authenticate` on public routes; after auth when body depends on user
+
+## Password schema (this project)
+
+Min 10 chars, upper, lower, number, symbol — match existing auth validation.
+
+## Errors
+
+Zod failures are handled globally as `400 VALIDATION_ERROR` with `issues` array — do not catch ZodError in controllers.
+
+```typescript
+router.post("/", validate({ body: createSchema }), controller.create);
+```

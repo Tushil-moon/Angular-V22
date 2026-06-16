@@ -1,0 +1,39 @@
+---
+description: Structured logging with Pino
+globs: src/config/logger.ts,src/**/*.ts
+alwaysApply: false
+---
+
+# Logging
+
+Use **Pino** via `config/logger.ts` and `pino-http` — never `console.log`.
+
+## Log levels
+
+- `info` — startup, shutdown, successful operations
+- `warn` — auth failures, rate limit approaches
+- `error` — unhandled exceptions, DB failures
+
+## Structured fields
+
+```typescript
+logger.error({ err: error, path: req.originalUrl }, "Unhandled request error");
+logger.info({ userId, action: "login" }, "User logged in");
+```
+
+## Never log
+
+- Passwords, refresh tokens, access tokens, OTP codes
+- Full request bodies on auth endpoints
+- PII unless required and redacted
+
+## Request context
+
+`pino-http` attaches request logging automatically. Add `requestId` / correlation id if introduced later via middleware.
+
+## Audit vs application logs
+
+- **AuditLog** table — compliance/security events (login, role change)
+- **Pino** — operational debugging and errors
+
+Do not duplicate audit events only in logs without DB record for security actions.

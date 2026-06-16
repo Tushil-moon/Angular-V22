@@ -1,0 +1,38 @@
+---
+description: RBAC authorization and permission checks
+globs: src/middlewares/authorize.ts,src/modules/roles/**/*,src/shared/constants/roles.ts
+alwaysApply: false
+---
+
+# Authorization
+
+## Route level
+
+Use `authorize(...roleNames)` **after** `authenticate`:
+
+```typescript
+router.post("/", authenticate, authorize("admin"), controller.create);
+```
+
+Default **deny** — explicit role required.
+
+## Service level
+
+Re-check authorization for IDOR-sensitive operations:
+
+- Users can read/update self unless admin
+- Role assignment requires admin
+- Session revoke: own sessions or admin
+
+Never rely on route-level auth alone when `:id` params can be tampered.
+
+## Roles & permissions
+
+- Roles via `UserRole`; permissions via `RolePermission`
+- Use constants from `shared/constants/roles.ts`
+- Return `403 FORBIDDEN` with stable `code`, not generic 401
+
+## Never
+
+- Encode permissions only in JWT without DB check for sensitive mutations
+- Expose other users' data when query omits ownership filter

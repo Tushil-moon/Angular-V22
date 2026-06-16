@@ -1,0 +1,38 @@
+---
+description: Git workflow and commit conventions
+alwaysApply: false
+---
+
+# Git
+
+## Rules
+
+- Do not commit unless explicitly asked by the user
+- Never commit `.env`, credentials, or `node_modules`
+- Never force-push `main`/`master` unless explicitly requested
+- Do not amend commits unless conditions in project git protocol are met
+
+## Commit messages
+
+- Complete sentences; focus on **why**
+- Examples: `fix auth race before session ready`, `add pagination to users list`
+
+## What to include in commits
+
+- Source changes
+- Prisma schema + migration SQL together
+- `.env.example` updates for new env vars
+
+## What to exclude
+
+- `dist/`, `coverage/`, generated artifacts (unless project policy says otherwise)
+- Local IDE settings
+
+## Branches
+
+- Feature branches off main
+- PR review before merge to production
+
+## Remote
+
+Project may be disconnected from remote — do not push unless user asks.

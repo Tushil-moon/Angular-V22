@@ -1,0 +1,36 @@
+---
+description: Service layer business logic rules
+globs: src/modules/**/*.service.ts
+alwaysApply: false
+---
+
+# Service Rules
+
+Services contain **all business logic**. They must not know Express `Request`/`Response`.
+
+## Responsibilities
+
+- Orchestrate Prisma queries and `$transaction`
+- Hash/verify passwords (Argon2), issue/revoke tokens
+- Enforce ownership and RBAC rules (IDOR prevention)
+- Write `auditLog` entries for security-sensitive actions
+- Throw `AppError(status, message, code, details?)`
+
+## Must not
+
+- Call `res.json()` or read HTTP headers directly (pass meta from controller)
+- Skip authorization checks for user-scoped resources
+- Return different shapes for the same operation across endpoints
+
+## Pattern
+
+```typescript
+async updateUser(actorId: string, targetId: string, data: UpdateInput, meta: RequestMeta) {
+  if (actorId !== targetId && !await this.isAdmin(actorId)) {
+    throw new AppError(403, "Forbidden", "FORBIDDEN");
+  }
+  return prisma.user.update({ where: { id: targetId }, data });
+}
+```
+
+Keep services focused per module (`auth.service.ts`, not a god service).

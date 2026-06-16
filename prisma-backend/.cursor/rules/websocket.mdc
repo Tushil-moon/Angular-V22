@@ -1,0 +1,26 @@
+---
+description: WebSocket realtime — not in project by default
+globs: src/**/*
+alwaysApply: false
+---
+
+# WebSocket
+
+**This project is REST-only (Express HTTP). No WebSocket/SSE implementation exists.**
+
+## Do not add unless requested
+
+- `socket.io`, `ws`, Server-Sent Events infrastructure
+
+## When realtime is needed
+
+- Authenticate socket connection with same JWT + session validation
+- Authorize per-room/per-resource
+- Rate limit connection and message events
+- Use separate namespace from REST error handling
+
+## Current alternative
+
+Clients poll REST endpoints or use frontend refresh (`resource.reload()` in Angular).
+
+Do not introduce WebSocket dependencies without explicit user request.
