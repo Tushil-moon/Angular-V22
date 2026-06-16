@@ -1,0 +1,39 @@
+---
+description: Snake_case API responses and response helpers
+globs: src/shared/utils/response.ts,src/shared/utils/snake-case.ts,src/middlewares/error-handler.ts
+alwaysApply: false
+---
+
+# API Response Serialization
+
+## Rule
+
+All JSON keys in successful `data` payloads and error `details` objects must be **snake_case**.
+
+## Implementation
+
+- `toSnakeCaseDeep()` in `src/shared/utils/snake-case.ts` recursively converts keys
+- `sendSuccess()` / `sendCreated()` in `src/shared/utils/response.ts` apply conversion automatically
+- `error-handler.ts` snake_cases `AppError.details`
+
+## Authoring code
+
+Write camelCase in services and mappers; never duplicate snake_case field names in application logic.
+
+```typescript
+// ✅ Service returns camelCase
+return { totalUsers, recentActivity, pageSize: query.pageSize };
+
+// ✅ Controller
+return sendSuccess(res, result);
+
+// ❌ Manual response bypassing helper
+res.json({ data: { access_token: token } });
+
+// ❌ Hand-built snake_case in services
+return { access_token: token };
+```
+
+## Tests
+
+Add or update unit tests when changing serialization (see `src/tests/snake-case.test.ts`).

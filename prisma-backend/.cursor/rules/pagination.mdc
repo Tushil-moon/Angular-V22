@@ -30,11 +30,20 @@ return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 
 ## Response shape
 
-Include in `data`:
+Include in `data` (serialized as snake_case over the wire):
 
 ```json
-{ "items": [], "total": 0, "page": 1, "limit": 20, "totalPages": 0 }
+{
+  "data": [],
+  "total": 0,
+  "page": 1,
+  "page_size": 20,
+  "total_pages": 0,
+  "has_more": false
+}
 ```
+
+Use `buildPaginationMeta()` — it returns camelCase internally; `sendSuccess` converts keys.
 
 ## Large datasets
 

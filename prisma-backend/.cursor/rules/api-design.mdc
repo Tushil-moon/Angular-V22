@@ -15,7 +15,27 @@ Base path: **`/api/v1`**
 { "success": false, "message": "...", "code": "ERROR_CODE", "details": { } }
 ```
 
-Use `sendSuccess` / `sendCreated` helpers only.
+Use `sendSuccess` / `sendCreated` helpers only. **Never** call `res.json()` directly for API payloads.
+
+## JSON key casing (required)
+
+**All keys inside `data` and error `details` must be snake_case** in HTTP responses.
+
+Examples: `email_verified`, `access_token`, `page_size`, `total_pages`, `has_more`, `expected_close_date`.
+
+- Internal TypeScript (services, mappers, Prisma) stays **camelCase**
+- Conversion happens centrally in `src/shared/utils/response.ts` via `toSnakeCaseDeep()`
+- Do **not** hand-serialize snake_case in controllers; return camelCase objects from services/mappers
+
+```typescript
+// Service / mapper (camelCase — OK)
+return { accessToken, refreshToken, user: mapUser(user) };
+
+// HTTP response (automatic)
+{ "success": true, "data": { "access_token": "...", "refresh_token": "...", "user": { "email_verified": true } } }
+```
+
+Top-level envelope keys stay lowercase single words: `success`, `message`, `code`, `data`, `details`, `errors`.
 
 ## HTTP verbs
 

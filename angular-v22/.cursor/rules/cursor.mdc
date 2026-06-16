@@ -59,6 +59,14 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
 
+## API response mapping
+
+- Backend JSON uses **snake_case** keys inside `data` (e.g. `email_verified`, `page_size`)
+- Frontend models and component state stay **camelCase**
+- Define raw payloads as `Api*Payload` in `src/app/utils/api-mappers.ts` with snake_case fields
+- Map API → UI only in `api-mappers.ts` (`mapApiUser`, `mapApiPaginated`, etc.); do not spread raw API objects into templates
+- Request query/body keys may remain camelCase unless the backend schema expects otherwise
+
 ## Angular v22 Features
 
 Use these APIs for new async, performance, and form work. Reference:

@@ -34,5 +34,6 @@ throw new AppError(409, "Email already exists", "EMAIL_EXISTS", { field: "email"
 - Catch and swallow errors in controllers
 - Return inconsistent error JSON shapes
 - Expose Prisma/SQL internals to clients
+- Put camelCase keys in API response bodies (use `sendSuccess` / `toSnakeCaseDeep`)
 
 Use stable `code` strings for frontend handling (`UNAUTHENTICATED`, `FORBIDDEN`, `CONFLICT`).
