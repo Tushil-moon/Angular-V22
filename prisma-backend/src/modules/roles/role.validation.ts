@@ -11,3 +11,7 @@ export const assignRoleSchema = z.object({
 });
 
 export const removeRoleSchema = assignRoleSchema;
+
+export type CreateRoleInput = z.infer<typeof createRoleSchema>;
+export type AssignRoleInput = z.infer<typeof assignRoleSchema>;
+export type RemoveRoleInput = z.infer<typeof removeRoleSchema>;

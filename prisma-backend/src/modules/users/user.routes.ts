@@ -4,12 +4,12 @@ import { authorize } from "../../middlewares/authorize";
 import { validate } from "../../middlewares/validate";
 import { Roles } from "../../shared/constants/roles";
 import * as controller from "./user.controller";
-import { createUserSchema, updateUserSchema, userIdParamSchema } from "./user.validation";
+import { createUserSchema, listUsersQuerySchema, updateUserSchema, userIdParamSchema } from "./user.validation";
 
 export const userRouter = Router();
 
 userRouter.get("/me", authenticate, controller.me);
-userRouter.get("/", authenticate, authorize(Roles.Admin), controller.listUsers);
+userRouter.get("/", authenticate, authorize(Roles.Admin), validate({ query: listUsersQuerySchema }), controller.listUsers);
 userRouter.post("/", authenticate, authorize(Roles.Admin), validate({ body: createUserSchema }), controller.createUser);
 userRouter.get(
   "/:id",

@@ -1,4 +1,5 @@
 import { prisma } from "../config/prisma";
+import { logger } from "../config/logger";
 import { Roles } from "../shared/constants/roles";
 
 const main = async () => {
@@ -31,7 +32,7 @@ main()
     await prisma.$disconnect();
   })
   .catch(async (error) => {
-    console.error(error);
+    logger.error({ err: error }, "Seed failed");
     await prisma.$disconnect();
     process.exit(1);
   });

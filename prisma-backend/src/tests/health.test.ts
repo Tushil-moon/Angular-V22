@@ -13,6 +13,10 @@ describe("health", () => {
     const response = await request(app).get("/api/v1/health");
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ success: true, message: "OK", database: "connected" });
+    expect(response.body).toEqual({
+      success: true,
+      message: "OK",
+      data: { database: "connected" },
+    });
   });
 });

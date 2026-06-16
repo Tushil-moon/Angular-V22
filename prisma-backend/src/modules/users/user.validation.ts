@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginationQuerySchema } from "../../shared/validation/pagination";
 
 export const createUserSchema = z.object({
   email: z.string().email(),
@@ -17,3 +18,11 @@ export const updateUserSchema = z.object({
 export const userIdParamSchema = z.object({
   id: z.string().uuid(),
 });
+
+export const listUsersQuerySchema = paginationQuerySchema.extend({
+  search: z.string().optional(),
+});
+
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;

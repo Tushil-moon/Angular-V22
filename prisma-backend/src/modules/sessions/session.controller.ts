@@ -1,39 +1,13 @@
-import { prisma } from "../../config/prisma";
 import { asyncHandler } from "../../shared/utils/async-handler";
 import { sendSuccess } from "../../shared/utils/response";
+import { sessionService } from "./session.service";
 
 export const listSessions = asyncHandler(async (req, res) => {
-  const sessions = await prisma.session.findMany({
-    where: { userId: req.user!.id },
-    orderBy: { lastActiveAt: "desc" },
-    select: {
-      id: true,
-      deviceId: true,
-      deviceName: true,
-      userAgent: true,
-      ipAddress: true,
-      createdAt: true,
-      lastActiveAt: true,
-      revokedAt: true,
-    },
-  });
-
-  return sendSuccess(res, sessions.map((session) => ({
-    ...session,
-    current: session.id === req.user!.sessionId,
-  })));
+  const sessions = await sessionService.listSessions(req.user!.id, req.user!.sessionId);
+  return sendSuccess(res, sessions);
 });
 
 export const revokeSession = asyncHandler(async (req, res) => {
-  const sessionId = String(req.params.id);
-
-  await prisma.session.updateMany({
-    where: { id: sessionId, userId: req.user!.id },
-    data: { revokedAt: new Date() },
-  });
-  await prisma.refreshToken.updateMany({
-    where: { sessionId, userId: req.user!.id, revokedAt: null },
-    data: { revokedAt: new Date() },
-  });
+  await sessionService.revokeSession(req.user!.id, String(req.params.id));
   return sendSuccess(res, null, "Session revoked");
 });
