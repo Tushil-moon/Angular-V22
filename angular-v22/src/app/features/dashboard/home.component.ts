@@ -47,7 +47,7 @@ import { DashboardPanelsComponent } from './dashboard-panels.component';
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         @if (!dashboardService.isLoading()) {
           @for (stat of stats(); track stat.label) {
             <app-card>

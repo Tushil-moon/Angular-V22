@@ -19,6 +19,8 @@ const relativeTime = (date: Date) => {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 };
 
+const openDealStages = ["LEAD", "QUALIFIED", "PROPOSAL", "NEGOTIATION"] as const;
+
 export const dashboardService = {
   async getStats(userId: string, roles: string[]) {
     const isAdmin = roles.includes(Roles.Admin);
@@ -28,10 +30,18 @@ export const dashboardService = {
       ? prisma.user.count({ where: { deletedAt: null } })
       : Promise.resolve(1);
     const totalRolesPromise = prisma.role.count();
+    const totalContactsPromise = prisma.contact.count({ where: { deletedAt: null } });
+    const openDealsPromise = prisma.deal.count({
+      where: { deletedAt: null, stage: { in: [...openDealStages] } },
+    });
+    const pipelineValuePromise = prisma.deal.aggregate({
+      where: { deletedAt: null, stage: { in: [...openDealStages] } },
+      _sum: { value: true },
+    });
     const recentLogsPromise = prisma.auditLog.findMany({
       where: isAdmin ? undefined : { userId },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 3,
       select: {
         id: true,
         action: true,
@@ -39,30 +49,100 @@ export const dashboardService = {
         user: { select: { email: true } },
       },
     });
+    const recentCrmPromise = prisma.activity.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: {
+        id: true,
+        type: true,
+        subject: true,
+        createdAt: true,
+        user: { select: { email: true } },
+        contact: { select: { firstName: true, lastName: true } },
+        deal: { select: { title: true } },
+      },
+    });
+    const pipelinePromise = prisma.deal.groupBy({
+      by: ["stage"],
+      where: { deletedAt: null, stage: { in: [...openDealStages] } },
+      _count: { _all: true },
+      _sum: { value: true },
+    });
     const databasePromise = prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false);
 
-    const [activeSessions, totalUsers, totalRoles, recentLogs, databaseOk] = await Promise.all([
+    const [
+      activeSessions,
+      totalUsers,
+      totalRoles,
+      totalContacts,
+      openDeals,
+      pipelineValueAgg,
+      recentLogs,
+      recentCrm,
+      pipelineGroups,
+      databaseOk,
+    ] = await Promise.all([
       activeSessionsPromise,
       totalUsersPromise,
       totalRolesPromise,
+      totalContactsPromise,
+      openDealsPromise,
+      pipelineValuePromise,
       recentLogsPromise,
+      recentCrmPromise,
+      pipelinePromise,
       databasePromise,
     ]);
+
+    const auditActivity = recentLogs.map((log) => ({
+      id: `audit-${log.id}`,
+      action: formatAction(log.action),
+      description: log.user?.email
+        ? `${log.user.email} · ${log.action.toLowerCase().replaceAll("_", " ")}`
+        : log.action.toLowerCase().replaceAll("_", " "),
+      time: relativeTime(log.createdAt),
+      createdAt: log.createdAt,
+    }));
+
+    const crmActivity = recentCrm.map((item) => {
+      const context = item.deal?.title
+        ? item.deal.title
+        : item.contact
+          ? `${item.contact.firstName} ${item.contact.lastName}`.trim()
+          : "CRM";
+      return {
+        id: item.id,
+        action: `${item.type.charAt(0)}${item.type.slice(1).toLowerCase()}: ${item.subject}`,
+        description: `${item.user.email ?? "User"} · ${context}`,
+        time: relativeTime(item.createdAt),
+        createdAt: item.createdAt,
+      };
+    });
+
+    const recentActivity = [...crmActivity, ...auditActivity]
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, 6)
+      .map(({ id, action, description, time }) => ({ id, action, description, time }));
+
+    const pipeline = openDealStages.map((stage) => {
+      const row = pipelineGroups.find((g) => g.stage === stage);
+      return {
+        stage,
+        count: row?._count._all ?? 0,
+        value: Number(row?._sum.value ?? 0),
+      };
+    });
 
     return {
       totalUsers,
       totalRoles,
       activeSessions,
       systemHealth: databaseOk ? 100 : 0,
-      recentActivity: recentLogs.map((log) => ({
-        id: log.id,
-        action: formatAction(log.action),
-        description: log.user?.email
-          ? `${log.user.email} · ${log.action.toLowerCase().replaceAll("_", " ")}`
-          : log.action.toLowerCase().replaceAll("_", " "),
-        time: relativeTime(log.createdAt),
-        createdAt: log.createdAt,
-      })),
+      totalContacts,
+      openDeals,
+      pipelineValue: Number(pipelineValueAgg._sum.value ?? 0),
+      pipeline,
+      recentActivity,
     };
   },
 };

@@ -2,3 +2,4 @@
 export * from './auth.model';
 export * from './rbac.model';
 export * from './common.model';
+export * from './crm.model';

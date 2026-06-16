@@ -14,6 +14,10 @@ const EMPTY_STATS: DashboardStats = {
   totalRoles: 0,
   activeSessions: 0,
   systemHealth: 0,
+  totalContacts: 0,
+  openDeals: 0,
+  pipelineValue: 0,
+  pipeline: [],
   recentActivity: [],
 };
 

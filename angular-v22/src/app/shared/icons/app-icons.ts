@@ -2,11 +2,14 @@ import type { Provider } from '@angular/core';
 import {
   LucideActivity,
   LucideBell,
+  LucideBriefcase,
   LucideCheck,
   LucideChevronDown,
   LucideChevronRight,
   LucideChevronsUpDown,
   LucideCircleAlert,
+  LucideCircleDollarSign,
+  LucideContactRound,
   LucideEye,
   LucideEllipsisVertical,
   LucideLayoutDashboard,
@@ -52,6 +55,9 @@ export const APP_ICON_NAMES = [
   'moon',
   'trash-2',
   'eye',
+  'contact-round',
+  'briefcase',
+  'circle-dollar-sign',
 ] as const;
 
 export type IconName = (typeof APP_ICON_NAMES)[number];
@@ -80,6 +86,9 @@ const APP_LUCIDE_ICONS = [
   LucideMoon,
   LucideTrash2,
   LucideEye,
+  LucideContactRound,
+  LucideBriefcase,
+  LucideCircleDollarSign,
 ] as const;
 
 /** Registers all app icons for dynamic `lucideIcon` usage by name. */

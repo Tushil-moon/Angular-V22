@@ -84,6 +84,50 @@ export const createRoleSchema = z.object({
   description: z.string().max(200).optional(),
 });
 
+export const contactStatusSchema = z.enum(['LEAD', 'PROSPECT', 'CUSTOMER', 'INACTIVE']);
+
+export const createContactSchema = z.object({
+  firstName: z.string().trim().min(1, 'First name is required').max(100),
+  lastName: z.string().trim().min(1, 'Last name is required').max(100),
+  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  phone: z.string().max(30).optional(),
+  company: z.string().max(150).optional(),
+  jobTitle: z.string().max(100).optional(),
+  status: contactStatusSchema.optional(),
+  notes: z.string().max(5000).optional(),
+});
+
+export const updateContactSchema = createContactSchema.partial();
+
+export const dealStageSchema = z.enum([
+  'LEAD',
+  'QUALIFIED',
+  'PROPOSAL',
+  'NEGOTIATION',
+  'WON',
+  'LOST',
+]);
+
+export const createDealSchema = z.object({
+  title: z.string().trim().min(1, 'Title is required').max(200),
+  value: z.coerce.number().nonnegative('Value must be zero or greater'),
+  currency: z.string().length(3).default('USD'),
+  stage: dealStageSchema.optional(),
+  contactId: z.string().uuid().optional().or(z.literal('')),
+  expectedCloseDate: z.string().optional(),
+  description: z.string().max(5000).optional(),
+});
+
+export const updateDealSchema = createDealSchema.partial();
+
+export const activityTypeSchema = z.enum(['NOTE', 'CALL', 'EMAIL', 'MEETING', 'TASK']);
+
+export const createActivitySchema = z.object({
+  type: activityTypeSchema.optional(),
+  subject: z.string().trim().min(1, 'Subject is required').max(200),
+  body: z.string().max(5000).optional(),
+});
+
 /**
  * Type exports
  */
@@ -95,6 +139,11 @@ export type UserCreateInput = z.infer<typeof userCreateSchema>;
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type CreateRoleInput = z.infer<typeof createRoleSchema>;
+export type CreateContactInput = z.infer<typeof createContactSchema>;
+export type UpdateContactInput = z.infer<typeof updateContactSchema>;
+export type CreateDealInput = z.infer<typeof createDealSchema>;
+export type UpdateDealInput = z.infer<typeof updateDealSchema>;
+export type CreateActivityInput = z.infer<typeof createActivitySchema>;
 
 /**
  * Validate function helper

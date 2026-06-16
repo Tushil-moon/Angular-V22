@@ -50,6 +50,30 @@ enum AuditAction {
   ACCOUNT_LOCKED
 }
 
+enum ContactStatus {
+  LEAD
+  PROSPECT
+  CUSTOMER
+  INACTIVE
+}
+
+enum DealStage {
+  LEAD
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum ActivityType {
+  NOTE
+  CALL
+  EMAIL
+  MEETING
+  TASK
+}
+
 model User {
   id                  String      @id @default(uuid())
   email               String?     @unique
@@ -72,6 +96,9 @@ model User {
   otpCodes           OtpCode[]
   verificationTokens VerificationToken[]
   auditLogs          AuditLog[]
+  ownedContacts      Contact[]  @relation("ContactOwner")
+  ownedDeals         Deal[]     @relation("DealOwner")
+  activities         Activity[]
 
   @@index([status])
   @@map("users")
@@ -225,4 +252,73 @@ model AuditLog {
   @@index([userId])
   @@index([action])
   @@map("audit_logs")
+}
+
+model Contact {
+  id        String        @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  company   String?
+  jobTitle  String?
+  status    ContactStatus @default(LEAD)
+  ownerId   String?
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+
+  owner      User?      @relation("ContactOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  deals      Deal[]
+  activities Activity[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([email])
+  @@map("contacts")
+}
+
+model Deal {
+  id                String    @id @default(uuid())
+  title             String
+  value             Decimal   @db.Decimal(15, 2)
+  currency          String    @default("USD")
+  stage             DealStage @default(LEAD)
+  contactId         String?
+  ownerId           String?
+  expectedCloseDate DateTime?
+  description       String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+
+  contact    Contact?   @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  owner      User?      @relation("DealOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  activities Activity[]
+
+  @@index([ownerId])
+  @@index([contactId])
+  @@index([stage])
+  @@map("deals")
+}
+
+model Activity {
+  id        String       @id @default(uuid())
+  type      ActivityType @default(NOTE)
+  subject   String
+  body      String?
+  contactId String?
+  dealId    String?
+  userId    String
+  createdAt DateTime     @default(now())
+
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
+  @@index([dealId])
+  @@index([userId])
+  @@map("activities")
 }

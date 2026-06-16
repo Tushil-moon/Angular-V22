@@ -17,7 +17,8 @@ import {
   IconComponent,
   SeparatorComponent,
 } from '@shared/components';
-import { ACTIVITY_SKELETON_COUNT, QUICK_LINKS } from '@shared/config/dashboard.config';
+import { ACTIVITY_SKELETON_COUNT, QUICK_LINKS, formatPipelineStageLabel } from '@shared/config/dashboard.config';
+import { formatDealValue } from '@shared/config/deals-table.config';
 
 @Component({
   selector: 'app-dashboard-panels',
@@ -34,7 +35,33 @@ import { ACTIVITY_SKELETON_COUNT, QUICK_LINKS } from '@shared/config/dashboard.c
     SeparatorComponent,
   ],
   template: `
-    <div class="grid gap-4 lg:grid-cols-7">
+    <app-card class="lg:col-span-7">
+      <app-card-header>
+        <app-card-title>Sales pipeline</app-card-title>
+        <app-card-description>Open deals by stage</app-card-description>
+      </app-card-header>
+      <app-card-body>
+        @if (dashboardService.isLoading()) {
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            @for (_ of pipelineSkeletonItems; track $index) {
+              <app-skeleton className="h-20 w-full rounded-lg" />
+            }
+          </div>
+        } @else {
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            @for (stage of pipeline(); track stage.stage) {
+              <div class="rounded-lg border border-border bg-muted/30 p-4">
+                <p class="text-xs font-medium text-muted-foreground">{{ formatStage(stage.stage) }}</p>
+                <p class="mt-2 text-2xl font-bold tracking-tight">{{ stage.count }}</p>
+                <p class="mt-1 text-xs text-muted-foreground">{{ formatValue(stage.value) }}</p>
+              </div>
+            }
+          </div>
+        }
+      </app-card-body>
+    </app-card>
+
+    <div class="grid gap-4 lg:col-span-7 lg:grid-cols-7">
       <app-card class="lg:col-span-4">
         <app-card-header>
           <app-card-title>Recent activity</app-card-title>
@@ -132,10 +159,14 @@ export class DashboardPanelsComponent {
 
   readonly quickLinks = QUICK_LINKS;
   readonly activitySkeletonItems = Array.from({ length: ACTIVITY_SKELETON_COUNT }, (_, i) => i);
+  readonly pipelineSkeletonItems = Array.from({ length: 4 }, (_, i) => i);
+  readonly formatStage = formatPipelineStageLabel;
+  readonly formatValue = formatDealValue;
 
   userEmail = computed(() => this.authService.currentUser()?.email ?? '');
 
   recentActivities = computed(() => this.dashboardService.stats()?.recentActivity ?? []);
+  pipeline = computed(() => this.dashboardService.stats()?.pipeline ?? []);
 
   showWelcomeToast(): void {
     this.toastService.show({

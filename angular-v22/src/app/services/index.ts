@@ -10,3 +10,6 @@ export * from './sidebar.service';
 export * from './theme.service';
 export * from './dialog.service';
 export * from './session.service';
+export * from './contact.service';
+export * from './deal.service';
+export * from './activity.service';

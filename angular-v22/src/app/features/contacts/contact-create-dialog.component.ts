@@ -1,0 +1,169 @@
+/**
+ * Contact Create Dialog
+ */
+
+import { Component, inject, signal } from '@angular/core';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ContactService } from '@services/index';
+import { ToastService } from '@services/toast.service';
+import {
+  DialogComponent,
+  ButtonComponent,
+  InputComponent,
+  LoaderComponent,
+} from '@shared/components';
+import { DialogRef } from '@shared/dialog';
+import { CONTACT_STATUS_LABELS, ContactStatus } from '@models/index';
+import { createContactSchema, safeValidate } from '@utils/validators';
+
+export type ContactCreateDialogResult = 'created';
+
+const STATUS_OPTIONS = Object.entries(CONTACT_STATUS_LABELS) as [ContactStatus, string][];
+
+@Component({
+  selector: 'app-contact-create-dialog',
+  host: { class: 'contents' },
+  imports: [ReactiveFormsModule, DialogComponent, ButtonComponent, InputComponent, LoaderComponent],
+  template: `
+    <app-dialog title="Add contact" description="Create a new CRM contact.">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <app-input
+            id="contact-first-name"
+            label="First name"
+            formControlName="firstName"
+            [error]="fieldError('firstName')"
+            [required]="true"
+          />
+          <app-input
+            id="contact-last-name"
+            label="Last name"
+            formControlName="lastName"
+            [error]="fieldError('lastName')"
+            [required]="true"
+          />
+        </div>
+        <app-input
+          id="contact-email"
+          type="email"
+          label="Email"
+          formControlName="email"
+          [error]="fieldError('email')"
+        />
+        <app-input
+          id="contact-phone"
+          label="Phone"
+          formControlName="phone"
+          [error]="fieldError('phone')"
+        />
+        <app-input
+          id="contact-company"
+          label="Company"
+          formControlName="company"
+          [error]="fieldError('company')"
+        />
+        <app-input
+          id="contact-job-title"
+          label="Job title"
+          formControlName="jobTitle"
+          [error]="fieldError('jobTitle')"
+        />
+        <div class="form-group">
+          <label for="contact-status" class="form-label">Status</label>
+          <select id="contact-status" class="input" formControlName="status">
+            @for (option of statusOptions; track option[0]) {
+              <option [value]="option[0]">{{ option[1] }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="contact-notes" class="form-label">Notes</label>
+          <textarea id="contact-notes" class="input min-h-24 resize-y" formControlName="notes"></textarea>
+        </div>
+      </form>
+
+      <div dialogFooter class="flex justify-end gap-2">
+        <app-button variant="outline" type="button" (clicked)="close()">Cancel</app-button>
+        <app-button type="button" [disabled]="isSubmitting()" (clicked)="onSubmit()">
+          @if (isSubmitting()) {
+            <app-loader size="sm" [inline]="true" />
+          } @else {
+            Create contact
+          }
+        </app-button>
+      </div>
+    </app-dialog>
+  `,
+})
+export class ContactCreateDialogComponent {
+  private readonly contactService = inject(ContactService);
+  private readonly toastService = inject(ToastService);
+  private readonly fb = inject(NonNullableFormBuilder);
+  private readonly dialogRef = inject(DialogRef<ContactCreateDialogComponent, ContactCreateDialogResult>);
+
+  readonly statusOptions = STATUS_OPTIONS;
+
+  form = this.fb.group({
+    firstName: ['', Validators.required],
+    lastName: ['', Validators.required],
+    email: [''],
+    phone: [''],
+    company: [''],
+    jobTitle: [''],
+    status: ['LEAD' as ContactStatus],
+    notes: [''],
+  });
+
+  fieldErrors = signal<Record<string, string[]>>({});
+  isSubmitting = signal(false);
+
+  close(): void {
+    this.dialogRef.close();
+  }
+
+  fieldError(field: string): string | null {
+    return this.fieldErrors()[field]?.[0] ?? null;
+  }
+
+  async onSubmit(): Promise<void> {
+    const raw = this.form.getRawValue();
+    const payload = {
+      firstName: raw.firstName.trim(),
+      lastName: raw.lastName.trim(),
+      email: raw.email.trim() || undefined,
+      phone: raw.phone.trim() || undefined,
+      company: raw.company.trim() || undefined,
+      jobTitle: raw.jobTitle.trim() || undefined,
+      status: raw.status,
+      notes: raw.notes.trim() || undefined,
+    };
+
+    const validation = safeValidate(createContactSchema, payload);
+    if (!validation.success) {
+      this.fieldErrors.set(validation.errors ?? {});
+      return;
+    }
+
+    this.fieldErrors.set({});
+    this.isSubmitting.set(true);
+
+    try {
+      const contact = await this.contactService.createContact(validation.data!);
+      if (contact) {
+        this.toastService.show({
+          title: 'Contact created',
+          description: `${contact.fullName} has been added.`,
+        });
+        this.dialogRef.close('created');
+      }
+    } catch {
+      this.toastService.show({
+        title: 'Failed to create contact',
+        description: 'Please check the details and try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      this.isSubmitting.set(false);
+    }
+  }
+}

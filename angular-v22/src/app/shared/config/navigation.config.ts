@@ -17,6 +17,8 @@ export interface ProfileMenuItem {
 
 export const PLATFORM_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', route: '/dashboard', icon: 'layout-dashboard' },
+  { label: 'Contacts', route: '/dashboard/contacts', icon: 'contact-round' },
+  { label: 'Deals', route: '/dashboard/deals', icon: 'briefcase' },
   { label: 'Users', route: '/dashboard/users', icon: 'users' },
   { label: 'Roles & Permissions', route: '/dashboard/roles', icon: 'shield' },
   { label: 'Settings', route: '/dashboard/settings', icon: 'settings' },
@@ -29,6 +31,8 @@ export const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
 ];
 
 export const PAGE_TITLES: Record<string, string> = {
+  contacts: 'Contacts',
+  deals: 'Deals',
   users: 'Users',
   roles: 'Roles & Permissions',
   settings: 'Settings',
@@ -36,6 +40,8 @@ export const PAGE_TITLES: Record<string, string> = {
 };
 
 export function resolvePageTitle(url: string): string {
+  if (url.includes('/contacts')) return PAGE_TITLES['contacts'];
+  if (url.includes('/deals')) return PAGE_TITLES['deals'];
   if (url.includes('/users')) return PAGE_TITLES['users'];
   if (url.includes('/roles')) return PAGE_TITLES['roles'];
   if (url.includes('/settings')) return PAGE_TITLES['settings'];
