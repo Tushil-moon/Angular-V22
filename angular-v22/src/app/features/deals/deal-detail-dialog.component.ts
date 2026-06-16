@@ -99,7 +99,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
                 <p class="text-sm text-muted-foreground">
                   {{ item.contact?.fullName || 'No linked contact' }}
                   @if (item.contact?.company) {
-                    · {{ item.contact?.company }}
+                    · {{ item.contact.company }}
                   }
                 </p>
               </div>
@@ -296,7 +296,7 @@ export class DealDetailDialogComponent implements OnInit {
 
     this.isSubmitting.set(true);
     try {
-      const updated = await this.dealService.updateDeal(item.id, validation.data!);
+      const updated = await this.dealService.updateDeal(item.id, validation.data ?? undefined);
       if (updated) {
         this.deal.set(updated);
         this.toastService.show({ title: 'Deal updated', description: updated.title });
