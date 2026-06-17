@@ -29,7 +29,7 @@ import { DOCUMENT } from '@angular/common';
       </div>
 
       @if (open()) {
-        <div class="dropdown-content animate-fadeIn" [class]="alignClass()" role="menu">
+        <div class="dropdown-content" [class]="alignClass()" role="menu">
           <ng-content select="[dropdownContent]"></ng-content>
         </div>
       }

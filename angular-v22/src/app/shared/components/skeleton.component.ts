@@ -1,16 +1,17 @@
 /**
- * Skeleton Component — shadcn-style loading placeholder
+ * Skeleton Component — shadcn-style shimmer placeholder
  */
 
-import { Component, computed, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-skeleton',
-  host: { class: 'block' },
-  template: `<div [class]="skeletonClass()"></div>`,
+  host: {
+    class: 'skeleton block min-w-0',
+    '[class]': 'className()',
+  },
+  template: ``,
 })
 export class SkeletonComponent {
   className = input('');
-
-  skeletonClass = computed(() => `animate-pulse rounded-md bg-muted ${this.className()}`.trim());
 }

@@ -46,7 +46,7 @@ const EMPTY_PAGE: CompaniesPageResult = { companies: [], total: 0 };
     SavedViewSelectComponent,
   ],
   template: `
-    <div class="page-shell">
+    <div class="page-shell page-shell-fill">
       <div class="page-toolbar">
         <div class="page-header">
           <h1 class="page-title">Companies</h1>
@@ -58,7 +58,7 @@ const EMPTY_PAGE: CompaniesPageResult = { companies: [], total: 0 };
         <p class="text-sm text-destructive">{{ loadError() }}</p>
       }
 
-      <app-card>
+      <app-card [fill]="true">
         <app-card-header [row]="true">
           <div class="min-w-0 space-y-1">
             <app-card-title>All companies</app-card-title>
@@ -79,9 +79,10 @@ const EMPTY_PAGE: CompaniesPageResult = { companies: [], total: 0 };
           </div>
         </app-card-header>
 
-        <app-card-body [flush]="true">
+        <app-card-body [flush]="true" [fill]="true">
           <app-flex-table
             [columns]="columns"
+            [fill]="true"
             [loading]="isLoading()"
             [empty]="!isLoading() && companies().length === 0"
             emptyTitle="No companies found"

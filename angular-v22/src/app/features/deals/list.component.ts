@@ -18,6 +18,8 @@ import {
   FlexTableRowComponent,
   FlexTableCellComponent,
   BadgeComponent,
+  FilterSelectComponent,
+  SelectOption,
 } from '@shared/components';
 import { SavedViewSelectComponent } from '@shared/components/saved-view-select.component';
 import { TagBadgesComponent } from '@shared/components/tag-badges.component';
@@ -58,11 +60,12 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
     FlexTableRowComponent,
     FlexTableCellComponent,
     BadgeComponent,
+    FilterSelectComponent,
     SavedViewSelectComponent,
     TagBadgesComponent,
   ],
   template: `
-    <div class="page-shell">
+    <div class="page-shell page-shell-fill">
       <div class="page-toolbar">
         <div class="page-header">
           <h1 class="page-title">Deals</h1>
@@ -91,19 +94,20 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
         <p class="text-sm text-destructive">{{ loadError() }}</p>
       }
 
-      <app-card>
+      <app-card [fill]="true">
         <app-card-header [row]="true">
           <div class="min-w-0 space-y-1">
             <app-card-title>Pipeline</app-card-title>
             <app-card-description>{{ totalDeals() }} total deals</app-card-description>
           </div>
           <div class="card-toolbar">
-            <select class="select" [value]="stageFilter()" (change)="onStageFilter($event)">
-              <option value="">All stages</option>
-              @for (stage of stageOptions; track stage) {
-                <option [value]="stage">{{ formatStage(stage) }}</option>
-              }
-            </select>
+            <app-filter-select
+              [value]="stageFilter()"
+              [options]="stageFilterOptions"
+              placeholder="All stages"
+              ariaLabel="Filter by deal stage"
+              (valueChange)="onStageFilterValue($event)"
+            />
             <app-saved-view-select
               entityType="DEALS"
               [currentFilters]="activeFilters()"
@@ -118,9 +122,10 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
           </div>
         </app-card-header>
 
-        <app-card-body [flush]="true">
+        <app-card-body [flush]="true" [fill]="true">
           <app-flex-table
             [columns]="columns"
+            [fill]="true"
             [loading]="isLoading()"
             [empty]="!isLoading() && deals().length === 0"
             emptyTitle="No deals found"
@@ -193,6 +198,11 @@ export class DealsListComponent {
     'LOST',
   ];
 
+  readonly stageFilterOptions: SelectOption[] = [
+    { value: '', label: 'All stages' },
+    ...this.stageOptions.map((stage) => ({ value: stage, label: this.formatStage(stage) })),
+  ];
+
   searchQuery = signal('');
   stageFilter = signal('');
   savedFilters = signal<Record<string, unknown>>({});
@@ -245,8 +255,7 @@ export class DealsListComponent {
     this.currentPage.set(1);
   }
 
-  onStageFilter(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onStageFilterValue(value: string): void {
     this.stageFilter.set(value);
     this.currentPage.set(1);
   }

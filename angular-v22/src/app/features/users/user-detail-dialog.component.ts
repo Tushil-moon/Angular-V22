@@ -14,9 +14,11 @@ import {
   IconComponent,
   InputComponent,
   CheckboxComponent,
+  BadgeComponent,
   DropdownMenuComponent,
   DropdownItemComponent,
 } from '@shared/components';
+import type { BadgeVariant } from '@shared/components/badge.component';
 import { DIALOG_DATA, DialogRef } from '@shared/dialog';
 import { User } from '@models/index';
 import { userUpdateSchema, safeValidate } from '@utils/validators';
@@ -42,18 +44,25 @@ type DialogMode = 'view' | 'edit' | 'delete';
     IconComponent,
     InputComponent,
     CheckboxComponent,
+    BadgeComponent,
     DropdownMenuComponent,
     DropdownItemComponent,
   ],
   template: `
-    <app-dialog [title]="dialogTitle()" [description]="dialogDescription()">
+    <app-dialog
+      [title]="dialogTitle()"
+      [description]="dialogDescription()"
+      size="lg"
+      [showFooter]="footerVisible()"
+    >
       @if (mode() === 'delete') {
         <p class="text-sm text-muted-foreground">
-          Are you sure you want to delete
+          Delete
           <span class="font-medium text-foreground">{{ selectedUser()?.email }}</span>?
+          This user will lose access immediately and cannot be restored.
         </p>
       } @else if (isLoading()) {
-        <div class="flex justify-center py-8">
+        <div class="dialog-loading">
           <app-loader />
         </div>
       } @else if (selectedUser(); as user) {
@@ -65,6 +74,7 @@ type DialogMode = 'view' | 'edit' | 'delete';
               label="Email"
               formControlName="email"
               [error]="fieldError('email')"
+              [required]="true"
             />
             <app-input
               id="edit-phone"
@@ -77,12 +87,15 @@ type DialogMode = 'view' | 'edit' | 'delete';
           </form>
         } @else {
           <div class="space-y-6">
-            <div class="flex items-center gap-4">
-              <app-avatar [fallback]="getUserInitials(user)" size="lg" />
-              <div class="space-y-1">
-                <p class="text-sm font-medium text-foreground">{{ getUserDisplayName(user) }}</p>
-                <p class="text-sm text-muted-foreground">{{ user.email }}</p>
+            <div class="dialog-profile-header">
+              <div class="flex min-w-0 items-center gap-4">
+                <app-avatar [fallback]="getUserInitials(user)" size="lg" />
+                <div class="min-w-0 space-y-1">
+                  <p class="truncate text-lg font-semibold text-foreground">{{ getUserDisplayName(user) }}</p>
+                  <p class="truncate text-sm text-muted-foreground">{{ user.email }}</p>
+                </div>
               </div>
+              <app-badge [variant]="accountStatusVariant(user)">{{ accountStatusLabel(user) }}</app-badge>
             </div>
 
             <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -90,8 +103,8 @@ type DialogMode = 'view' | 'edit' | 'delete';
                 <div class="space-y-1">
                   <dt class="text-xs font-medium text-muted-foreground">{{ field.label }}</dt>
                   <dd>
-                    @if (field.type === 'badge') {
-                      <span [class]="field.badgeClass">{{ field.value }}</span>
+                    @if (field.type === 'badge' && field.badgeVariant) {
+                      <app-badge [variant]="field.badgeVariant">{{ field.value }}</app-badge>
                     } @else {
                       <span class="text-sm text-foreground">{{ field.value }}</span>
                     }
@@ -100,53 +113,76 @@ type DialogMode = 'view' | 'edit' | 'delete';
               }
             </dl>
 
-            <div class="space-y-3">
+            <div class="dialog-roles-section">
               <div class="flex items-center justify-between gap-2">
-                <p class="text-sm font-medium">Roles</p>
+                <div class="space-y-0.5">
+                  <p class="text-sm font-medium text-foreground">Roles</p>
+                  <p class="text-xs text-muted-foreground">Manage permissions for this account</p>
+                </div>
                 <app-dropdown-menu align="end">
-                  <button dropdownTrigger type="button" class="dashboard-role-trigger">
+                  <button
+                    dropdownTrigger
+                    type="button"
+                    class="btn btn-outline btn-sm inline-flex items-center gap-2"
+                    [disabled]="isRoleUpdating() || assignableRoles().length === 0"
+                  >
                     Assign role
                     <app-icon name="chevron-down" [size]="14" className="text-muted-foreground" />
                   </button>
                   <div dropdownContent>
-                    @for (role of availableRoles(); track role.id) {
+                    @for (role of assignableRoles(); track role.id) {
                       <app-dropdown-item (itemClick)="assignRole(role.name)">
                         {{ role.name }}
                       </app-dropdown-item>
+                    } @empty {
+                      <app-dropdown-item [disabled]="true">All roles assigned</app-dropdown-item>
                     }
                   </div>
                 </app-dropdown-menu>
               </div>
-              <div class="flex flex-wrap gap-2">
-                @for (role of user.roles ?? []; track role.name) {
-                  <span class="badge badge-secondary inline-flex items-center gap-1">
-                    {{ role.name }}
-                    <button
-                      type="button"
-                      class="rounded-sm p-0.5 hover:bg-muted"
-                      (click)="removeRole(role.name)"
-                      aria-label="Remove {{ role.name }}"
-                    >
-                      <app-icon name="x" [size]="12" />
-                    </button>
-                  </span>
-                } @empty {
-                  <span class="text-sm text-muted-foreground">No roles assigned</span>
-                }
-              </div>
+
+              @if (isRoleUpdating()) {
+                <div class="flex justify-center py-2">
+                  <app-loader size="sm" />
+                </div>
+              } @else {
+                <div class="flex flex-wrap gap-2">
+                  @for (role of user.roles ?? []; track role.name) {
+                    <app-badge variant="secondary" class="dialog-role-badge">
+                      {{ role.name }}
+                      <button
+                        type="button"
+                        class="dialog-role-remove"
+                        (click)="removeRole(role.name)"
+                        [attr.aria-label]="'Remove ' + role.name"
+                      >
+                        <app-icon name="x" [size]="12" />
+                      </button>
+                    </app-badge>
+                  } @empty {
+                    <span class="text-sm text-muted-foreground">No roles assigned</span>
+                  }
+                </div>
+              }
             </div>
           </div>
         }
+      } @else {
+        <p class="text-sm text-muted-foreground">User not found or you do not have access.</p>
       }
 
-      <div dialogFooter class="flex justify-end gap-2">
-        @if (mode() === 'delete') {
+      <div dialogFooter>
+        @if (mode() === 'view' && selectedUser()) {
+          <app-button variant="outline" type="button" (clicked)="mode.set('delete')">Delete</app-button>
+          <app-button variant="outline" type="button" (clicked)="startEdit()">Edit</app-button>
+          <app-button type="button" (clicked)="close()">Close</app-button>
+        } @else if (mode() === 'delete') {
           <app-button variant="outline" type="button" (clicked)="mode.set('view')">Cancel</app-button>
           <app-button variant="destructive" type="button" [disabled]="isDeleting()" (clicked)="confirmDelete()">
             @if (isDeleting()) {
               <app-loader size="sm" [inline]="true" />
             } @else {
-              Confirm delete
+              Delete user
             }
           </app-button>
         } @else if (mode() === 'edit') {
@@ -157,21 +193,6 @@ type DialogMode = 'view' | 'edit' | 'delete';
             } @else {
               Save changes
             }
-          </app-button>
-        } @else {
-          <app-button variant="outline" type="button" (clicked)="close()">Close</app-button>
-          <app-button variant="outline" type="button" (clicked)="startEdit()">
-            <app-icon name="settings" [size]="14" />
-            Edit
-          </app-button>
-          <app-button
-            variant="destructive"
-            type="button"
-            [disabled]="!selectedUser()"
-            (clicked)="mode.set('delete')"
-          >
-            <app-icon name="trash-2" [size]="14" />
-            Delete
           </app-button>
         }
       </div>
@@ -191,9 +212,11 @@ export class UserDetailDialogComponent implements OnInit {
 
   selectedUser = signal<User | null>(null);
   mode = signal<DialogMode>('view');
-  isLoading = signal(false);
+  isLoading = signal(true);
   isDeleting = signal(false);
   isSaving = signal(false);
+  isRoleUpdating = signal(false);
+  wasUpdated = signal(false);
   fieldErrors = signal<Record<string, string[]>>({});
 
   editForm = this.fb.group({
@@ -207,19 +230,33 @@ export class UserDetailDialogComponent implements OnInit {
     return user ? buildUserDetailFields(user) : [];
   });
 
-  availableRoles = computed(() => this.roleService.roles());
+  assignableRoles = computed(() => {
+    const user = this.selectedUser();
+    const assigned = new Set(user?.roles?.map((role) => role.name) ?? []);
+    return this.roleService.roles().filter((role) => !assigned.has(role.name));
+  });
+
+  footerVisible = computed(() => {
+    if (this.isLoading()) return false;
+    if (this.mode() === 'view' && !this.selectedUser()) return false;
+    return true;
+  });
 
   dialogTitle = computed(() => {
     if (this.mode() === 'delete') return 'Delete user';
     if (this.mode() === 'edit') return 'Edit user';
-    return 'User details';
+    return this.selectedUser() ? getUserDisplayName(this.selectedUser()!) : 'User details';
   });
 
   dialogDescription = computed(() => {
-    if (this.mode() === 'delete') {
-      return 'This action cannot be undone. The user will be removed from the system.';
+    switch (this.mode()) {
+      case 'delete':
+        return 'This action cannot be undone.';
+      case 'edit':
+        return 'Update account email, phone, and active status.';
+      default:
+        return this.selectedUser()?.email ?? 'View account information and roles.';
     }
-    return this.selectedUser()?.email || 'View account information';
   });
 
   ngOnInit(): void {
@@ -227,8 +264,16 @@ export class UserDetailDialogComponent implements OnInit {
     void this.loadUser(this.data.userId);
   }
 
+  accountStatusLabel(user: User): string {
+    return user.isActive ? 'Active' : 'Inactive';
+  }
+
+  accountStatusVariant(user: User): BadgeVariant {
+    return user.isActive ? 'success' : 'secondary';
+  }
+
   close(): void {
-    this.dialogRef.close();
+    this.dialogRef.close(this.wasUpdated() ? 'updated' : undefined);
   }
 
   startEdit(): void {
@@ -272,6 +317,7 @@ export class UserDetailDialogComponent implements OnInit {
       const updated = await this.userService.updateUser(user.id, validation.data!);
       if (updated) {
         this.selectedUser.set(updated);
+        this.wasUpdated.set(true);
         this.mode.set('view');
         this.toastService.success('User updated', 'Changes saved successfully.');
       }
@@ -294,10 +340,16 @@ export class UserDetailDialogComponent implements OnInit {
     const user = this.selectedUser();
     if (!user) return;
 
-    const success = await this.roleService.assignRole(user.id, roleName);
-    if (success) {
-      await this.loadUser(user.id);
-      this.toastService.success('Role assigned', `${roleName} added to user.`);
+    this.isRoleUpdating.set(true);
+    try {
+      const success = await this.roleService.assignRole(user.id, roleName);
+      if (success) {
+        await this.loadUser(user.id, { silent: true });
+        this.wasUpdated.set(true);
+        this.toastService.success('Role assigned', `${roleName} added to user.`);
+      }
+    } finally {
+      this.isRoleUpdating.set(false);
     }
   }
 
@@ -305,10 +357,16 @@ export class UserDetailDialogComponent implements OnInit {
     const user = this.selectedUser();
     if (!user) return;
 
-    const success = await this.roleService.removeRoleFromUser(user.id, roleName);
-    if (success) {
-      await this.loadUser(user.id);
-      this.toastService.success('Role removed', `${roleName} removed from user.`);
+    this.isRoleUpdating.set(true);
+    try {
+      const success = await this.roleService.removeRoleFromUser(user.id, roleName);
+      if (success) {
+        await this.loadUser(user.id, { silent: true });
+        this.wasUpdated.set(true);
+        this.toastService.success('Role removed', `${roleName} removed from user.`);
+      }
+    } finally {
+      this.isRoleUpdating.set(false);
     }
   }
 
@@ -327,20 +385,32 @@ export class UserDetailDialogComponent implements OnInit {
         });
         this.dialogRef.close('deleted');
       }
+    } catch {
+      this.toastService.show({
+        title: 'Delete failed',
+        description: 'Could not delete this user.',
+        variant: 'destructive',
+      });
     } finally {
       this.isDeleting.set(false);
     }
   }
 
-  private async loadUser(userId: string): Promise<void> {
-    this.isLoading.set(true);
+  private async loadUser(userId: string, options?: { silent?: boolean }): Promise<void> {
+    if (!options?.silent) {
+      this.isLoading.set(true);
+    }
 
     const user = await this.userService.getUserById(userId);
     if (user) {
       this.selectedUser.set(user);
+    } else if (!options?.silent) {
+      this.selectedUser.set(null);
     }
 
-    this.isLoading.set(false);
+    if (!options?.silent) {
+      this.isLoading.set(false);
+    }
     this.userService.clearCurrentUser();
   }
 }

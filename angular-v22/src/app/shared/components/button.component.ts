@@ -9,11 +9,15 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl' | 'icon';
 
 @Component({
   selector: 'app-button',
+  host: {
+    class: 'inline-flex',
+  },
   template: `
     <button
       [class]="buttonClass()"
       [disabled]="disabled()"
       [type]="type()"
+      [attr.form]="form() || null"
       (click)="clicked.emit($event)"
     >
       <ng-content></ng-content>
@@ -25,6 +29,7 @@ export class ButtonComponent {
   size = input<ButtonSize>('md');
   disabled = input(false);
   type = input<'button' | 'submit' | 'reset'>('button');
+  form = input('');
   clicked = output<MouseEvent>();
 
   buttonClass = computed(() => {

@@ -2,7 +2,7 @@
  * Deal Create Dialog
  */
 
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ContactService, DealService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -11,6 +11,9 @@ import {
   ButtonComponent,
   InputComponent,
   LoaderComponent,
+  SelectComponent,
+  SelectOption,
+  TextareaComponent,
 } from '@shared/components';
 import { DialogRef } from '@shared/dialog';
 import { Contact, DEAL_STAGE_LABELS, DealStage } from '@models/index';
@@ -23,10 +26,10 @@ const STAGE_OPTIONS = Object.entries(DEAL_STAGE_LABELS) as [DealStage, string][]
 @Component({
   selector: 'app-deal-create-dialog',
   host: { class: 'contents' },
-  imports: [ReactiveFormsModule, DialogComponent, ButtonComponent, InputComponent, LoaderComponent],
+  imports: [ReactiveFormsModule, DialogComponent, ButtonComponent, InputComponent, LoaderComponent, SelectComponent, TextareaComponent],
   template: `
     <app-dialog title="Create deal" description="Add a new opportunity to your pipeline.">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+      <form id="deal-create-form" [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
         <app-input
           id="deal-title"
           label="Deal title"
@@ -45,47 +48,37 @@ const STAGE_OPTIONS = Object.entries(DEAL_STAGE_LABELS) as [DealStage, string][]
           />
           <app-input id="deal-currency" label="Currency" formControlName="currency" />
         </div>
-        <div class="form-group">
-          <label for="deal-stage" class="form-label">Stage</label>
-          <select id="deal-stage" class="select" formControlName="stage">
-            @for (option of stageOptions; track option[0]) {
-              <option [value]="option[0]">{{ option[1] }}</option>
-            }
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="deal-contact" class="form-label">Contact</label>
-          <select id="deal-contact" class="select" formControlName="contactId">
-            <option value="">No contact</option>
-            @for (contact of contacts(); track contact.id) {
-              <option [value]="contact.id">{{ contact.fullName }} · {{ contact.company || 'No company' }}</option>
-            }
-          </select>
-        </div>
+        <app-select
+          id="deal-stage"
+          label="Stage"
+          formControlName="stage"
+          [options]="stageSelectOptions"
+        />
+        <app-select
+          id="deal-contact"
+          label="Contact"
+          formControlName="contactId"
+          placeholder="No contact"
+          [options]="contactSelectOptions()"
+        />
         <app-input
           id="deal-close-date"
           type="date"
           label="Expected close date"
           formControlName="expectedCloseDate"
         />
-        <div class="form-group">
-          <label for="deal-tags" class="form-label">Tags</label>
-          <input
-            id="deal-tags"
-            class="input"
-            formControlName="tags"
-            placeholder="priority, renewal (comma separated)"
-          />
-        </div>
-        <div class="form-group">
-          <label for="deal-description" class="form-label">Description</label>
-          <textarea id="deal-description" class="textarea" formControlName="description"></textarea>
-        </div>
+        <app-input
+          id="deal-tags"
+          label="Tags"
+          formControlName="tags"
+          placeholder="priority, renewal (comma separated)"
+        />
+        <app-textarea id="deal-description" label="Description" formControlName="description" />
       </form>
 
-      <div dialogFooter class="flex justify-end gap-2">
+      <div dialogFooter>
         <app-button variant="outline" type="button" (clicked)="close()">Cancel</app-button>
-        <app-button type="button" [disabled]="isSubmitting()" (clicked)="onSubmit()">
+        <app-button type="submit" form="deal-create-form" [disabled]="isSubmitting()">
           @if (isSubmitting()) {
             <app-loader size="sm" [inline]="true" />
           } @else {
@@ -104,7 +97,18 @@ export class DealCreateDialogComponent implements OnInit {
   private readonly dialogRef = inject(DialogRef<DealCreateDialogComponent, DealCreateDialogResult>);
 
   readonly stageOptions = STAGE_OPTIONS;
+  readonly stageSelectOptions: SelectOption[] = STAGE_OPTIONS.map(([value, label]) => ({
+    value,
+    label,
+  }));
   contacts = signal<Contact[]>([]);
+  readonly contactSelectOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'No contact' },
+    ...this.contacts().map((contact) => ({
+      value: contact.id,
+      label: `${contact.fullName} · ${contact.company || 'No company'}`,
+    })),
+  ]);
 
   form = this.fb.group({
     title: ['', Validators.required],

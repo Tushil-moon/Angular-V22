@@ -51,7 +51,7 @@ const EMPTY_USERS_PAGE: UsersPageResult = { users: [], total: 0 };
     FlexTableCellComponent,
   ],
   template: `
-    <div class="page-shell">
+    <div class="page-shell page-shell-fill">
       <div class="page-toolbar">
         <div class="page-header">
           <h1 class="page-title">Users</h1>
@@ -69,7 +69,7 @@ const EMPTY_USERS_PAGE: UsersPageResult = { users: [], total: 0 };
         <p class="text-sm text-destructive">{{ loadError() }}</p>
       }
 
-      <app-card>
+      <app-card [fill]="true">
         <app-card-header [row]="true">
           <div class="min-w-0 space-y-1">
             <app-card-title>All users</app-card-title>
@@ -84,9 +84,10 @@ const EMPTY_USERS_PAGE: UsersPageResult = { users: [], total: 0 };
           </div>
         </app-card-header>
 
-        <app-card-body [flush]="true">
+        <app-card-body [flush]="true" [fill]="true">
           <app-flex-table
             [columns]="columns"
+            [fill]="true"
             [loading]="isLoading()"
             [empty]="!isLoading() && users().length === 0"
             emptyTitle="No users found"

@@ -15,6 +15,8 @@ import {
   FlexTableRowComponent,
   FlexTableCellComponent,
   BadgeComponent,
+  FilterSelectComponent,
+  SelectOption,
 } from '@shared/components';
 import { SavedViewSelectComponent } from '@shared/components/saved-view-select.component';
 import { Permissions } from '@shared/constants/permissions';
@@ -47,10 +49,11 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
     FlexTableRowComponent,
     FlexTableCellComponent,
     BadgeComponent,
+    FilterSelectComponent,
     SavedViewSelectComponent,
   ],
   template: `
-    <div class="page-shell">
+    <div class="page-shell page-shell-fill">
       <div class="page-toolbar">
         <div class="page-header">
           <h1 class="page-title">Activities</h1>
@@ -62,19 +65,20 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
         <p class="text-sm text-destructive">{{ loadError() }}</p>
       }
 
-      <app-card>
+      <app-card [fill]="true">
         <app-card-header [row]="true">
           <div class="min-w-0 space-y-1">
             <app-card-title>All activities</app-card-title>
             <app-card-description>{{ totalActivities() }} total activities</app-card-description>
           </div>
           <div class="card-toolbar">
-            <select class="select" [value]="typeFilter()" (change)="onTypeFilter($event)">
-              <option value="">All types</option>
-              @for (option of typeOptions; track option[0]) {
-                <option [value]="option[0]">{{ option[1] }}</option>
-              }
-            </select>
+            <app-filter-select
+              [value]="typeFilter()"
+              [options]="typeFilterOptions"
+              placeholder="All types"
+              ariaLabel="Filter by activity type"
+              (valueChange)="onTypeFilterValue($event)"
+            />
             <app-saved-view-select
               entityType="ACTIVITIES"
               [currentFilters]="activeFilters()"
@@ -89,9 +93,10 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
           </div>
         </app-card-header>
 
-        <app-card-body [flush]="true">
+        <app-card-body [flush]="true" [fill]="true">
           <app-flex-table
             [columns]="columns"
+            [fill]="true"
             [loading]="isLoading()"
             [empty]="!isLoading() && activities().length === 0"
             emptyTitle="No activities found"
@@ -153,6 +158,11 @@ export class ActivitiesListComponent {
     ['TASK', 'Task'],
   ];
 
+  readonly typeFilterOptions: SelectOption[] = [
+    { value: '', label: 'All types' },
+    ...this.typeOptions.map(([value, label]) => ({ value, label })),
+  ];
+
   searchQuery = signal('');
   typeFilter = signal('');
   savedFilters = signal<Record<string, unknown>>({});
@@ -205,8 +215,8 @@ export class ActivitiesListComponent {
     this.currentPage.set(1);
   }
 
-  onTypeFilter(event: Event): void {
-    this.typeFilter.set((event.target as HTMLSelectElement).value);
+  onTypeFilterValue(value: string): void {
+    this.typeFilter.set(value);
     this.currentPage.set(1);
   }
 

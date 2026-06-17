@@ -2,19 +2,26 @@
  * Card Component — shadcn Card structure
  */
 
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 @Component({
   selector: 'app-card',
-  host: { class: 'block min-w-0' },
+  host: {
+    '[class]': 'hostClass()',
+  },
   template: `
-    <div class="card" [class.!gap-0]="noPadding()">
+    <div class="card" [class.card-fill]="fill()" [class.!gap-0]="noPadding()">
       <ng-content></ng-content>
     </div>
   `,
 })
 export class CardComponent {
   noPadding = input(false);
+  fill = input(false);
+
+  hostClass = computed(() =>
+    this.fill() ? 'block min-w-0 flex flex-1 min-h-0 flex-col' : 'block min-w-0',
+  );
 }
 
 @Component({
@@ -51,14 +58,33 @@ export class CardDescriptionComponent {}
 
 @Component({
   selector: 'app-card-body',
+  host: {
+    class: 'min-w-0',
+    '[class.block]': '!fill()',
+    '[class.flex]': 'fill()',
+    '[class.flex-1]': 'fill()',
+    '[class.flex-col]': 'fill()',
+    '[class.min-h-0]': 'fill()',
+  },
   template: `
-    <div class="card-content" [class.card-content-flush]="flush()">
+    <div [class]="contentClasses()">
       <ng-content></ng-content>
     </div>
   `,
 })
 export class CardBodyComponent {
   flush = input(false);
+  fill = input(false);
+  contentClass = input('');
+
+  contentClasses = computed(() => {
+    const classes = ['card-content'];
+    if (this.flush()) classes.push('card-content-flush');
+    if (this.fill()) classes.push('card-content-fill');
+    const extra = this.contentClass().trim();
+    if (extra) classes.push(extra);
+    return classes.join(' ');
+  });
 }
 
 @Component({

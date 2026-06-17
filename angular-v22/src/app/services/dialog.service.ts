@@ -93,7 +93,7 @@ export class DialogService {
       hasBackdrop: true,
       backdropClass: 'dialog-backdrop',
       panelClass,
-      positionStrategy: this.overlay.position().global().centerHorizontally().centerVertically(),
+      positionStrategy: this.overlay.position().global().top('0').left('0'),
       scrollStrategy: this.overlay.scrollStrategies.block(),
     };
 

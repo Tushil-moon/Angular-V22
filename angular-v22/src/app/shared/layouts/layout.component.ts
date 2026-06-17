@@ -94,7 +94,7 @@ export class AuthLayoutComponent {}
                 </svg>
               </div>
               <div class="sidebar-brand-text">
-                <span class="sidebar-brand-title">CRM Platform</span>
+                <span class="sidebar-brand-title">Angular V22</span>
                 <span class="sidebar-brand-subtitle">Workspace</span>
               </div>
             </div>
@@ -227,7 +227,7 @@ export class AuthLayoutComponent {}
         </header>
 
         <main class="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div class="page-content container-responsive">
+          <div class="page-content container-responsive flex min-h-0 flex-1 flex-col">
             <router-outlet />
           </div>
         </main>

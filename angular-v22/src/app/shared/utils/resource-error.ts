@@ -36,6 +36,10 @@ export async function runResourceLoader<T>(
   try {
     return await execute();
   } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw error;
+    }
+
     if (options?.logMessage) {
       console.error(options.logMessage, error);
     }

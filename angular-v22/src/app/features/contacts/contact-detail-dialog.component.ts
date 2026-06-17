@@ -11,12 +11,17 @@ import {
   ButtonComponent,
   LoaderComponent,
   InputComponent,
+  SelectComponent,
+  SelectOption,
+  TextareaComponent,
+  CheckboxComponent,
+  BadgeComponent,
 } from '@shared/components';
 import { TagBadgesComponent } from '@shared/components/tag-badges.component';
 import { Permissions } from '@shared/constants/permissions';
 import { DIALOG_DATA, DialogRef } from '@shared/dialog';
 import {
-  contactStatusBadgeClass,
+  contactStatusBadgeVariant,
   formatContactDate,
   formatContactStatus,
 } from '@shared/config/contacts-table.config';
@@ -51,9 +56,18 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
     LoaderComponent,
     InputComponent,
     TagBadgesComponent,
+    SelectComponent,
+    TextareaComponent,
+    CheckboxComponent,
+    BadgeComponent,
   ],
   template: `
-    <app-dialog [title]="dialogTitle()" [description]="dialogDescription()">
+    <app-dialog
+      [title]="dialogTitle()"
+      [description]="dialogDescription()"
+      size="lg"
+      [showFooter]="footerVisible()"
+    >
       @if (mode() === 'delete') {
         <p class="text-sm text-muted-foreground">
           Delete
@@ -61,7 +75,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
           Associated deals will remain but lose this contact link.
         </p>
       } @else if (isLoading()) {
-        <div class="flex justify-center py-8">
+        <div class="dialog-loading">
           <app-loader />
         </div>
       } @else if (contact(); as item) {
@@ -85,54 +99,44 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
             <app-input id="edit-phone" label="Phone" formControlName="phone" />
             <app-input id="edit-company" label="Company" formControlName="company" />
             <app-input id="edit-job-title" label="Job title" formControlName="jobTitle" />
-            <div class="form-group">
-              <label for="edit-status" class="form-label">Status</label>
-              <select id="edit-status" class="select" formControlName="status">
-                @for (option of statusOptions; track option[0]) {
-                  <option [value]="option[0]">{{ option[1] }}</option>
-                }
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="edit-notes" class="form-label">Notes</label>
-              <textarea id="edit-notes" class="textarea" formControlName="notes"></textarea>
-            </div>
+            <app-select
+              id="edit-status"
+              label="Status"
+              formControlName="status"
+              [options]="statusSelectOptions"
+            />
+            <app-textarea id="edit-notes" label="Notes" formControlName="notes" />
           </form>
         } @else if (mode() === 'activity') {
           <form [formGroup]="activityForm" class="space-y-4">
-            <div class="form-group">
-              <label for="activity-type" class="form-label">Type</label>
-              <select id="activity-type" class="select" formControlName="type">
-                @for (option of activityOptions; track option[0]) {
-                  <option [value]="option[0]">{{ option[1] }}</option>
-                }
-              </select>
-            </div>
+            <app-select
+              id="activity-type"
+              label="Type"
+              formControlName="type"
+              [options]="activitySelectOptions"
+            />
             <app-input
               id="activity-subject"
               label="Subject"
               formControlName="subject"
               [error]="activityFieldError('subject')"
             />
-            <div class="form-group">
-              <label for="activity-body" class="form-label">Details</label>
-              <textarea id="activity-body" class="textarea" formControlName="body"></textarea>
-            </div>
+            <app-textarea id="activity-body" label="Details" formControlName="body" />
           </form>
         } @else if (mode() === 'convert') {
           <form [formGroup]="convertForm" class="space-y-4">
-            <div class="form-group">
-              <label for="convert-status" class="form-label">New status</label>
-              <select id="convert-status" class="select" formControlName="status">
-                <option value="PROSPECT">Prospect</option>
-                <option value="CUSTOMER">Customer</option>
-              </select>
-            </div>
-            <div class="rounded-md border border-border p-3 space-y-3">
-              <label class="flex items-center gap-2 text-sm">
-                <input type="checkbox" formControlName="createDeal" />
-                Create deal from this lead
-              </label>
+            <app-select
+              id="convert-status"
+              label="New status"
+              formControlName="status"
+              [options]="convertStatusOptions"
+            />
+            <div class="dialog-convert-panel">
+              <app-checkbox
+                id="convert-create-deal"
+                label="Create deal from this lead"
+                formControlName="createDeal"
+              />
               @if (convertForm.controls.createDeal.value) {
                 <app-input id="convert-deal-title" label="Deal title" formControlName="dealTitle" />
                 <app-input
@@ -146,14 +150,14 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
           </form>
         } @else {
           <div class="space-y-6">
-            <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="dialog-detail-header">
               <div>
                 <p class="text-lg font-semibold text-foreground">{{ item.fullName }}</p>
                 <p class="text-sm text-muted-foreground">
                   {{ item.jobTitle || '—' }} · {{ item.companyRef?.name || item.company || 'No company' }}
                 </p>
               </div>
-              <span [class]="statusBadgeClass(item.status)">{{ formatStatus(item.status) }}</span>
+              <app-badge [variant]="statusBadgeVariant(item.status)">{{ formatStatus(item.status) }}</app-badge>
             </div>
 
             @if (item.tags?.length) {
@@ -200,9 +204,9 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
               } @else if (activities().length === 0) {
                 <p class="text-sm text-muted-foreground">No activity logged yet.</p>
               } @else {
-                <div class="divide-y divide-border rounded-md border border-border">
+                <div class="dialog-activity-list">
                   @for (activity of activities(); track activity.id) {
-                    <div class="space-y-1 px-3 py-3">
+                    <div class="dialog-activity-item">
                       <div class="flex items-center justify-between gap-2">
                         <p class="text-sm font-medium text-foreground">{{ activity.subject }}</p>
                         <span class="text-xs text-muted-foreground">{{ formatActivityType(activity.type) }}</span>
@@ -218,9 +222,11 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
             </div>
           </div>
         }
+      } @else {
+        <p class="text-sm text-muted-foreground">Contact not found or you do not have access.</p>
       }
 
-      <div dialogFooter class="flex flex-wrap justify-end gap-2">
+      <div dialogFooter>
         @if (mode() === 'view' && contact()) {
           @if (canManage() && contact()?.status === 'LEAD') {
             <app-button variant="outline" type="button" (clicked)="mode.set('convert')">Convert lead</app-button>
@@ -280,7 +286,19 @@ export class ContactDetailDialogComponent implements OnInit {
 
   readonly statusOptions = STATUS_OPTIONS;
   readonly activityOptions = ACTIVITY_OPTIONS;
-  readonly statusBadgeClass = contactStatusBadgeClass;
+  readonly statusSelectOptions: SelectOption[] = STATUS_OPTIONS.map(([value, label]) => ({
+    value,
+    label,
+  }));
+  readonly activitySelectOptions: SelectOption[] = ACTIVITY_OPTIONS.map(([value, label]) => ({
+    value,
+    label,
+  }));
+  readonly convertStatusOptions: SelectOption[] = [
+    { value: 'PROSPECT', label: 'Prospect' },
+    { value: 'CUSTOMER', label: 'Customer' },
+  ];
+  readonly statusBadgeVariant = contactStatusBadgeVariant;
   readonly formatStatus = formatContactStatus;
   readonly formatDate = formatContactDate;
   readonly formatActivityType = (type: ActivityType) => ACTIVITY_TYPE_LABELS[type];
@@ -295,6 +313,7 @@ export class ContactDetailDialogComponent implements OnInit {
   isLoading = signal(true);
   activitiesLoading = signal(true);
   isSubmitting = signal(false);
+  wasUpdated = signal(false);
   fieldErrors = signal<Record<string, string[]>>({});
   activityFieldErrors = signal<Record<string, string[]>>({});
 
@@ -352,12 +371,18 @@ export class ContactDetailDialogComponent implements OnInit {
     }
   });
 
+  footerVisible = computed(() => {
+    if (this.isLoading()) return false;
+    if (this.mode() === 'view' && !this.contact()) return false;
+    return true;
+  });
+
   ngOnInit(): void {
     void this.loadContact();
   }
 
   close(): void {
-    this.dialogRef.close();
+    this.dialogRef.close(this.wasUpdated() ? 'updated' : undefined);
   }
 
   fieldError(field: string): string | null {
@@ -439,9 +464,9 @@ export class ContactDetailDialogComponent implements OnInit {
       const updated = await this.contactService.updateContact(item.id, validation.data!);
       if (updated) {
         this.contact.set(updated);
+        this.wasUpdated.set(true);
         this.toastService.show({ title: 'Contact updated', description: updated.fullName });
         this.mode.set('view');
-        this.dialogRef.close('updated');
       }
     } catch {
       this.toastService.show({
@@ -483,6 +508,7 @@ export class ContactDetailDialogComponent implements OnInit {
       if (activity) {
         this.activities.update((items) => [activity, ...items].slice(0, 5));
         this.activityForm.reset({ type: 'NOTE', subject: '', body: '' });
+        this.wasUpdated.set(true);
         this.toastService.show({ title: 'Activity logged', description: activity.subject });
         this.mode.set('view');
       }
@@ -516,6 +542,7 @@ export class ContactDetailDialogComponent implements OnInit {
       const result = await this.contactService.convertLead(item.id, payload);
       if (result) {
         this.contact.set(result.contact);
+        this.wasUpdated.set(true);
         this.toastService.show({
           title: 'Lead converted',
           description: result.deal
@@ -523,7 +550,6 @@ export class ContactDetailDialogComponent implements OnInit {
             : `${result.contact.fullName} is now a ${result.contact.status.toLowerCase()}.`,
         });
         this.mode.set('view');
-        this.dialogRef.close('updated');
       }
     } catch {
       this.toastService.show({

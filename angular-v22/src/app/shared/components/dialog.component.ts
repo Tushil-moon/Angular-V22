@@ -2,20 +2,23 @@
  * Dialog Component — shadcn-style modal panel (rendered inside CDK overlay)
  */
 
-import { Component, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
+import { A11yModule } from '@angular/cdk/a11y';
 import { DialogRef } from '@shared/dialog/dialog-ref';
 import { DIALOG_CLOSE } from '@shared/dialog/dialog.tokens';
 import { IconComponent } from './icon.component';
+
+export type DialogSize = 'sm' | 'default' | 'lg';
 
 @Component({
   selector: 'app-dialog',
   host: {
     class: 'block',
   },
-  imports: [IconComponent],
+  imports: [A11yModule, IconComponent],
   template: `
     <div
-      class="dialog-panel animate-dialogIn"
+      [class]="panelClass()"
       role="dialog"
       aria-modal="true"
       [attr.aria-labelledby]="titleId"
@@ -55,7 +58,14 @@ export class DialogComponent {
 
   title = input('Dialog');
   description = input('');
+  size = input<DialogSize>('default');
   showFooter = input(true);
+
+  panelClass = computed(() => {
+    const sizeClass =
+      this.size() === 'sm' ? 'dialog-panel-sm' : this.size() === 'lg' ? 'dialog-panel-lg' : 'dialog-panel-md';
+    return `dialog-panel animate-dialogIn ${sizeClass}`;
+  });
 
   close(): void {
     if (this.closeDialog) {

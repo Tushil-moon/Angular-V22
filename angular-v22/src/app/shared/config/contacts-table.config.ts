@@ -1,4 +1,5 @@
 import type { FlexTableColumn } from '@shared/components/flex-table.types';
+import type { BadgeVariant } from '@shared/components/badge.component';
 import type { ContactStatus } from '@models/index';
 import { CONTACT_STATUS_LABELS } from '@models/index';
 
@@ -57,6 +58,19 @@ export const contactStatusBadgeClass = (status: ContactStatus): string => {
       return 'badge badge-danger';
     default:
       return 'badge';
+  }
+};
+
+export const contactStatusBadgeVariant = (status: ContactStatus): BadgeVariant => {
+  switch (status) {
+    case 'CUSTOMER':
+      return 'success';
+    case 'PROSPECT':
+      return 'warning';
+    case 'INACTIVE':
+      return 'destructive';
+    default:
+      return 'secondary';
   }
 };
 

@@ -11,6 +11,9 @@ import {
   ButtonComponent,
   InputComponent,
   LoaderComponent,
+  SelectComponent,
+  SelectOption,
+  TextareaComponent,
 } from '@shared/components';
 import { DialogRef } from '@shared/dialog';
 import { CONTACT_STATUS_LABELS, ContactStatus } from '@models/index';
@@ -23,10 +26,10 @@ const STATUS_OPTIONS = Object.entries(CONTACT_STATUS_LABELS) as [ContactStatus, 
 @Component({
   selector: 'app-contact-create-dialog',
   host: { class: 'contents' },
-  imports: [ReactiveFormsModule, DialogComponent, ButtonComponent, InputComponent, LoaderComponent],
+  imports: [ReactiveFormsModule, DialogComponent, ButtonComponent, InputComponent, LoaderComponent, SelectComponent, TextareaComponent],
   template: `
     <app-dialog title="Add contact" description="Create a new CRM contact.">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+      <form id="contact-create-form" [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
         <div class="grid gap-4 sm:grid-cols-2">
           <app-input
             id="contact-first-name"
@@ -68,32 +71,24 @@ const STATUS_OPTIONS = Object.entries(CONTACT_STATUS_LABELS) as [ContactStatus, 
           formControlName="jobTitle"
           [error]="fieldError('jobTitle')"
         />
-        <div class="form-group">
-          <label for="contact-status" class="form-label">Status</label>
-          <select id="contact-status" class="select" formControlName="status">
-            @for (option of statusOptions; track option[0]) {
-              <option [value]="option[0]">{{ option[1] }}</option>
-            }
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="contact-tags" class="form-label">Tags</label>
-          <input
-            id="contact-tags"
-            class="input"
-            formControlName="tags"
-            placeholder="vip, enterprise (comma separated)"
-          />
-        </div>
-        <div class="form-group">
-          <label for="contact-notes" class="form-label">Notes</label>
-          <textarea id="contact-notes" class="textarea" formControlName="notes"></textarea>
-        </div>
+        <app-select
+          id="contact-status"
+          label="Status"
+          formControlName="status"
+          [options]="statusSelectOptions"
+        />
+        <app-input
+          id="contact-tags"
+          label="Tags"
+          formControlName="tags"
+          placeholder="vip, enterprise (comma separated)"
+        />
+        <app-textarea id="contact-notes" label="Notes" formControlName="notes" />
       </form>
 
-      <div dialogFooter class="flex justify-end gap-2">
+      <div dialogFooter>
         <app-button variant="outline" type="button" (clicked)="close()">Cancel</app-button>
-        <app-button type="button" [disabled]="isSubmitting()" (clicked)="onSubmit()">
+        <app-button type="submit" form="contact-create-form" [disabled]="isSubmitting()">
           @if (isSubmitting()) {
             <app-loader size="sm" [inline]="true" />
           } @else {
@@ -111,6 +106,10 @@ export class ContactCreateDialogComponent {
   private readonly dialogRef = inject(DialogRef<ContactCreateDialogComponent, ContactCreateDialogResult>);
 
   readonly statusOptions = STATUS_OPTIONS;
+  readonly statusSelectOptions: SelectOption[] = STATUS_OPTIONS.map(([value, label]) => ({
+    value,
+    label,
+  }));
 
   form = this.fb.group({
     firstName: ['', Validators.required],

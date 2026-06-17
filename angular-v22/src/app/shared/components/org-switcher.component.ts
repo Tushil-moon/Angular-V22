@@ -2,26 +2,22 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { OrganizationContextService, OrganizationService } from '@services/index';
 import { OrganizationMembership } from '@models/index';
 import { IconComponent } from './icon.component';
+import { SelectComponent, SelectOption } from './select.component';
 
 @Component({
   selector: 'app-org-switcher',
-  imports: [IconComponent],
+  imports: [IconComponent, SelectComponent],
   template: `
     @if (memberships().length > 0) {
       <div class="org-switcher">
         <app-icon name="building-2" [size]="14" className="text-muted-foreground shrink-0" />
-        <select
-          class="select org-switcher-select"
+        <app-select
+          [options]="orgOptions()"
           [value]="activeOrganizationId() ?? ''"
-          (change)="onSwitch($event)"
-          aria-label="Switch organization"
-        >
-          @for (membership of memberships(); track membership.organizationId) {
-            <option [value]="membership.organizationId">
-              {{ membership.organization.name }}
-            </option>
-          }
-        </select>
+          size="sm"
+          ariaLabel="Switch organization"
+          (valueChange)="onSwitch($event)"
+        />
       </div>
     }
   `,
@@ -33,12 +29,18 @@ export class OrgSwitcherComponent implements OnInit {
   memberships = signal<OrganizationMembership[]>([]);
   activeOrganizationId = computed(() => this.organizationContext.activeOrganizationId());
 
+  orgOptions = computed<SelectOption[]>(() =>
+    this.memberships().map((membership) => ({
+      value: membership.organizationId,
+      label: membership.organization.name,
+    })),
+  );
+
   ngOnInit(): void {
     void this.loadOrganizations();
   }
 
-  async onSwitch(event: Event): Promise<void> {
-    const organizationId = (event.target as HTMLSelectElement).value;
+  async onSwitch(organizationId: string): Promise<void> {
     if (!organizationId) return;
     this.organizationContext.setActiveOrganizationId(organizationId);
     window.location.reload();

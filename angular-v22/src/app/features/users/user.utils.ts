@@ -1,41 +1,31 @@
 import { User } from '@models/index';
+import type { BadgeVariant } from '@shared/components/badge.component';
 
 export interface UserDetailFieldView {
   label: string;
   value: string;
-  badgeClass?: string;
-  type: 'text' | 'badge' | 'date';
+  badgeVariant?: BadgeVariant;
+  type: 'text' | 'badge';
 }
 
 export function buildUserDetailFields(user: User): UserDetailFieldView[] {
   return [
     { label: 'Phone', value: user.phone || '—', type: 'text' },
     {
-      label: 'Status',
-      value: user.isActive ? 'Active' : 'Inactive',
-      badgeClass: user.isActive ? 'badge badge-success' : 'badge badge-danger',
-      type: 'badge',
-    },
-    {
       label: 'Email verified',
       value: user.emailVerified ? 'Verified' : 'Pending',
-      badgeClass: user.emailVerified ? 'badge badge-success' : 'badge badge-warning',
+      badgeVariant: user.emailVerified ? 'success' : 'warning',
       type: 'badge',
-    },
-    {
-      label: 'Roles',
-      value: user.roles?.length ? user.roles.map((role) => role.name).join(', ') : 'User',
-      type: 'text',
     },
     {
       label: 'Created',
-      value: new Date(user.createdAt).toLocaleString(),
-      type: 'date',
+      value: formatUserDateTime(user.createdAt),
+      type: 'text',
     },
     {
-      label: 'Updated',
-      value: new Date(user.updatedAt).toLocaleString(),
-      type: 'date',
+      label: 'Last updated',
+      value: formatUserDateTime(user.updatedAt),
+      type: 'text',
     },
   ];
 }
@@ -53,4 +43,11 @@ export function getUserInitials(user: User): string {
 
 export function formatUserDate(date: string | Date): string {
   return new Date(date).toLocaleDateString();
+}
+
+export function formatUserDateTime(date: string | Date): string {
+  return new Date(date).toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
 }

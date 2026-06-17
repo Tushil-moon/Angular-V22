@@ -23,6 +23,7 @@ export * from './badge.component';
 export * from './label.component';
 export * from './textarea.component';
 export * from './select.component';
+export * from './filter-select.component';
 export * from './checkbox.component';
 export * from './switch.component';
 export * from './tabs.component';

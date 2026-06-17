@@ -3,7 +3,20 @@
  * @see https://ui.shadcn.com/docs/components/radix/table
  */
 
-import { Component, computed, HostListener, inject, input } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  HostListener,
+  inject,
+  Injector,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { IconComponent } from './icon.component';
 import { SkeletonComponent } from './skeleton.component';
 import type { IconName } from '@shared/icons';
@@ -17,12 +30,22 @@ const HIDE_CLASS: Record<FlexTableBreakpoint, string> = {
 
 @Component({
   selector: 'app-flex-table',
+  host: {
+    '[class]': 'fill() ? "flex min-h-0 flex-1 flex-col min-w-0" : "block min-w-0"',
+  },
   imports: [SkeletonComponent, IconComponent],
   template: `
-    <div class="flex-table" [class.flex-table-flush]="flush()">
-      <div class="flex-table-scroll">
+    <div
+      class="flex-table"
+      [class.flex-table-flush]="flush()"
+      [class.flex-table-fill]="fill()"
+      [class.flex-table-loading]="loading()"
+      [class.flex-table-empty-state]="empty() && !loading()"
+    >
+      <div class="flex-table-scroll" #scrollContainer>
         <div
           class="flex-table-inner"
+          [class.flex-table-inner-empty]="empty() && !loading()"
           role="table"
           [style.--flex-table-columns]="gridTemplate()"
           [attr.aria-busy]="loading()"
@@ -85,6 +108,12 @@ const HIDE_CLASS: Record<FlexTableBreakpoint, string> = {
   `,
 })
 export class FlexTableComponent {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
+
+  private resizeObserver: ResizeObserver | null = null;
+  private readonly dynamicSkeletonCount = signal<number | null>(null);
+
   columns = input.required<FlexTableColumn[]>();
   loading = input(false);
   empty = input(false);
@@ -93,6 +122,7 @@ export class FlexTableComponent {
   emptyIcon = input<IconName>('search');
   caption = input('');
   flush = input(false);
+  fill = input(false);
   skeletonRowCount = input(5);
   sortColumn = input<string | null>(null);
   sortDirection = input<'ascending' | 'descending' | null>(null);
@@ -105,9 +135,62 @@ export class FlexTableComponent {
       .join(' '),
   );
 
-  skeletonRows = computed(() =>
-    Array.from({ length: this.skeletonRowCount() }, (_, index) => index),
-  );
+  skeletonRows = computed(() => {
+    const count = this.resolvedSkeletonRowCount();
+    return Array.from({ length: count }, (_, index) => index);
+  });
+
+  constructor() {
+    const injector = inject(Injector);
+
+    effect(() => {
+      if (this.fill() && this.loading()) {
+        afterNextRender(() => this.updateDynamicSkeletonCount(), { injector });
+      } else {
+        this.dynamicSkeletonCount.set(null);
+      }
+    });
+
+    this.destroyRef.onDestroy(() => this.resizeObserver?.disconnect());
+
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => this.updateDynamicSkeletonCount());
+    }
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.updateDynamicSkeletonCount();
+  }
+
+  private resolvedSkeletonRowCount(): number {
+    const minimum = this.skeletonRowCount();
+    if (!this.fill() || !this.loading()) {
+      return minimum;
+    }
+
+    const dynamic = this.dynamicSkeletonCount();
+    return dynamic === null ? minimum : Math.max(minimum, dynamic);
+  }
+
+  private updateDynamicSkeletonCount(): void {
+    if (!this.fill() || !this.loading()) {
+      this.dynamicSkeletonCount.set(null);
+      return;
+    }
+
+    const scrollEl = this.scrollContainer()?.nativeElement;
+    if (!scrollEl) return;
+
+    const header = scrollEl.querySelector('.flex-table-header');
+    const headerHeight = header?.getBoundingClientRect().height ?? 40;
+    const availableHeight = scrollEl.clientHeight - headerHeight;
+    const rowHeight = 48;
+    const count = Math.max(this.skeletonRowCount(), Math.ceil(availableHeight / rowHeight));
+
+    this.dynamicSkeletonCount.set(count);
+    this.resizeObserver?.observe(scrollEl);
+  }
 
   cellClasses(col: FlexTableColumn): string {
     const classes: string[] = [];

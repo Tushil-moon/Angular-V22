@@ -264,10 +264,6 @@
     @apply flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-nowrap sm:items-center sm:justify-end;
   }
 
-  .card-toolbar > .select {
-    @apply w-full sm:w-36 shrink-0;
-  }
-
   .card-toolbar > app-search-input {
     @apply w-full sm:w-64 shrink-0;
   }
@@ -290,6 +286,32 @@
 
   .card-content-flush {
     @apply px-0 pb-0;
+  }
+
+  .card-fill {
+    @apply flex min-h-0 flex-1 flex-col;
+  }
+
+  .card-fill > .card-header {
+    @apply shrink-0;
+  }
+
+  .card-fill > app-card-body,
+  .card-fill > app-card-header {
+    @apply min-w-0;
+  }
+
+  .card-content-fill > app-flex-table {
+    @apply flex min-h-0 flex-1 flex-col;
+  }
+
+  .card-content-fill {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden p-0;
+    width: 100%;
+  }
+
+  .card-content-fill.card-content-flush {
+    @apply px-0 pb-0 pt-0;
   }
 
   .card-footer {
@@ -316,6 +338,7 @@
     @apply space-y-2;
   }
 
+
   .form-label {
     @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
   }
@@ -334,14 +357,72 @@
     border-color: var(--destructive);
   }
 
-  .select {
-    @apply flex h-9 w-full appearance-none rounded-md border border-input bg-transparent bg-no-repeat px-3 py-1 text-sm
+  /* ── Select (shadcn / Radix) ── */
+  .select-root {
+    @apply w-full min-w-0;
+  }
+
+  .select-wrap {
+    @apply relative inline-flex w-full min-w-0;
+  }
+
+  .select-trigger {
+    @apply flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm
            shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
            disabled:cursor-not-allowed disabled:opacity-50 text-foreground;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-position: right 0.5rem center;
-    background-size: 1rem;
-    padding-right: 2rem;
+  }
+
+  .select-trigger-sm {
+    @apply h-8 py-1;
+  }
+
+  .select-trigger-invalid {
+    @apply border-destructive focus-visible:ring-destructive;
+  }
+
+  .dark .select-trigger {
+    border-color: var(--input);
+    background-color: color-mix(in oklch, var(--input) 30%, transparent);
+  }
+
+  .select-value {
+    @apply pointer-events-none line-clamp-1 text-left;
+  }
+
+  .select-trigger-icon {
+    @apply shrink-0 opacity-50;
+  }
+
+  .select-content {
+    @apply z-[var(--z-dropdown)] max-h-60 min-w-full overflow-y-auto rounded-md border border-border
+           bg-popover p-1 text-popover-foreground shadow-md;
+    animation: dropdownIn 150ms ease-out;
+  }
+
+  .select-overlay-panel {
+    z-index: calc(var(--z-overlay) + 1) !important;
+  }
+
+  .select-item {
+    @apply relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm
+           outline-none transition-colors disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .select-item:hover:not(:disabled),
+  .select-item-focused:not(:disabled) {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  .select-item-indicator {
+    @apply absolute right-2 flex h-4 w-4 items-center justify-center;
+  }
+
+  .select-filter {
+    @apply w-full sm:w-36 shrink-0;
+  }
+
+  .card-toolbar > app-filter-select {
+    @apply w-full sm:w-36 shrink-0;
   }
 
   .checkbox {
@@ -475,8 +556,12 @@
     @apply flex flex-col gap-4;
   }
 
+  .page-shell-fill {
+    @apply flex flex-1 min-h-0 flex-col gap-4 overflow-hidden;
+  }
+
   .page-toolbar {
-    @apply flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
+    @apply flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
   }
 
   .page-title {
@@ -540,6 +625,14 @@
   .flex-table-scroll {
     @apply w-full overflow-x-auto;
     scrollbar-gutter: stable;
+  }
+
+  .flex-table-fill {
+    @apply flex min-h-0 flex-1 flex-col;
+  }
+
+  .flex-table-fill .flex-table-scroll {
+    @apply min-h-0 flex-1 overflow-auto;
   }
 
   .flex-table-inner {
@@ -619,22 +712,55 @@
     pointer-events: none;
   }
 
+  .flex-table-row-skeleton .flex-table-cell > app-skeleton,
+  .flex-table-row-skeleton app-skeleton {
+    @apply w-full min-w-0;
+  }
+
+  .flex-table-loading.flex-table-fill .flex-table-scroll {
+    @apply min-h-0 flex-1;
+  }
+
+  .flex-table-loading.flex-table-fill .flex-table-inner {
+    min-height: 100%;
+  }
+
+  .flex-table-empty-state.flex-table-fill .flex-table-scroll {
+    @apply min-h-0 flex-1;
+  }
+
+  .flex-table-inner.flex-table-inner-empty {
+    min-height: 100%;
+    grid-template-rows: auto 1fr;
+  }
+
   .flex-table-row-empty {
     grid-template-columns: 1fr;
-    min-height: auto;
+    min-height: 10rem;
+    align-self: stretch;
+  }
+
+  .flex-table-empty-state.flex-table-fill .flex-table-row-empty {
+    min-height: 0;
   }
 
   .flex-table-cell-empty {
-    @apply block px-4 py-0 text-center;
+    @apply flex items-center justify-center px-4 py-0 text-center;
     grid-column: 1 / -1;
+    min-height: inherit;
+    height: 100%;
   }
 
   .flex-table-empty {
-    @apply py-12;
+    @apply flex w-full max-w-md flex-col items-center justify-center py-10;
+  }
+
+  .flex-table-empty-state.flex-table-fill .flex-table-empty {
+    @apply py-0;
   }
 
   .flex-table-empty-icon {
-    @apply mb-4 flex size-10 items-center justify-center rounded-full border border-border;
+    @apply mx-auto mb-4 flex size-10 items-center justify-center rounded-full border border-border;
     background-color: color-mix(in oklch, var(--muted) 50%, transparent);
   }
 
@@ -710,7 +836,15 @@
   }
 
   .page-content {
-    @apply flex flex-1 flex-col gap-4 overflow-auto bg-card p-4 md:gap-6 md:p-6;
+    @apply flex min-h-0 flex-1 flex-col gap-4 overflow-auto bg-card p-4 md:gap-6 md:p-6;
+  }
+
+  .page-content:has(.page-shell-fill) {
+    @apply overflow-hidden;
+  }
+
+  .page-content > *:has(.page-shell-fill) {
+    @apply flex min-h-0 flex-1 flex-col;
   }
 
   /* Sidebar — single width transition; inner layout stays stable */
@@ -1053,8 +1187,9 @@
 
   /* ── Dropdown (shadcn) ── */
   .dropdown-content {
-    @apply absolute z-[var(--z-dropdown)] mt-1 min-w-[8rem] overflow-hidden rounded-md border border-border
-           bg-popover p-1 text-popover-foreground shadow-md;
+    @apply absolute z-[var(--z-dropdown)] mt-1 min-w-[12rem] origin-top overflow-hidden rounded-md border
+           border-border bg-popover p-1 text-popover-foreground shadow-lg;
+    animation: dropdownIn 150ms ease-out;
   }
 
   .dropdown-content-end {
@@ -1070,8 +1205,8 @@
   }
 
   .dropdown-item {
-    @apply relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm
-           outline-none transition-colors focus:bg-accent focus:text-accent-foreground
+    @apply relative flex w-full cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm
+           outline-none transition-colors focus-visible:bg-accent focus-visible:text-accent-foreground
            [&_svg]:size-4 [&_svg]:shrink-0;
   }
 
@@ -1099,8 +1234,9 @@
   }
 
   .dropdown-separator {
-    @apply -mx-1 my-1 h-px bg-muted;
+    @apply -mx-1 my-1 h-px bg-border;
   }
+
 
   /* ── Sheet (shadcn) ── */
   .sheet-overlay {
@@ -1132,18 +1268,34 @@
   }
 
   .cdk-overlay-pane.dialog-overlay-pane {
-    @apply pointer-events-auto;
+    @apply pointer-events-none flex h-[100dvh] w-screen items-center justify-center p-4;
+    max-height: none !important;
+    max-width: none !important;
+    width: 100vw !important;
   }
 
   .dialog-panel {
-    @apply relative grid w-full max-w-lg gap-4 overflow-hidden rounded-lg border border-border
-           bg-background p-6 text-foreground shadow-lg;
+    @apply pointer-events-auto relative mx-auto grid w-full max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-lg border border-border
+           bg-background text-foreground shadow-lg;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     max-height: calc(100vh - 2rem);
-    width: calc(100vw - 2rem);
+    flex: 0 1 auto;
+  }
+
+  .dialog-panel-sm {
+    max-width: 24rem;
+  }
+
+  .dialog-panel-md {
+    max-width: 32rem;
+  }
+
+  .dialog-panel-lg {
+    max-width: 42rem;
   }
 
   .dialog-close {
-    @apply absolute right-4 top-4 inline-flex rounded-sm opacity-70 ring-offset-background
+    @apply absolute right-4 top-4 z-10 inline-flex rounded-sm opacity-70 ring-offset-background
            transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring
            focus:ring-offset-2 disabled:pointer-events-none;
     border: 0;
@@ -1154,7 +1306,7 @@
   }
 
   .dialog-header {
-    @apply flex flex-col gap-1.5 pr-8 text-center sm:text-left;
+    @apply flex shrink-0 flex-col gap-1.5 border-b border-border px-6 pb-4 pt-6 pr-12 text-center sm:text-left;
   }
 
   .dialog-title {
@@ -1166,11 +1318,70 @@
   }
 
   .dialog-body {
-    @apply min-h-0 overflow-y-auto text-foreground;
+    @apply min-h-0 overflow-y-auto px-6 py-4 text-foreground;
   }
 
   .dialog-footer {
-    @apply flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-2;
+    @apply flex shrink-0 flex-col-reverse gap-2 border-t border-border bg-background px-6 py-4
+           sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-2;
+  }
+
+  /* Projected footer slot — don't break flex layout */
+  .dialog-footer [dialogFooter] {
+    display: contents;
+  }
+
+  .dialog-footer app-button {
+    @apply w-full sm:w-auto;
+
+    .btn {
+      @apply w-full sm:w-auto;
+    }
+  }
+
+  .dialog-footer:empty {
+    display: none;
+  }
+
+  .dialog-detail-header {
+    @apply flex flex-wrap items-start justify-between gap-3;
+  }
+
+  .dialog-profile-header {
+    @apply flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border p-4;
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+  }
+
+  .dialog-roles-section {
+    @apply space-y-3 rounded-lg border border-border p-4;
+  }
+
+  .dialog-role-badge {
+    @apply inline-flex items-center gap-1;
+  }
+
+  .dialog-role-remove {
+    @apply inline-flex rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .dialog-activity-list {
+    @apply divide-y divide-border overflow-hidden rounded-md border border-border;
+  }
+
+  .dialog-activity-item {
+    @apply space-y-1 px-3 py-3;
+  }
+
+  .dialog-loading {
+    @apply flex justify-center py-10;
+  }
+
+  .dialog-convert-panel {
+    @apply space-y-3 rounded-md border border-border p-4;
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
   }
 
   /* ── Toast ── */
@@ -1243,6 +1454,53 @@
   .dashboard-pipeline-stage {
     @apply rounded-lg border border-border p-4;
     background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+  }
+
+  /* ── Skeleton shimmer ── */
+  .skeleton {
+    @apply relative overflow-hidden rounded-md bg-muted;
+  }
+
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklch, var(--foreground) 10%, transparent) 45%,
+      color-mix(in oklch, var(--foreground) 10%, transparent) 55%,
+      transparent 100%
+    );
+    animation: skeleton-shimmer 1.6s ease-in-out infinite;
+    transform: translateX(-100%);
+  }
+
+  .dark .skeleton::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklch, var(--foreground) 14%, transparent) 45%,
+      color-mix(in oklch, var(--foreground) 14%, transparent) 55%,
+      transparent 100%
+    );
+  }
+}
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes dropdownIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-0.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
@@ -1339,7 +1597,7 @@
 
   .settings-tabs,
   .tabs-list {
-    @apply inline-flex h-9 w-full flex-wrap items-center justify-start gap-1 rounded-lg bg-muted p-1 text-muted-foreground;
+    @apply inline-flex h-9 w-full max-w-3xl flex-wrap items-center justify-start gap-1 rounded-lg bg-muted p-1 text-muted-foreground;
   }
 
   .settings-tab,
@@ -1360,7 +1618,32 @@
   }
 
   .tabs-content {
-    @apply mt-4 focus-visible:outline-none;
+    @apply mt-4 max-w-3xl focus-visible:outline-none;
+  }
+
+  .settings-panel {
+    @apply max-w-3xl space-y-4;
+  }
+
+  .settings-profile-header {
+    @apply flex items-center gap-4 rounded-lg border border-border p-4;
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+  }
+
+  .settings-session-list {
+    @apply divide-y divide-border;
+  }
+
+  .settings-session-row {
+    @apply flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .settings-section {
+    @apply space-y-4 border-t border-border pt-6;
+  }
+
+  .settings-invite-token {
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
   }
 }
 
@@ -1416,6 +1699,6 @@
   @apply hidden items-center gap-2 md:flex;
 }
 
-.org-switcher-select {
-  @apply h-8 min-w-[10rem] max-w-[14rem] py-1 text-sm;
+.org-switcher app-select {
+  @apply w-auto min-w-[10rem] max-w-[14rem];
 }

@@ -12,6 +12,9 @@ import {
   LoaderComponent,
   InputComponent,
   BadgeComponent,
+  SelectComponent,
+  SelectOption,
+  TextareaComponent,
 } from '@shared/components';
 import { DIALOG_DATA, DialogRef } from '@shared/dialog';
 import {
@@ -44,16 +47,22 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
 @Component({
   selector: 'app-deal-detail-dialog',
   host: { class: 'contents' },
-  imports: [ReactiveFormsModule, DialogComponent, ButtonComponent, LoaderComponent, InputComponent, BadgeComponent],
+  imports: [ReactiveFormsModule, DialogComponent, ButtonComponent, LoaderComponent, InputComponent, BadgeComponent, SelectComponent, TextareaComponent],
   template: `
-    <app-dialog [title]="dialogTitle()" [description]="dialogDescription()">
+    <app-dialog
+      [title]="dialogTitle()"
+      [description]="dialogDescription()"
+      size="lg"
+      [showFooter]="footerVisible()"
+    >
       @if (mode() === 'delete') {
         <p class="text-sm text-muted-foreground">
-          Delete deal
+          Delete
           <span class="font-medium text-foreground">{{ deal()?.title }}</span>?
+          This action cannot be undone.
         </p>
       } @else if (isLoading()) {
-        <div class="flex justify-center py-8"><app-loader /></div>
+        <div class="dialog-loading"><app-loader /></div>
       } @else if (deal(); as item) {
         @if (mode() === 'edit') {
           <form [formGroup]="editForm" class="space-y-4">
@@ -62,39 +71,29 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
               <app-input id="edit-value" type="number" label="Value" formControlName="value" />
               <app-input id="edit-currency" label="Currency" formControlName="currency" />
             </div>
-            <div class="form-group">
-              <label for="edit-stage" class="form-label">Stage</label>
-              <select id="edit-stage" class="select" formControlName="stage">
-                @for (option of stageOptions; track option[0]) {
-                  <option [value]="option[0]">{{ option[1] }}</option>
-                }
-              </select>
-            </div>
+            <app-select
+              id="edit-stage"
+              label="Stage"
+              formControlName="stage"
+              [options]="stageSelectOptions"
+            />
             <app-input id="edit-close-date" type="date" label="Expected close" formControlName="expectedCloseDate" />
-            <div class="form-group">
-              <label for="edit-description" class="form-label">Description</label>
-              <textarea id="edit-description" class="textarea" formControlName="description"></textarea>
-            </div>
+            <app-textarea id="edit-description" label="Description" formControlName="description" />
           </form>
         } @else if (mode() === 'activity') {
           <form [formGroup]="activityForm" class="space-y-4">
-            <div class="form-group">
-              <label for="deal-activity-type" class="form-label">Type</label>
-              <select id="deal-activity-type" class="select" formControlName="type">
-                @for (option of activityOptions; track option[0]) {
-                  <option [value]="option[0]">{{ option[1] }}</option>
-                }
-              </select>
-            </div>
+            <app-select
+              id="deal-activity-type"
+              label="Type"
+              formControlName="type"
+              [options]="activitySelectOptions"
+            />
             <app-input id="deal-activity-subject" label="Subject" formControlName="subject" />
-            <div class="form-group">
-              <label for="deal-activity-body" class="form-label">Details</label>
-              <textarea id="deal-activity-body" class="textarea" formControlName="body"></textarea>
-            </div>
+            <app-textarea id="deal-activity-body" label="Details" formControlName="body" />
           </form>
         } @else {
           <div class="space-y-6">
-            <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="dialog-detail-header">
               <div>
                 <p class="text-lg font-semibold text-foreground">{{ item.title }}</p>
                 <p class="text-sm text-muted-foreground">
@@ -145,13 +144,17 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
               } @else if (activities().length === 0) {
                 <p class="text-sm text-muted-foreground">No activity logged yet.</p>
               } @else {
-                <div class="divide-y divide-border rounded-md border border-border">
+                <div class="dialog-activity-list">
                   @for (activity of activities(); track activity.id) {
-                    <div class="space-y-1 px-3 py-3">
-                      <p class="text-sm font-medium text-foreground">{{ activity.subject }}</p>
+                    <div class="dialog-activity-item">
+                      <div class="flex items-center justify-between gap-2">
+                        <p class="text-sm font-medium text-foreground">{{ activity.subject }}</p>
+                        <span class="text-xs text-muted-foreground">{{ formatActivityType(activity.type) }}</span>
+                      </div>
                       @if (activity.body) {
                         <p class="text-sm text-muted-foreground">{{ activity.body }}</p>
                       }
+                      <p class="text-xs text-muted-foreground">{{ formatDate(activity.createdAt) }}</p>
                     </div>
                   }
                 </div>
@@ -159,23 +162,41 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
             </div>
           </div>
         }
+      } @else {
+        <p class="text-sm text-muted-foreground">Deal not found or you do not have access.</p>
       }
 
-      <div dialogFooter class="flex flex-wrap justify-end gap-2">
+      <div dialogFooter>
         @if (mode() === 'view' && deal()) {
           <app-button variant="outline" type="button" (clicked)="mode.set('delete')">Delete</app-button>
           <app-button variant="outline" type="button" (clicked)="enterEditMode()">Edit</app-button>
           <app-button type="button" (clicked)="close()">Close</app-button>
         } @else if (mode() === 'edit') {
-          <app-button variant="outline" type="button" (clicked)="mode.set('view')">Cancel</app-button>
-          <app-button type="button" [disabled]="isSubmitting()" (clicked)="saveEdit()">Save changes</app-button>
+          <app-button variant="outline" type="button" (clicked)="cancelEdit()">Cancel</app-button>
+          <app-button type="button" [disabled]="isSubmitting()" (clicked)="saveEdit()">
+            @if (isSubmitting()) {
+              <app-loader size="sm" [inline]="true" />
+            } @else {
+              Save changes
+            }
+          </app-button>
         } @else if (mode() === 'activity') {
           <app-button variant="outline" type="button" (clicked)="mode.set('view')">Cancel</app-button>
-          <app-button type="button" [disabled]="isSubmitting()" (clicked)="saveActivity()">Log activity</app-button>
+          <app-button type="button" [disabled]="isSubmitting()" (clicked)="saveActivity()">
+            @if (isSubmitting()) {
+              <app-loader size="sm" [inline]="true" />
+            } @else {
+              Log activity
+            }
+          </app-button>
         } @else if (mode() === 'delete') {
           <app-button variant="outline" type="button" (clicked)="mode.set('view')">Cancel</app-button>
           <app-button variant="destructive" type="button" [disabled]="isSubmitting()" (clicked)="confirmDelete()">
-            Delete deal
+            @if (isSubmitting()) {
+              <app-loader size="sm" [inline]="true" />
+            } @else {
+              Delete deal
+            }
           </app-button>
         }
       </div>
@@ -192,10 +213,19 @@ export class DealDetailDialogComponent implements OnInit {
 
   readonly stageOptions = STAGE_OPTIONS;
   readonly activityOptions = ACTIVITY_OPTIONS;
+  readonly stageSelectOptions: SelectOption[] = STAGE_OPTIONS.map(([value, label]) => ({
+    value,
+    label,
+  }));
+  readonly activitySelectOptions: SelectOption[] = ACTIVITY_OPTIONS.map(([value, label]) => ({
+    value,
+    label,
+  }));
   readonly stageBadgeVariant = dealStageBadgeVariant;
   readonly formatStage = formatDealStage;
   readonly formatValue = formatDealValue;
   readonly formatDate = formatDealDate;
+  readonly formatActivityType = (type: ActivityType) => ACTIVITY_TYPE_LABELS[type];
 
   mode = signal<DialogMode>('view');
   deal = signal<Deal | null>(null);
@@ -203,6 +233,7 @@ export class DealDetailDialogComponent implements OnInit {
   isLoading = signal(true);
   activitiesLoading = signal(true);
   isSubmitting = signal(false);
+  wasUpdated = signal(false);
 
   editForm = this.fb.group({
     title: [''],
@@ -233,12 +264,22 @@ export class DealDetailDialogComponent implements OnInit {
     return 'Pipeline opportunity overview.';
   });
 
+  footerVisible = computed(() => {
+    if (this.isLoading()) return false;
+    if (this.mode() === 'view' && !this.deal()) return false;
+    return true;
+  });
+
   ngOnInit(): void {
     void this.loadDeal();
   }
 
   close(): void {
-    this.dialogRef.close();
+    this.dialogRef.close(this.wasUpdated() ? 'updated' : undefined);
+  }
+
+  cancelEdit(): void {
+    this.mode.set('view');
   }
 
   enterEditMode(): void {
@@ -300,9 +341,9 @@ export class DealDetailDialogComponent implements OnInit {
       const updated = await this.dealService.updateDeal(item.id, validation.data ?? undefined);
       if (updated) {
         this.deal.set(updated);
+        this.wasUpdated.set(true);
         this.toastService.show({ title: 'Deal updated', description: updated.title });
         this.mode.set('view');
-        this.dialogRef.close('updated');
       }
     } catch {
       this.toastService.show({ title: 'Update failed', variant: 'destructive' });
@@ -333,8 +374,12 @@ export class DealDetailDialogComponent implements OnInit {
       if (activity) {
         this.activities.update((items) => [activity, ...items].slice(0, 5));
         this.activityForm.reset({ type: 'NOTE', subject: '', body: '' });
+        this.wasUpdated.set(true);
+        this.toastService.show({ title: 'Activity logged', description: activity.subject });
         this.mode.set('view');
       }
+    } catch {
+      this.toastService.show({ title: 'Failed to log activity', variant: 'destructive' });
     } finally {
       this.isSubmitting.set(false);
     }

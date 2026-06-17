@@ -150,7 +150,6 @@ export class DealsBoardComponent {
     if (!this.canManage()) return;
 
     const deal = event.previousContainer.data[event.previousIndex];
-    const previousStage = deal.stage;
 
     if (event.previousContainer === event.container) {
       if (event.previousIndex === event.currentIndex) return;

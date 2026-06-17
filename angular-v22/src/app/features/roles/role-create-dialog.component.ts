@@ -23,7 +23,7 @@ export type RoleCreateDialogResult = 'created';
   imports: [ReactiveFormsModule, DialogComponent, ButtonComponent, InputComponent, LoaderComponent],
   template: `
     <app-dialog title="Create role" description="Add a new role to the system.">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+      <form id="role-create-form" [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
         <app-input
           id="role-name"
           label="Role name"
@@ -41,9 +41,9 @@ export type RoleCreateDialogResult = 'created';
         />
       </form>
 
-      <div dialogFooter class="flex justify-end gap-2">
+      <div dialogFooter>
         <app-button variant="outline" type="button" (clicked)="close()">Cancel</app-button>
-        <app-button type="button" [disabled]="isSubmitting()" (clicked)="onSubmit()">
+        <app-button type="submit" form="role-create-form" [disabled]="isSubmitting()">
           @if (isSubmitting()) {
             <app-loader size="sm" [inline]="true" />
           } @else {

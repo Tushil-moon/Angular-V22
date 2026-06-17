@@ -334,11 +334,11 @@ model Company {
   size      String?
   website   String?
   address   String?
-  ownerId   String?
+  ownerId   String?   @map("owner_id")
   notes     String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   owner    User?     @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -355,7 +355,7 @@ model Tag {
   organizationId String
   name           String
   color          String   @default("#6366f1")
-  createdAt      DateTime @default(now())
+  createdAt      DateTime @default(now()) @map("created_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contacts ContactTag[]
@@ -367,8 +367,8 @@ model Tag {
 }
 
 model ContactTag {
-  contactId String
-  tagId     String
+  contactId String @map("contact_id")
+  tagId     String @map("tag_id")
 
   contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
   tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
@@ -378,8 +378,8 @@ model ContactTag {
 }
 
 model DealTag {
-  dealId String
-  tagId  String
+  dealId String @map("deal_id")
+  tagId  String @map("tag_id")
 
   deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
   tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
@@ -416,7 +416,7 @@ model Contact {
   email     String?
   phone     String?
   company   String?
-  companyId String?
+  companyId String? @map("company_id")
   jobTitle  String?
   status    ContactStatus @default(LEAD)
   ownerId   String?
@@ -477,10 +477,10 @@ model Activity {
   contactId   String?
   dealId      String?
   userId      String
-  dueAt       DateTime?
-  completedAt DateTime?
+  dueAt       DateTime?    @map("due_at")
+  completedAt DateTime?    @map("completed_at")
   createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  updatedAt   DateTime     @updatedAt @map("updated_at")
 
   contact Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
   deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: Cascade)

@@ -24,7 +24,7 @@ export type UserCreateDialogResult = 'created';
   imports: [ReactiveFormsModule, DialogComponent, ButtonComponent, InputComponent, LoaderComponent],
   template: `
     <app-dialog title="Add user" description="Create a new user account with email and password.">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+      <form id="user-create-form" [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           @for (field of nameFields; track field.name) {
             <app-input
@@ -51,9 +51,9 @@ export type UserCreateDialogResult = 'created';
         }
       </form>
 
-      <div dialogFooter class="flex justify-end gap-2">
+      <div dialogFooter>
         <app-button variant="outline" type="button" (clicked)="close()">Cancel</app-button>
-        <app-button type="button" [disabled]="isSubmitting()" (clicked)="onSubmit()">
+        <app-button type="submit" form="user-create-form" [disabled]="isSubmitting()">
           @if (isSubmitting()) {
             <app-loader size="sm" [inline]="true" />
           } @else {
