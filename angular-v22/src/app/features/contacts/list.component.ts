@@ -3,7 +3,7 @@
  */
 
 import { Component, computed, inject, resource, signal } from '@angular/core';
-import { AuthService, ContactService, DialogService } from '@services/index';
+import { AuthService, ContactService, DialogService, PermissionService } from '@services/index';
 import {
   CardComponent,
   CardHeaderComponent,
@@ -17,6 +17,9 @@ import {
   FlexTableRowComponent,
   FlexTableCellComponent,
 } from '@shared/components';
+import { SavedViewSelectComponent } from '@shared/components/saved-view-select.component';
+import { TagBadgesComponent } from '@shared/components/tag-badges.component';
+import { Permissions } from '@shared/constants/permissions';
 import {
   CONTACT_TABLE_COLUMNS,
   contactStatusBadgeClass,
@@ -52,6 +55,8 @@ const EMPTY_PAGE: ContactsPageResult = { contacts: [], total: 0 };
     FlexTableComponent,
     FlexTableRowComponent,
     FlexTableCellComponent,
+    SavedViewSelectComponent,
+    TagBadgesComponent,
   ],
   template: `
     <div class="page-shell">
@@ -60,10 +65,12 @@ const EMPTY_PAGE: ContactsPageResult = { contacts: [], total: 0 };
           <h1 class="page-title">Contacts</h1>
           <p class="page-description">Manage leads, prospects, and customers</p>
         </div>
-        <app-button class="w-full sm:w-auto" size="sm" (clicked)="openCreateDialog()">
-          <app-icon name="plus" [size]="14" />
-          Add contact
-        </app-button>
+        @if (canManage()) {
+          <app-button class="w-full sm:w-auto" size="sm" (clicked)="openCreateDialog()">
+            <app-icon name="plus" [size]="14" />
+            Add contact
+          </app-button>
+        }
       </div>
 
       @if (loadError()) {
@@ -76,12 +83,19 @@ const EMPTY_PAGE: ContactsPageResult = { contacts: [], total: 0 };
             <app-card-title>All contacts</app-card-title>
             <app-card-description>{{ totalContacts() }} total contacts</app-card-description>
           </div>
-          <app-search-input
-            class="w-full sm:max-w-xs"
+          <div class="card-toolbar">
+            <app-saved-view-select
+              entityType="CONTACTS"
+              [currentFilters]="activeFilters()"
+              [canSave]="canManage()"
+              (viewSelected)="applySavedView($event)"
+            />
+            <app-search-input
             placeholder="Search contacts..."
             [initialValue]="searchQuery()"
             (searchChange)="onSearch($event)"
-          />
+            />
+          </div>
         </app-card-header>
 
         <app-card-body [flush]="true">
@@ -97,15 +111,20 @@ const EMPTY_PAGE: ContactsPageResult = { contacts: [], total: 0 };
             @for (contact of contacts(); track contact.id) {
               <app-flex-table-row [interactive]="true" (click)="openDetailDialog(contact)">
                 <app-flex-table-cell column="name">
-                  <div class="min-w-0">
+                  <div class="min-w-0 space-y-1">
                     <p class="truncate font-medium text-foreground">{{ contact.fullName }}</p>
                     @if (contact.jobTitle) {
                       <p class="truncate text-xs text-muted-foreground">{{ contact.jobTitle }}</p>
                     }
+                    @if (contact.tags?.length) {
+                      <app-tag-badges [tags]="contact.tags" />
+                    }
                   </div>
                 </app-flex-table-cell>
                 <app-flex-table-cell column="company">
-                  <span class="truncate text-muted-foreground">{{ contact.company || '—' }}</span>
+                  <span class="truncate text-muted-foreground">{{
+                    contact.companyRef?.name || contact.company || '—'
+                  }}</span>
                 </app-flex-table-cell>
                 <app-flex-table-cell column="email">
                   <span class="truncate text-muted-foreground">{{ contact.email || '—' }}</span>
@@ -116,17 +135,17 @@ const EMPTY_PAGE: ContactsPageResult = { contacts: [], total: 0 };
                   </span>
                 </app-flex-table-cell>
                 <app-flex-table-cell column="deals">
-                  <span class="text-muted-foreground">{{ contact.dealCount ?? 0 }}</span>
+                  <span class="tabular-nums text-muted-foreground">{{ contact.dealCount ?? 0 }}</span>
                 </app-flex-table-cell>
                 <app-flex-table-cell column="actions">
                   <app-button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     type="button"
                     (clicked)="openDetailDialog(contact, $event)"
                   >
-                    <app-icon name="eye" [size]="14" />
-                    <span class="hidden sm:inline">View</span>
+                    <span class="sr-only">View contact</span>
+                    <app-icon name="eye" [size]="16" />
                   </app-button>
                 </app-flex-table-cell>
               </app-flex-table-row>
@@ -141,14 +160,25 @@ export class ContactsListComponent {
   private readonly authService = inject(AuthService);
   private readonly contactService = inject(ContactService);
   private readonly dialogService = inject(DialogService);
+  private readonly permissionService = inject(PermissionService);
+
+  readonly canManage = computed(() =>
+    this.permissionService.hasPermission(Permissions.ManageContacts),
+  );
 
   readonly columns = CONTACT_TABLE_COLUMNS;
   readonly statusBadgeClass = contactStatusBadgeClass;
   readonly formatStatus = formatContactStatus;
 
   searchQuery = signal('');
+  savedFilters = signal<Record<string, unknown>>({});
   currentPage = signal(1);
   pageSize = signal(10);
+
+  readonly activeFilters = computed(() => ({
+    search: this.searchQuery().trim() || undefined,
+    ...this.savedFilters(),
+  }));
 
   readonly contactsResource = resource({
     params: () => {
@@ -156,7 +186,7 @@ export class ContactsListComponent {
       return {
         page: this.currentPage(),
         pageSize: this.pageSize(),
-        search: this.searchQuery().trim(),
+        ...this.activeFilters(),
       };
     },
     loader: async ({ params, abortSignal }) => {
@@ -168,7 +198,7 @@ export class ContactsListComponent {
           const filters: FilterOptions = {
             page: params.page,
             pageSize: params.pageSize,
-            search: params.search || undefined,
+            search: params.search as string | undefined,
           };
           const result = await this.contactService.listContacts(filters);
           throwIfAborted(abortSignal);
@@ -186,6 +216,12 @@ export class ContactsListComponent {
 
   onSearch(query: string): void {
     this.searchQuery.set(query);
+    this.currentPage.set(1);
+  }
+
+  applySavedView(filters: Record<string, unknown> | null): void {
+    this.savedFilters.set(filters ?? {});
+    if (filters?.['search']) this.searchQuery.set(String(filters['search']));
     this.currentPage.set(1);
   }
 

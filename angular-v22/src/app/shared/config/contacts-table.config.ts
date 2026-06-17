@@ -32,16 +32,18 @@ export const CONTACT_TABLE_COLUMNS: FlexTableColumn[] = [
   {
     key: 'deals',
     label: 'Deals',
+    align: 'right',
     grid: 'minmax(4rem, 0.5fr)',
     hideBelow: 'md',
-    skeletonClass: 'h-4 w-8',
+    skeletonClass: 'h-4 w-8 ml-auto',
   },
   {
     key: 'actions',
     label: 'Actions',
     align: 'right',
-    grid: '5.5rem',
-    skeletonClass: 'h-8 w-14 ml-auto',
+    headerSrOnly: true,
+    grid: '4.5rem',
+    skeletonClass: 'h-8 w-8 ml-auto rounded-md',
   },
 ];
 

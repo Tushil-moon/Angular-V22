@@ -2,6 +2,7 @@
 export * from './http-client.service';
 export * from './token.service';
 export * from './auth.service';
+export * from './permission.service';
 export * from './user.service';
 export * from './role.service';
 export * from './dashboard.service';
@@ -13,3 +14,9 @@ export * from './session.service';
 export * from './contact.service';
 export * from './deal.service';
 export * from './activity.service';
+export * from './company.service';
+export * from './tag.service';
+export * from './search.service';
+export * from './saved-view.service';
+export * from './organization.service';
+export * from './organization-context.service';

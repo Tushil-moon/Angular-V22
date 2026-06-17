@@ -6,6 +6,9 @@ declare global {
       id: string;
       sessionId: string;
       roles: RoleName[] | string[];
+      permissions: string[];
+      organizationId?: string;
+      organizationRole?: "OWNER" | "ADMIN" | "MEMBER";
     }
 
     interface Request {

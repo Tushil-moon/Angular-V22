@@ -7,6 +7,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClientService } from './http-client.service';
 import { TokenService } from './token.service';
+import { OrganizationContextService } from './organization-context.service';
 import { User, SignInRequest, SignUpRequest, Session, ApiError } from '@models/index';
 import {
   mapApiUser,
@@ -24,6 +25,7 @@ import { environment } from '@env';
 export class AuthService {
   private readonly httpClient = inject(HttpClientService);
   private readonly tokenService = inject(TokenService);
+  private readonly organizationContext = inject(OrganizationContextService);
   private readonly router = inject(Router);
 
   private readonly currentUserSignal = signal<User | null>(this.getUserFromStorage());
@@ -86,6 +88,9 @@ export class AuthService {
       this.httpClient.setAuthToken(accessToken);
       this.currentUserSignal.set(user);
       this.isAuthenticatedSignal.set(true);
+      if (!user.permissions?.length) {
+        await this.refreshProfile();
+      }
       return;
     }
 
@@ -291,6 +296,7 @@ export class AuthService {
 
   private clearAuth(): void {
     this.httpClient.removeAuthToken();
+    this.organizationContext.clearActiveOrganization();
     localStorage.removeItem(environment.userStorageKey);
     this.currentUserSignal.set(null);
     this.isAuthenticatedSignal.set(false);

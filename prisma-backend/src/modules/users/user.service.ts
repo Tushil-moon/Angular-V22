@@ -3,6 +3,7 @@ import { Roles } from "../../shared/constants/roles";
 import { AppError } from "../../shared/errors/app-error";
 import { buildPaginationMeta } from "../../shared/validation/pagination";
 import { hashPassword } from "../../shared/utils/crypto";
+import { resolveUserAccess } from "../../shared/utils/permission";
 import { mapUser, userSelect } from "../../shared/utils/user-mapper";
 import type { CreateUserInput, ListUsersQuery, UpdateUserInput } from "./user.validation";
 
@@ -20,7 +21,13 @@ export const userService = {
       select: userSelect,
     });
 
-    return user ? mapUser(user) : null;
+    if (!user) return null;
+
+    const access = await resolveUserAccess(userId);
+    return {
+      ...mapUser(user),
+      permissions: access.permissions,
+    };
   },
 
   async listUsers(query: ListUsersQuery) {

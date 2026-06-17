@@ -3,7 +3,7 @@
  */
 
 import { Component, computed, inject, signal } from '@angular/core';
-import { DialogService, RoleService } from '@services/index';
+import { DialogService, RoleService, PermissionService } from '@services/index';
 import {
   CardComponent,
   CardHeaderComponent,
@@ -16,6 +16,7 @@ import {
   IconComponent,
 } from '@shared/components';
 import { RoleCreateDialogComponent, RoleCreateDialogResult } from './role-create-dialog.component';
+import { Permissions } from '@shared/constants/permissions';
 
 @Component({
   selector: 'app-roles-list',
@@ -37,10 +38,12 @@ import { RoleCreateDialogComponent, RoleCreateDialogResult } from './role-create
           <h1 class="page-title">Roles</h1>
           <p class="page-description">Manage roles and permissions</p>
         </div>
+        @if (canManage()) {
         <app-button class="w-full sm:w-auto" size="sm" (clicked)="openCreateDialog()">
           <app-icon name="plus" [size]="14" />
           Create role
         </app-button>
+        }
       </div>
 
       <app-card>
@@ -49,12 +52,13 @@ import { RoleCreateDialogComponent, RoleCreateDialogResult } from './role-create
             <app-card-title>All roles</app-card-title>
             <app-card-description>{{ filteredRoles().length }} roles shown</app-card-description>
           </div>
-          <app-search-input
-            class="w-full sm:max-w-xs"
-            placeholder="Search roles..."
-            [initialValue]="searchQuery()"
-            (searchChange)="searchQuery.set($event)"
-          />
+          <div class="card-toolbar">
+            <app-search-input
+              placeholder="Search roles..."
+              [initialValue]="searchQuery()"
+              (searchChange)="searchQuery.set($event)"
+            />
+          </div>
         </app-card-header>
 
         <app-card-body>
@@ -123,6 +127,9 @@ import { RoleCreateDialogComponent, RoleCreateDialogResult } from './role-create
 export class RolesListComponent {
   roleService = inject(RoleService);
   private readonly dialogService = inject(DialogService);
+  private readonly permissionService = inject(PermissionService);
+
+  readonly canManage = computed(() => this.permissionService.hasPermission(Permissions.ManageRoles));
 
   searchQuery = signal('');
   skeletonItems = computed(() => Array.from({ length: 6 }, (_, i) => i));

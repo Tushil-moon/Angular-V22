@@ -2,7 +2,7 @@
  * API mappers — normalize snake_case backend payloads to frontend models
  */
 
-import { User, Role, Activity, Contact, Deal, PaginatedResponse } from '@models/index';
+import { User, Role, Activity, Contact, Deal, Company, PaginatedResponse, CrmTag, SearchResult, SavedView } from '@models/index';
 
 /** Raw API payloads use snake_case keys (see backend api-design rule). */
 
@@ -16,6 +16,7 @@ export interface ApiUserPayload {
   created_at?: string | Date;
   updated_at?: string | Date;
   roles?: string[];
+  permissions?: string[];
 }
 
 export interface ApiAuthResponsePayload {
@@ -86,6 +87,29 @@ export interface ApiDashboardStatsPayload {
   recent_activity: ApiDashboardActivityPayload[];
 }
 
+export interface ApiTagPayload {
+  id: string;
+  name: string;
+  color: string;
+  created_at?: string | Date;
+}
+
+export interface ApiCompanyPayload {
+  id: string;
+  name: string;
+  domain?: string | null;
+  industry?: string | null;
+  size?: string | null;
+  website?: string | null;
+  address?: string | null;
+  owner_id?: string | null;
+  notes?: string | null;
+  owner?: { id: string; email: string | null } | null;
+  contact_count?: number;
+  created_at?: string | Date;
+  updated_at?: string | Date;
+}
+
 export interface ApiContactPayload {
   id: string;
   first_name: string;
@@ -94,11 +118,14 @@ export interface ApiContactPayload {
   email?: string | null;
   phone?: string | null;
   company?: string | null;
+  company_id?: string | null;
+  company_ref?: { id: string; name: string; domain?: string | null } | null;
   job_title?: string | null;
   status: string;
   notes?: string | null;
   owner_id?: string | null;
   owner?: { id: string; email: string | null } | null;
+  tags?: ApiTagPayload[];
   deal_count?: number;
   activity_count?: number;
   created_at?: string | Date;
@@ -123,6 +150,7 @@ export interface ApiDealPayload {
   description?: string | null;
   contact?: ApiDealContactPayload | null;
   owner?: { id: string; email: string | null } | null;
+  tags?: ApiTagPayload[];
   created_at?: string | Date;
   updated_at?: string | Date;
 }
@@ -135,10 +163,13 @@ export interface ApiActivityPayload {
   contact_id?: string | null;
   deal_id?: string | null;
   user_id: string;
+  due_at?: string | Date | null;
+  completed_at?: string | Date | null;
   user?: { id: string; email: string | null } | null;
   contact?: { id: string; full_name: string } | null;
   deal?: { id: string; title: string } | null;
   created_at?: string | Date;
+  updated_at?: string | Date;
 }
 
 /** Frontend-facing dashboard types (camelCase). */
@@ -198,6 +229,7 @@ export const mapApiUser = (user: ApiUserPayload): User => ({
   emailVerified: user.email_verified ?? false,
   createdAt: user.created_at ? new Date(user.created_at) : new Date(),
   updatedAt: user.updated_at ? new Date(user.updated_at) : new Date(),
+  permissions: user.permissions ?? [],
   roles: user.roles?.map((name) => ({
     id: name,
     name,
@@ -267,6 +299,28 @@ export const mapApiPaginated = <TApi, TModel>(
   hasMore: payload.has_more,
 });
 
+export const mapApiTag = (tag: ApiTagPayload): CrmTag => ({
+  id: tag.id,
+  name: tag.name,
+  color: tag.color,
+});
+
+export const mapApiCompany = (company: ApiCompanyPayload): Company => ({
+  id: company.id,
+  name: company.name,
+  domain: company.domain,
+  industry: company.industry,
+  size: company.size,
+  website: company.website,
+  address: company.address,
+  ownerId: company.owner_id,
+  notes: company.notes,
+  owner: company.owner,
+  contactCount: company.contact_count,
+  createdAt: company.created_at ? new Date(company.created_at) : new Date(),
+  updatedAt: company.updated_at ? new Date(company.updated_at) : new Date(),
+});
+
 export const mapApiContact = (contact: ApiContactPayload): Contact => ({
   id: contact.id,
   firstName: contact.first_name,
@@ -275,11 +329,14 @@ export const mapApiContact = (contact: ApiContactPayload): Contact => ({
   email: contact.email,
   phone: contact.phone,
   company: contact.company,
+  companyId: contact.company_id,
+  companyRef: contact.company_ref,
   jobTitle: contact.job_title,
   status: contact.status as Contact['status'],
   notes: contact.notes,
   ownerId: contact.owner_id,
   owner: contact.owner,
+  tags: contact.tags?.map(mapApiTag),
   dealCount: contact.deal_count,
   activityCount: contact.activity_count,
   createdAt: contact.created_at ? new Date(contact.created_at) : new Date(),
@@ -304,6 +361,7 @@ export const mapApiDeal = (deal: ApiDealPayload): Deal => ({
       }
     : null,
   owner: deal.owner,
+  tags: deal.tags?.map(mapApiTag),
   createdAt: deal.created_at ? new Date(deal.created_at) : new Date(),
   updatedAt: deal.updated_at ? new Date(deal.updated_at) : new Date(),
 });
@@ -316,6 +374,8 @@ export const mapApiActivity = (activity: ApiActivityPayload): Activity => ({
   contactId: activity.contact_id,
   dealId: activity.deal_id,
   userId: activity.user_id,
+  dueAt: activity.due_at ? new Date(activity.due_at) : null,
+  completedAt: activity.completed_at ? new Date(activity.completed_at) : null,
   user: activity.user,
   contact: activity.contact
     ? {
@@ -325,4 +385,43 @@ export const mapApiActivity = (activity: ApiActivityPayload): Activity => ({
     : null,
   deal: activity.deal,
   createdAt: activity.created_at ? new Date(activity.created_at) : new Date(),
+  updatedAt: activity.updated_at ? new Date(activity.updated_at) : new Date(),
+});
+
+export const mapApiSearchResult = (result: {
+  type: string;
+  id: string;
+  title: string;
+  subtitle: string | null;
+  route: string;
+}): SearchResult => ({
+  type: result.type as SearchResult['type'],
+  id: result.id,
+  title: result.title,
+  subtitle: result.subtitle,
+  route: result.route,
+});
+
+export const mapApiSavedView = (view: {
+  id: string;
+  user_id: string;
+  entity_type: string;
+  name: string;
+  filters: Record<string, unknown>;
+  sort?: Record<string, unknown> | null;
+  columns?: string[] | null;
+  is_default: boolean;
+  created_at?: string | Date;
+  updated_at?: string | Date;
+}): SavedView => ({
+  id: view.id,
+  userId: view.user_id,
+  entityType: view.entity_type as SavedView['entityType'],
+  name: view.name,
+  filters: view.filters,
+  sort: view.sort,
+  columns: view.columns,
+  isDefault: view.is_default,
+  createdAt: view.created_at ? new Date(view.created_at) : new Date(),
+  updatedAt: view.updated_at ? new Date(view.updated_at) : new Date(),
 });

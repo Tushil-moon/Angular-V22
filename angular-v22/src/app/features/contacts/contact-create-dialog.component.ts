@@ -70,15 +70,24 @@ const STATUS_OPTIONS = Object.entries(CONTACT_STATUS_LABELS) as [ContactStatus, 
         />
         <div class="form-group">
           <label for="contact-status" class="form-label">Status</label>
-          <select id="contact-status" class="input" formControlName="status">
+          <select id="contact-status" class="select" formControlName="status">
             @for (option of statusOptions; track option[0]) {
               <option [value]="option[0]">{{ option[1] }}</option>
             }
           </select>
         </div>
         <div class="form-group">
+          <label for="contact-tags" class="form-label">Tags</label>
+          <input
+            id="contact-tags"
+            class="input"
+            formControlName="tags"
+            placeholder="vip, enterprise (comma separated)"
+          />
+        </div>
+        <div class="form-group">
           <label for="contact-notes" class="form-label">Notes</label>
-          <textarea id="contact-notes" class="input min-h-24 resize-y" formControlName="notes"></textarea>
+          <textarea id="contact-notes" class="textarea" formControlName="notes"></textarea>
         </div>
       </form>
 
@@ -111,6 +120,7 @@ export class ContactCreateDialogComponent {
     company: [''],
     jobTitle: [''],
     status: ['LEAD' as ContactStatus],
+    tags: [''],
     notes: [''],
   });
 
@@ -136,9 +146,14 @@ export class ContactCreateDialogComponent {
       jobTitle: raw.jobTitle.trim() || undefined,
       status: raw.status,
       notes: raw.notes.trim() || undefined,
+      tagNames: raw.tags
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter(Boolean),
     };
 
-    const validation = safeValidate(createContactSchema, payload);
+    const { tagNames, ...contactPayload } = payload;
+    const validation = safeValidate(createContactSchema, contactPayload);
     if (!validation.success) {
       this.fieldErrors.set(validation.errors ?? {});
       return;
@@ -148,7 +163,10 @@ export class ContactCreateDialogComponent {
     this.isSubmitting.set(true);
 
     try {
-      const contact = await this.contactService.createContact(validation.data!);
+      const contact = await this.contactService.createContact({
+        ...validation.data!,
+        ...(tagNames.length ? { tagNames } : {}),
+      });
       if (contact) {
         this.toastService.show({
           title: 'Contact created',

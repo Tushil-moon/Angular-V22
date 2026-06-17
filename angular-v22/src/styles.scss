@@ -30,6 +30,10 @@
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
     --destructive-foreground: oklch(0.985 0 0);
+    --success: oklch(0.96 0.04 145);
+    --success-foreground: oklch(0.45 0.12 145);
+    --warning: oklch(0.96 0.05 85);
+    --warning-foreground: oklch(0.45 0.12 75);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
     --ring: oklch(0.708 0 0);
@@ -48,7 +52,7 @@
     --selection: oklch(0.205 0 0);
     --selection-foreground: oklch(0.985 0 0);
     --overlay-backdrop: rgb(0 0 0 / 0.25);
-    --radius: 0.625rem;
+    --radius: 0.5rem;
     --sidebar-width: 16rem;
     --sidebar-width-icon: 3rem;
     --sidebar-item-size: 2rem;
@@ -82,13 +86,17 @@
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
     --destructive-foreground: oklch(0.985 0 0);
+    --success: oklch(0.28 0.06 145);
+    --success-foreground: oklch(0.85 0.08 145);
+    --warning: oklch(0.32 0.07 75);
+    --warning-foreground: oklch(0.88 0.08 85);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.556 0 0);
     --sidebar: oklch(0.205 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.922 0 0);
+    --sidebar-primary-foreground: oklch(0.205 0 0);
     --sidebar-accent: oklch(0.269 0 0);
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
@@ -231,6 +239,10 @@
     @apply h-10 rounded-md px-8;
   }
 
+  .btn-xl {
+    @apply h-11 rounded-md px-10 text-base;
+  }
+
   .btn-full {
     @apply w-full;
   }
@@ -245,7 +257,23 @@
   }
 
   .card-header-row {
-    @apply flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0;
+    @apply flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .card-toolbar {
+    @apply flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-nowrap sm:items-center sm:justify-end;
+  }
+
+  .card-toolbar > .select {
+    @apply w-full sm:w-36 shrink-0;
+  }
+
+  .card-toolbar > app-search-input {
+    @apply w-full sm:w-64 shrink-0;
+  }
+
+  .card-toolbar > app-button {
+    @apply w-full sm:w-auto shrink-0;
   }
 
   .card-title {
@@ -296,6 +324,61 @@
     @apply text-sm font-medium text-destructive;
   }
 
+  .textarea {
+    @apply flex min-h-[5rem] w-full resize-y rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm
+           transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1
+           focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm text-foreground;
+  }
+
+  .textarea.border-destructive {
+    border-color: var(--destructive);
+  }
+
+  .select {
+    @apply flex h-9 w-full appearance-none rounded-md border border-input bg-transparent bg-no-repeat px-3 py-1 text-sm
+           shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
+           disabled:cursor-not-allowed disabled:opacity-50 text-foreground;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 0.5rem center;
+    background-size: 1rem;
+    padding-right: 2rem;
+  }
+
+  .checkbox {
+    @apply h-4 w-4 shrink-0 rounded-sm border border-primary shadow transition-colors
+           focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
+           disabled:cursor-not-allowed disabled:opacity-50 accent-primary;
+  }
+
+  .checkbox-label {
+    @apply flex cursor-pointer items-center gap-2 text-sm font-medium leading-none;
+  }
+
+  /* ── Switch (shadcn) ── */
+  .switch {
+    @apply relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent
+           shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+           focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50;
+    background-color: var(--input);
+  }
+
+  .switch[data-state='checked'] {
+    background-color: var(--primary);
+  }
+
+  .switch-thumb {
+    @apply pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform;
+    transform: translateX(0);
+  }
+
+  .switch[data-state='checked'] .switch-thumb {
+    transform: translateX(1rem);
+  }
+
+  .switch-label {
+    @apply flex cursor-pointer items-center gap-2 text-sm font-medium leading-none;
+  }
+
   /* ── Badge (shadcn) ── */
   .badge {
     @apply inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors
@@ -314,12 +397,21 @@
 
   .badge-secondary,
   .badge-success {
-    @apply badge border-transparent bg-secondary text-secondary-foreground;
+    @apply badge border-transparent;
   }
 
-  .badge-secondary:hover,
-  .badge-success:hover {
+  .badge-secondary {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+  }
+
+  .badge-secondary:hover {
     background-color: color-mix(in oklch, var(--secondary) 80%, black);
+  }
+
+  .badge-success {
+    background-color: var(--success);
+    color: var(--success-foreground);
   }
 
   .badge-danger,
@@ -332,9 +424,18 @@
     background-color: color-mix(in oklch, var(--destructive) 80%, black);
   }
 
-  .badge-warning,
+  .badge-warning {
+    @apply badge border-transparent;
+    background-color: var(--warning);
+    color: var(--warning-foreground);
+  }
+
   .badge-outline {
-    @apply badge text-foreground;
+    @apply badge border-border bg-transparent text-foreground;
+  }
+
+  .badge-ghost {
+    @apply badge border-transparent bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground;
   }
 
   /* ── Alert (shadcn) ── */
@@ -348,7 +449,7 @@
   .alert-info,
   .alert-success,
   .alert-warning {
-    @apply alert bg-background text-foreground;
+    @apply alert border bg-background text-foreground;
   }
 
   .alert-destructive,
@@ -433,55 +534,84 @@
   }
 
   .flex-table {
-    @apply relative w-full;
+    @apply relative w-full caption-bottom text-sm;
   }
 
   .flex-table-scroll {
     @apply w-full overflow-x-auto;
+    scrollbar-gutter: stable;
   }
 
   .flex-table-inner {
+    display: grid;
+    grid-template-columns: var(--flex-table-columns);
+    width: 100%;
     min-width: 100%;
-    width: max-content;
+  }
+
+  .flex-table-caption {
+    @apply mt-4 text-sm text-muted-foreground;
+    grid-column: 1 / -1;
+  }
+
+  .flex-table-body {
+    display: contents;
   }
 
   .flex-table-header,
   .flex-table-row {
     display: grid;
-    grid-template-columns: var(--flex-table-columns);
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
     align-items: center;
-    min-height: 2.5rem;
   }
 
   .flex-table-header {
-    @apply border-b border-border;
+    @apply sticky top-0 z-10 border-b border-border bg-background;
+  }
+
+  .flex-table-row {
+    min-height: 3rem;
   }
 
   .flex-table-cell {
-    @apply flex min-w-0 items-center px-4 py-3 text-sm;
+    @apply flex min-w-0 items-center px-4 py-3 align-middle text-sm;
   }
 
   .flex-table-cell-header {
-    @apply h-10 py-0 text-left align-middle text-xs font-medium text-muted-foreground;
+    @apply h-10 py-0 text-left align-middle font-medium text-muted-foreground;
   }
 
   .flex-table-cell-right {
-    @apply justify-end;
+    @apply justify-end text-right;
   }
 
-  .flex-table-body .flex-table-row {
+  .flex-table-cell-actions {
+    @apply justify-end py-2;
+  }
+
+  .flex-table-row:not(.flex-table-row-empty) {
     @apply border-b border-border transition-colors;
   }
 
-  .flex-table-body .flex-table-row:last-child {
+  .flex-table-row:not(.flex-table-row-empty):last-child {
     @apply border-0;
   }
 
   .flex-table-row-interactive {
-    @apply cursor-pointer transition-colors;
+    @apply cursor-pointer outline-none transition-colors;
   }
 
   .flex-table-row-interactive:hover {
+    background-color: color-mix(in oklch, var(--muted) 50%, transparent);
+  }
+
+  .flex-table-row-interactive:focus-visible {
+    @apply ring-2 ring-ring ring-offset-2 ring-offset-background;
+    background-color: color-mix(in oklch, var(--muted) 50%, transparent);
+  }
+
+  .flex-table-row-selected {
     background-color: color-mix(in oklch, var(--muted) 50%, transparent);
   }
 
@@ -491,12 +621,21 @@
 
   .flex-table-row-empty {
     grid-template-columns: 1fr;
+    min-height: auto;
   }
 
   .flex-table-cell-empty {
-    @apply justify-center gap-1 py-3 text-center;
+    @apply block px-4 py-0 text-center;
     grid-column: 1 / -1;
-    min-height: 2.5rem;
+  }
+
+  .flex-table-empty {
+    @apply py-12;
+  }
+
+  .flex-table-empty-icon {
+    @apply mb-4 flex size-10 items-center justify-center rounded-full border border-border;
+    background-color: color-mix(in oklch, var(--muted) 50%, transparent);
   }
 
   .flex-table-flush .flex-table-cell-header:first-child,
@@ -507,6 +646,18 @@
   .flex-table-flush .flex-table-cell-header:last-child,
   .flex-table-flush .flex-table-cell:last-child {
     @apply pr-6;
+  }
+
+  @media (max-width: 639px) {
+    .flex-table-flush .flex-table-cell-header:first-child,
+    .flex-table-flush .flex-table-cell:first-child {
+      @apply pl-4;
+    }
+
+    .flex-table-flush .flex-table-cell-header:last-child,
+    .flex-table-flush .flex-table-cell:last-child {
+      @apply pr-4;
+    }
   }
 
   @media (max-width: 639px) {
@@ -527,7 +678,8 @@
     }
   }
 
-  .card-content-flush > .empty-state {
+  .card-content-flush > .empty-state,
+  .card-content-flush .flex-table-empty {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
     padding-bottom: 1.5rem;
@@ -1087,6 +1239,11 @@
     @apply flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm font-medium text-foreground
            transition-colors hover:bg-accent hover:text-accent-foreground;
   }
+
+  .dashboard-pipeline-stage {
+    @apply rounded-lg border border-border p-4;
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+  }
 }
 
 @keyframes dialogOverlayIn {
@@ -1180,15 +1337,85 @@
     overflow-y: auto;
   }
 
-  .settings-tabs {
-    @apply flex flex-wrap gap-2 border-b border-border pb-2;
+  .settings-tabs,
+  .tabs-list {
+    @apply inline-flex h-9 w-full flex-wrap items-center justify-start gap-1 rounded-lg bg-muted p-1 text-muted-foreground;
   }
 
-  .settings-tab {
-    @apply inline-flex h-9 items-center rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground;
+  .settings-tab,
+  .tabs-trigger {
+    @apply inline-flex h-7 items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium
+           transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+           disabled:pointer-events-none disabled:opacity-50;
   }
 
-  .settings-tab-active {
-    @apply bg-accent text-accent-foreground;
+  .settings-tab:hover,
+  .tabs-trigger:hover {
+    @apply text-foreground;
   }
+
+  .settings-tab-active,
+  .tabs-trigger-active {
+    @apply bg-background text-foreground shadow;
+  }
+
+  .tabs-content {
+    @apply mt-4 focus-visible:outline-none;
+  }
+}
+
+/* Kanban board — aligned with Shadcn Space dashboard blocks */
+.kanban-board {
+  @apply flex gap-4 overflow-x-auto pb-4;
+  scrollbar-gutter: stable;
+}
+
+.kanban-column {
+  @apply flex min-w-[17rem] max-w-[19rem] flex-1 flex-col rounded-xl border border-border bg-card shadow-sm;
+}
+
+.kanban-column-header {
+  @apply flex items-center justify-between gap-2 border-b border-border px-4 py-3;
+}
+
+.kanban-column-body {
+  @apply flex min-h-[12rem] flex-1 flex-col gap-2 p-3;
+  background-color: color-mix(in oklch, var(--muted) 40%, transparent);
+}
+
+.kanban-card {
+  @apply cursor-grab rounded-lg border border-border bg-card p-3 shadow-sm transition-colors
+         hover:shadow active:cursor-grabbing;
+}
+
+.kanban-card:hover {
+  border-color: color-mix(in oklch, var(--ring) 30%, transparent);
+}
+
+.kanban-card-title {
+  @apply text-sm font-medium text-foreground;
+}
+
+.kanban-card-value {
+  @apply mt-1 text-sm font-semibold tabular-nums text-foreground;
+}
+
+.kanban-card-meta {
+  @apply mt-1 truncate text-xs text-muted-foreground;
+}
+
+.cdk-drag-preview {
+  @apply rounded-md border border-border bg-card p-3 shadow-lg;
+}
+
+.cdk-drag-placeholder {
+  @apply rounded-md border border-dashed border-border bg-muted;
+}
+
+.org-switcher {
+  @apply hidden items-center gap-2 md:flex;
+}
+
+.org-switcher-select {
+  @apply h-8 min-w-[10rem] max-w-[14rem] py-1 text-sm;
 }

@@ -14,9 +14,11 @@ import { environment } from '@env';
 import { ApiResponse, ApiError, HttpConfig } from '@models/index';
 import { ApiRefreshResponsePayload, mapApiRefreshResponse } from '@utils/api-mappers';
 import { TokenService } from './token.service';
+import { OrganizationContextService } from './organization-context.service';
 
 type AuthRequestConfig = InternalAxiosRequestConfig & {
   skipAuth?: boolean;
+  skipOrganization?: boolean;
   _retry?: boolean;
 };
 
@@ -36,6 +38,7 @@ const PUBLIC_AUTH_PATHS = [
 })
 export class HttpClientService {
   private readonly tokenService = inject(TokenService);
+  private readonly organizationContext = inject(OrganizationContextService);
   private readonly injector = inject(Injector);
   private readonly axiosInstance: AxiosInstance;
   private refreshPromise: Promise<string> | null = null;
@@ -117,6 +120,13 @@ export class HttpClientService {
       const token = this.tokenService.getAccessToken();
       if (token) {
         config.headers.set('Authorization', `Bearer ${token}`);
+      }
+
+      if (!config.skipOrganization) {
+        const organizationId = this.organizationContext.activeOrganizationId();
+        if (organizationId) {
+          config.headers.set('X-Organization-Id', organizationId);
+        }
       }
 
       return config;
@@ -234,7 +244,8 @@ export class HttpClientService {
       timeout: config?.timeout,
       withCredentials: config?.withCredentials,
       skipAuth: config?.skipAuth,
-    } as AxiosRequestConfig & { skipAuth?: boolean };
+      skipOrganization: config?.skipOrganization,
+    } as AxiosRequestConfig & { skipAuth?: boolean; skipOrganization?: boolean };
   }
 
   private async request<T>(

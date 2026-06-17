@@ -19,6 +19,34 @@ export interface CrmOwner {
   email: string | null;
 }
 
+export interface CrmTag {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface CompanySummary {
+  id: string;
+  name: string;
+  domain?: string | null;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  domain?: string | null;
+  industry?: string | null;
+  size?: string | null;
+  website?: string | null;
+  address?: string | null;
+  ownerId?: string | null;
+  notes?: string | null;
+  owner?: CrmOwner | null;
+  contactCount?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Contact {
   id: string;
   firstName: string;
@@ -27,11 +55,14 @@ export interface Contact {
   email?: string | null;
   phone?: string | null;
   company?: string | null;
+  companyId?: string | null;
+  companyRef?: CompanySummary | null;
   jobTitle?: string | null;
   status: ContactStatus;
   notes?: string | null;
   ownerId?: string | null;
   owner?: CrmOwner | null;
+  tags?: CrmTag[];
   dealCount?: number;
   activityCount?: number;
   createdAt: Date;
@@ -56,6 +87,33 @@ export interface Deal {
   description?: string | null;
   contact?: DealContactSummary | null;
   owner?: CrmOwner | null;
+  tags?: CrmTag[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DealBoardColumn {
+  stage: DealStage;
+  deals: Deal[];
+}
+
+export interface SearchResult {
+  type: 'contact' | 'deal' | 'company';
+  id: string;
+  title: string;
+  subtitle: string | null;
+  route: string;
+}
+
+export interface SavedView {
+  id: string;
+  userId: string;
+  entityType: 'CONTACTS' | 'DEALS' | 'COMPANIES' | 'ACTIVITIES';
+  name: string;
+  filters: Record<string, unknown>;
+  sort?: Record<string, unknown> | null;
+  columns?: string[] | null;
+  isDefault: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,10 +126,13 @@ export interface Activity {
   contactId?: string | null;
   dealId?: string | null;
   userId: string;
+  dueAt?: Date | null;
+  completedAt?: Date | null;
   user?: CrmOwner | null;
   contact?: { id: string; fullName: string } | null;
   deal?: { id: string; title: string } | null;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface PipelineStageSummary {

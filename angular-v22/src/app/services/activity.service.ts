@@ -34,4 +34,14 @@ export class ActivityService {
     const response = await this.httpClient.post<ApiActivityPayload>('/activities', payload);
     return response.data ? mapApiActivity(response.data) : null;
   }
+
+  async updateActivity(id: string, payload: Record<string, unknown>): Promise<Activity | null> {
+    const response = await this.httpClient.patch<ApiActivityPayload>(`/activities/${id}`, payload);
+    return response.data ? mapApiActivity(response.data) : null;
+  }
+
+  async deleteActivity(id: string): Promise<boolean> {
+    await this.httpClient.delete(`/activities/${id}`);
+    return true;
+  }
 }

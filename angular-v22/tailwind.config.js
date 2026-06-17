@@ -65,12 +65,12 @@ module.exports = {
           foreground: 'var(--destructive-foreground)',
         },
         success: {
-          DEFAULT: 'var(--muted-foreground)',
-          foreground: 'var(--foreground)',
+          DEFAULT: 'var(--success)',
+          foreground: 'var(--success-foreground)',
         },
         warning: {
-          DEFAULT: 'var(--muted-foreground)',
-          foreground: 'var(--foreground)',
+          DEFAULT: 'var(--warning)',
+          foreground: 'var(--warning-foreground)',
         },
         offwhite: 'var(--border)',
       },

@@ -8,11 +8,17 @@ import { userRouter } from "./modules/users/user.routes";
 import { contactRouter } from "./modules/contacts/contact.routes";
 import { dealRouter } from "./modules/deals/deal.routes";
 import { activityRouter } from "./modules/activities/activity.routes";
+import { companyRouter } from "./modules/companies/company.routes";
+import { tagRouter } from "./modules/tags/tag.routes";
+import { searchRouter } from "./modules/search/search.routes";
+import { savedViewRouter } from "./modules/saved-views/saved-view.routes";
+import { organizationRouter } from "./modules/organizations/organization.routes";
 
 export const router = Router();
 
 router.use("/health", healthRouter);
 router.use("/auth", authRouter);
+router.use("/organizations", organizationRouter);
 router.use("/dashboard", dashboardRouter);
 router.use("/users", userRouter);
 router.use("/sessions", sessionRouter);
@@ -20,3 +26,7 @@ router.use("/roles", roleRouter);
 router.use("/contacts", contactRouter);
 router.use("/deals", dealRouter);
 router.use("/activities", activityRouter);
+router.use("/companies", companyRouter);
+router.use("/tags", tagRouter);
+router.use("/search", searchRouter);
+router.use("/saved-views", savedViewRouter);

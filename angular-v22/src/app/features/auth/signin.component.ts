@@ -91,7 +91,7 @@ import { SubmitButtonComponent } from '@shared/components/submit-button.componen
 
     <p class="text-center text-sm text-muted-foreground mt-4">
       Don't have an account?
-      <a href="/auth/signup" class="text-foreground underline-offset-4 hover:underline font-medium"
+      <a routerLink="/auth/signup" class="text-foreground underline-offset-4 hover:underline font-medium"
         >Sign up</a
       >
     </p>

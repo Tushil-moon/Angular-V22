@@ -4,15 +4,16 @@
 
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { ActivityService, ContactService } from '@services/index';
+import { ActivityService, ContactService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
   DialogComponent,
   ButtonComponent,
   LoaderComponent,
-  IconComponent,
   InputComponent,
 } from '@shared/components';
+import { TagBadgesComponent } from '@shared/components/tag-badges.component';
+import { Permissions } from '@shared/constants/permissions';
 import { DIALOG_DATA, DialogRef } from '@shared/dialog';
 import {
   contactStatusBadgeClass,
@@ -35,7 +36,7 @@ export interface ContactDetailDialogData {
 
 export type ContactDetailDialogResult = 'deleted' | 'updated';
 
-type DialogMode = 'view' | 'edit' | 'delete' | 'activity';
+type DialogMode = 'view' | 'edit' | 'delete' | 'activity' | 'convert';
 
 const STATUS_OPTIONS = Object.entries(CONTACT_STATUS_LABELS) as [ContactStatus, string][];
 const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, string][];
@@ -49,6 +50,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
     ButtonComponent,
     LoaderComponent,
     InputComponent,
+    TagBadgesComponent,
   ],
   template: `
     <app-dialog [title]="dialogTitle()" [description]="dialogDescription()">
@@ -85,7 +87,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
             <app-input id="edit-job-title" label="Job title" formControlName="jobTitle" />
             <div class="form-group">
               <label for="edit-status" class="form-label">Status</label>
-              <select id="edit-status" class="input" formControlName="status">
+              <select id="edit-status" class="select" formControlName="status">
                 @for (option of statusOptions; track option[0]) {
                   <option [value]="option[0]">{{ option[1] }}</option>
                 }
@@ -93,14 +95,14 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
             </div>
             <div class="form-group">
               <label for="edit-notes" class="form-label">Notes</label>
-              <textarea id="edit-notes" class="input min-h-24 resize-y" formControlName="notes"></textarea>
+              <textarea id="edit-notes" class="textarea" formControlName="notes"></textarea>
             </div>
           </form>
         } @else if (mode() === 'activity') {
           <form [formGroup]="activityForm" class="space-y-4">
             <div class="form-group">
               <label for="activity-type" class="form-label">Type</label>
-              <select id="activity-type" class="input" formControlName="type">
+              <select id="activity-type" class="select" formControlName="type">
                 @for (option of activityOptions; track option[0]) {
                   <option [value]="option[0]">{{ option[1] }}</option>
                 }
@@ -114,7 +116,32 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
             />
             <div class="form-group">
               <label for="activity-body" class="form-label">Details</label>
-              <textarea id="activity-body" class="input min-h-24 resize-y" formControlName="body"></textarea>
+              <textarea id="activity-body" class="textarea" formControlName="body"></textarea>
+            </div>
+          </form>
+        } @else if (mode() === 'convert') {
+          <form [formGroup]="convertForm" class="space-y-4">
+            <div class="form-group">
+              <label for="convert-status" class="form-label">New status</label>
+              <select id="convert-status" class="select" formControlName="status">
+                <option value="PROSPECT">Prospect</option>
+                <option value="CUSTOMER">Customer</option>
+              </select>
+            </div>
+            <div class="rounded-md border border-border p-3 space-y-3">
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" formControlName="createDeal" />
+                Create deal from this lead
+              </label>
+              @if (convertForm.controls.createDeal.value) {
+                <app-input id="convert-deal-title" label="Deal title" formControlName="dealTitle" />
+                <app-input
+                  id="convert-deal-value"
+                  type="number"
+                  label="Deal value"
+                  formControlName="dealValue"
+                />
+              }
             </div>
           </form>
         } @else {
@@ -123,11 +150,15 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
               <div>
                 <p class="text-lg font-semibold text-foreground">{{ item.fullName }}</p>
                 <p class="text-sm text-muted-foreground">
-                  {{ item.jobTitle || '—' }} · {{ item.company || 'No company' }}
+                  {{ item.jobTitle || '—' }} · {{ item.companyRef?.name || item.company || 'No company' }}
                 </p>
               </div>
               <span [class]="statusBadgeClass(item.status)">{{ formatStatus(item.status) }}</span>
             </div>
+
+            @if (item.tags?.length) {
+              <app-tag-badges [tags]="item.tags" />
+            }
 
             <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div class="space-y-1">
@@ -191,6 +222,9 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
 
       <div dialogFooter class="flex flex-wrap justify-end gap-2">
         @if (mode() === 'view' && contact()) {
+          @if (canManage() && contact()?.status === 'LEAD') {
+            <app-button variant="outline" type="button" (clicked)="mode.set('convert')">Convert lead</app-button>
+          }
           <app-button variant="outline" type="button" (clicked)="mode.set('delete')">Delete</app-button>
           <app-button variant="outline" type="button" (clicked)="enterEditMode()">Edit</app-button>
           <app-button type="button" (clicked)="close()">Close</app-button>
@@ -212,6 +246,15 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
               Log activity
             }
           </app-button>
+        } @else if (mode() === 'convert') {
+          <app-button variant="outline" type="button" (clicked)="mode.set('view')">Cancel</app-button>
+          <app-button type="button" [disabled]="isSubmitting()" (clicked)="confirmConvert()">
+            @if (isSubmitting()) {
+              <app-loader size="sm" [inline]="true" />
+            } @else {
+              Convert lead
+            }
+          </app-button>
         } @else if (mode() === 'delete') {
           <app-button variant="outline" type="button" (clicked)="mode.set('view')">Cancel</app-button>
           <app-button variant="destructive" type="button" [disabled]="isSubmitting()" (clicked)="confirmDelete()">
@@ -229,6 +272,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
 export class ContactDetailDialogComponent implements OnInit {
   private readonly contactService = inject(ContactService);
   private readonly activityService = inject(ActivityService);
+  private readonly permissionService = inject(PermissionService);
   private readonly toastService = inject(ToastService);
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly dialogRef = inject(DialogRef<ContactDetailDialogComponent, ContactDetailDialogResult>);
@@ -240,6 +284,10 @@ export class ContactDetailDialogComponent implements OnInit {
   readonly formatStatus = formatContactStatus;
   readonly formatDate = formatContactDate;
   readonly formatActivityType = (type: ActivityType) => ACTIVITY_TYPE_LABELS[type];
+
+  readonly canManage = computed(() =>
+    this.permissionService.hasPermission(Permissions.ManageContacts),
+  );
 
   mode = signal<DialogMode>('view');
   contact = signal<Contact | null>(null);
@@ -267,6 +315,13 @@ export class ContactDetailDialogComponent implements OnInit {
     body: [''],
   });
 
+  convertForm = this.fb.group({
+    status: ['PROSPECT' as 'PROSPECT' | 'CUSTOMER'],
+    createDeal: [true],
+    dealTitle: [''],
+    dealValue: [0],
+  });
+
   dialogTitle = computed(() => {
     switch (this.mode()) {
       case 'edit':
@@ -275,6 +330,8 @@ export class ContactDetailDialogComponent implements OnInit {
         return 'Delete contact';
       case 'activity':
         return 'Log activity';
+      case 'convert':
+        return 'Convert lead';
       default:
         return this.contact()?.fullName ?? 'Contact details';
     }
@@ -288,6 +345,8 @@ export class ContactDetailDialogComponent implements OnInit {
         return 'This action cannot be undone.';
       case 'activity':
         return 'Record a call, email, meeting, or note.';
+      case 'convert':
+        return 'Promote this lead to prospect or customer and optionally create a deal.';
       default:
         return 'Contact profile and activity timeline.';
     }
@@ -430,6 +489,46 @@ export class ContactDetailDialogComponent implements OnInit {
     } catch {
       this.toastService.show({
         title: 'Failed to log activity',
+        variant: 'destructive',
+      });
+    } finally {
+      this.isSubmitting.set(false);
+    }
+  }
+
+  async confirmConvert(): Promise<void> {
+    const item = this.contact();
+    if (!item) return;
+
+    const raw = this.convertForm.getRawValue();
+    const payload: {
+      status: 'PROSPECT' | 'CUSTOMER';
+      deal?: { title: string; value: number };
+    } = { status: raw.status };
+
+    if (raw.createDeal) {
+      const title = raw.dealTitle.trim() || `${item.fullName} opportunity`;
+      payload.deal = { title, value: Number(raw.dealValue) || 0 };
+    }
+
+    this.isSubmitting.set(true);
+    try {
+      const result = await this.contactService.convertLead(item.id, payload);
+      if (result) {
+        this.contact.set(result.contact);
+        this.toastService.show({
+          title: 'Lead converted',
+          description: result.deal
+            ? `${result.contact.fullName} is now a ${result.contact.status.toLowerCase()} with a new deal.`
+            : `${result.contact.fullName} is now a ${result.contact.status.toLowerCase()}.`,
+        });
+        this.mode.set('view');
+        this.dialogRef.close('updated');
+      }
+    } catch {
+      this.toastService.show({
+        title: 'Conversion failed',
+        description: 'Could not convert this lead.',
         variant: 'destructive',
       });
     } finally {

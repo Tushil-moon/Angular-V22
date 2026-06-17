@@ -3,7 +3,7 @@
  */
 
 import { Component, computed, inject, resource, signal } from '@angular/core';
-import { AuthService, DialogService } from '@services/index';
+import { AuthService, DialogService, PermissionService } from '@services/index';
 import { HttpClientService } from '@services/http-client.service';
 import {
   CardComponent,
@@ -24,6 +24,7 @@ import { runResourceLoader } from '@shared/utils/resource-error';
 import { UserCreateDialogResult } from './user-create-dialog.component';
 import { UserDetailDialogData, UserDetailDialogResult } from './user-detail-dialog.component';
 import { User, FilterOptions } from '@models/index';
+import { Permissions } from '@shared/constants/permissions';
 import { mapApiUser, mapApiPaginated, ApiUserPayload, ApiPaginatedPayload } from '@utils/api-mappers';
 import { formatUserDate } from './user.utils';
 
@@ -56,10 +57,12 @@ const EMPTY_USERS_PAGE: UsersPageResult = { users: [], total: 0 };
           <h1 class="page-title">Users</h1>
           <p class="page-description">Manage user accounts and permissions</p>
         </div>
+        @if (canManage()) {
         <app-button class="w-full sm:w-auto" size="sm" (clicked)="openCreateDialog()">
           <app-icon name="plus" [size]="14" />
           Add user
         </app-button>
+        }
       </div>
 
       @if (loadError()) {
@@ -72,12 +75,13 @@ const EMPTY_USERS_PAGE: UsersPageResult = { users: [], total: 0 };
             <app-card-title>All users</app-card-title>
             <app-card-description>{{ totalUsers() }} total users</app-card-description>
           </div>
-          <app-search-input
-            class="w-full sm:max-w-xs"
-            placeholder="Search users..."
-            [initialValue]="searchQuery()"
-            (searchChange)="onSearch($event)"
-          />
+          <div class="card-toolbar">
+            <app-search-input
+              placeholder="Search users..."
+              [initialValue]="searchQuery()"
+              (searchChange)="onSearch($event)"
+            />
+          </div>
         </app-card-header>
 
         <app-card-body [flush]="true">
@@ -116,12 +120,12 @@ const EMPTY_USERS_PAGE: UsersPageResult = { users: [], total: 0 };
                 <app-flex-table-cell column="actions">
                   <app-button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     type="button"
                     (clicked)="openDetailDialog(user, $event)"
                   >
-                    <app-icon name="eye" [size]="14" />
-                    <span class="hidden sm:inline">View</span>
+                    <span class="sr-only">View user</span>
+                    <app-icon name="eye" [size]="16" />
                   </app-button>
                 </app-flex-table-cell>
               </app-flex-table-row>
@@ -136,6 +140,9 @@ export class UsersListComponent {
   private readonly authService = inject(AuthService);
   private readonly httpClient = inject(HttpClientService);
   private readonly dialogService = inject(DialogService);
+  private readonly permissionService = inject(PermissionService);
+
+  readonly canManage = computed(() => this.permissionService.hasPermission(Permissions.ManageUsers));
 
   readonly columns = USER_TABLE_COLUMNS;
   readonly formatUserDate = formatUserDate;

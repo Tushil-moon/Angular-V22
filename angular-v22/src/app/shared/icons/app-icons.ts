@@ -3,6 +3,7 @@ import {
   LucideActivity,
   LucideBell,
   LucideBriefcase,
+  LucideBuilding2,
   LucideCheck,
   LucideChevronDown,
   LucideChevronRight,
@@ -13,6 +14,7 @@ import {
   LucideEye,
   LucideEllipsisVertical,
   LucideLayoutDashboard,
+  LucideList,
   LucideLogOut,
   LucideMenu,
   LucidePanelLeft,
@@ -57,7 +59,9 @@ export const APP_ICON_NAMES = [
   'eye',
   'contact-round',
   'briefcase',
+  'building-2',
   'circle-dollar-sign',
+  'list',
 ] as const;
 
 export type IconName = (typeof APP_ICON_NAMES)[number];
@@ -88,7 +92,9 @@ const APP_LUCIDE_ICONS = [
   LucideEye,
   LucideContactRound,
   LucideBriefcase,
+  LucideBuilding2,
   LucideCircleDollarSign,
+  LucideList,
 ] as const;
 
 /** Registers all app icons for dynamic `lucideIcon` usage by name. */

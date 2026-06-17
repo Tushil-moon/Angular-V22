@@ -36,11 +36,11 @@ import { DashboardPanelsComponent } from './dashboard-panels.component';
           <h1 class="page-title">Welcome back, {{ displayName() }}</h1>
           <p class="page-description">Here's what's happening in your workspace today.</p>
         </div>
-        <div class="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-          <app-button class="w-full sm:w-auto" variant="outline" size="sm" (clicked)="refreshStats()">
+        <div class="card-toolbar">
+          <app-button variant="outline" size="sm" (clicked)="refreshStats()">
             Refresh
           </app-button>
-          <app-button class="w-full sm:w-auto" size="sm" (clicked)="showWelcomeToast()">
+          <app-button size="sm" (clicked)="showWelcomeToast()">
             <app-icon name="plus" [size]="14" />
             Quick action
           </app-button>
@@ -85,6 +85,15 @@ import { DashboardPanelsComponent } from './dashboard-panels.component';
         <app-dashboard-panels />
       } @placeholder (minimum 150ms) {
         <div class="grid gap-4 lg:grid-cols-7" aria-hidden="true">
+          <app-card class="lg:col-span-7">
+            <app-card-body>
+              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                @for (_ of statsSkeletonItems; track $index) {
+                  <app-skeleton className="h-20 w-full rounded-lg" />
+                }
+              </div>
+            </app-card-body>
+          </app-card>
           <app-card class="lg:col-span-4">
             <app-card-body>
               <div class="space-y-3">
@@ -106,6 +115,15 @@ import { DashboardPanelsComponent } from './dashboard-panels.component';
         </div>
       } @loading (minimum 150ms) {
         <div class="grid gap-4 lg:grid-cols-7" aria-busy="true">
+          <app-card class="lg:col-span-7">
+            <app-card-body>
+              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                @for (_ of statsSkeletonItems; track $index) {
+                  <app-skeleton className="h-20 w-full rounded-lg" />
+                }
+              </div>
+            </app-card-body>
+          </app-card>
           <app-card class="lg:col-span-4">
             <app-card-body>
               <div class="space-y-3">

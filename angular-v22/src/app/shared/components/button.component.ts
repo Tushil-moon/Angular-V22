@@ -5,7 +5,7 @@
 import { Component, computed, input, output } from '@angular/core';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link';
-export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl' | 'icon';
 
 @Component({
   selector: 'app-button',
@@ -40,6 +40,7 @@ export class ButtonComponent {
       sm: 'btn-sm',
       md: '',
       lg: 'btn-lg',
+      xl: 'btn-xl',
       icon: 'btn-icon',
     };
 

@@ -12,6 +12,7 @@ import {
   verifyPassword,
 } from "../../shared/utils/crypto";
 import { signAccessToken, signEmailToken, signPasswordResetToken } from "../../shared/utils/jwt";
+import { resolveUserAccess } from "../../shared/utils/permission";
 import type { LoginInput, RegisterInput, VerifyOtpInput } from "./auth.validation";
 
 const AuditAction = {
@@ -59,10 +60,17 @@ const publicUserSelect = {
 const addDays = (days: number) => new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 const addMinutes = (minutes: number) => new Date(Date.now() + minutes * 60 * 1000);
 
-const normalizeUser = (user: { roles: { role: { name: string } }[] } & Record<string, unknown>) => ({
-  ...user,
-  roles: user.roles.map((userRole) => userRole.role.name),
-});
+const buildAuthProfile = async (
+  user: { id: string; roles?: { role: { name: string } }[] } & Record<string, unknown>,
+) => {
+  const { roles: _roles, ...profile } = user;
+  const access = await resolveUserAccess(user.id);
+  return {
+    ...profile,
+    roles: access.roles,
+    permissions: access.permissions,
+  };
+};
 
 const audit = (action: AuditAction, meta: RequestMeta, userId?: string, metadata?: Record<string, unknown>) =>
   prisma.auditLog.create({
@@ -157,7 +165,7 @@ export class AuthService {
     await audit(AuditAction.REGISTER, meta, user.id);
 
     const tokens = await createTokens(user.id, [Roles.User], meta, input.deviceName);
-    return { user: normalizeUser(user), ...tokens };
+    return { user: await buildAuthProfile(user), ...tokens };
   }
 
   async login(input: LoginInput, meta: RequestMeta) {
@@ -205,7 +213,7 @@ export class AuthService {
 
     await audit(AuditAction.LOGIN_SUCCESS, meta, user.id);
     const tokens = await createTokens(user.id, roles, meta, input.deviceName);
-    return { user: normalizeUser(user), ...tokens };
+    return { user: await buildAuthProfile(user), ...tokens };
   }
 
   async refresh(refreshToken: string, meta: RequestMeta) {
@@ -307,7 +315,7 @@ export class AuthService {
 
     const roles = user.roles.map((userRole) => userRole.role.name);
     const tokens = await createTokens(user.id, roles, meta, input.deviceName);
-    return { user: normalizeUser(user), ...tokens };
+    return { user: await buildAuthProfile(user), ...tokens };
   }
 
   async requestEmailVerification(email: string, meta: RequestMeta) {

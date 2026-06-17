@@ -47,7 +47,7 @@ const STAGE_OPTIONS = Object.entries(DEAL_STAGE_LABELS) as [DealStage, string][]
         </div>
         <div class="form-group">
           <label for="deal-stage" class="form-label">Stage</label>
-          <select id="deal-stage" class="input" formControlName="stage">
+          <select id="deal-stage" class="select" formControlName="stage">
             @for (option of stageOptions; track option[0]) {
               <option [value]="option[0]">{{ option[1] }}</option>
             }
@@ -55,7 +55,7 @@ const STAGE_OPTIONS = Object.entries(DEAL_STAGE_LABELS) as [DealStage, string][]
         </div>
         <div class="form-group">
           <label for="deal-contact" class="form-label">Contact</label>
-          <select id="deal-contact" class="input" formControlName="contactId">
+          <select id="deal-contact" class="select" formControlName="contactId">
             <option value="">No contact</option>
             @for (contact of contacts(); track contact.id) {
               <option [value]="contact.id">{{ contact.fullName }} · {{ contact.company || 'No company' }}</option>
@@ -69,8 +69,17 @@ const STAGE_OPTIONS = Object.entries(DEAL_STAGE_LABELS) as [DealStage, string][]
           formControlName="expectedCloseDate"
         />
         <div class="form-group">
+          <label for="deal-tags" class="form-label">Tags</label>
+          <input
+            id="deal-tags"
+            class="input"
+            formControlName="tags"
+            placeholder="priority, renewal (comma separated)"
+          />
+        </div>
+        <div class="form-group">
           <label for="deal-description" class="form-label">Description</label>
-          <textarea id="deal-description" class="input min-h-24 resize-y" formControlName="description"></textarea>
+          <textarea id="deal-description" class="textarea" formControlName="description"></textarea>
         </div>
       </form>
 
@@ -104,6 +113,7 @@ export class DealCreateDialogComponent implements OnInit {
     stage: ['LEAD' as DealStage],
     contactId: [''],
     expectedCloseDate: [''],
+    tags: [''],
     description: [''],
   });
 
@@ -137,9 +147,14 @@ export class DealCreateDialogComponent implements OnInit {
       contactId: raw.contactId || undefined,
       expectedCloseDate: raw.expectedCloseDate || undefined,
       description: raw.description.trim() || undefined,
+      tagNames: raw.tags
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter(Boolean),
     };
 
-    const validation = safeValidate(createDealSchema, payload);
+    const { tagNames, ...dealPayload } = payload;
+    const validation = safeValidate(createDealSchema, dealPayload);
     if (!validation.success) {
       this.fieldErrors.set(validation.errors ?? {});
       return;
@@ -149,7 +164,10 @@ export class DealCreateDialogComponent implements OnInit {
     this.isSubmitting.set(true);
 
     try {
-      const deal = await this.dealService.createDeal(validation.data!);
+      const deal = await this.dealService.createDeal({
+        ...validation.data!,
+        ...(tagNames.length ? { tagNames } : {}),
+      });
       if (deal) {
         this.toastService.show({
           title: 'Deal created',

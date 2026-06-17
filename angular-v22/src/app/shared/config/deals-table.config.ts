@@ -1,4 +1,5 @@
 import type { FlexTableColumn } from '@shared/components/flex-table.types';
+import type { BadgeVariant } from '@shared/components/badge.component';
 import type { DealStage } from '@models/index';
 import { DEAL_STAGE_LABELS } from '@models/index';
 
@@ -19,8 +20,9 @@ export const DEAL_TABLE_COLUMNS: FlexTableColumn[] = [
   {
     key: 'value',
     label: 'Value',
+    align: 'right',
     grid: 'minmax(6rem, 0.8fr)',
-    skeletonClass: 'h-4 w-16',
+    skeletonClass: 'h-4 w-16 ml-auto',
   },
   {
     key: 'stage',
@@ -39,20 +41,37 @@ export const DEAL_TABLE_COLUMNS: FlexTableColumn[] = [
     key: 'actions',
     label: 'Actions',
     align: 'right',
-    grid: '5.5rem',
-    skeletonClass: 'h-8 w-14 ml-auto',
+    headerSrOnly: true,
+    grid: '4.5rem',
+    skeletonClass: 'h-8 w-8 ml-auto rounded-md',
   },
 ];
 
-export const dealStageBadgeClass = (stage: DealStage): string => {
+export const dealStageBadgeVariant = (stage: DealStage): BadgeVariant => {
   switch (stage) {
     case 'WON':
-      return 'badge badge-success';
+      return 'success';
     case 'LOST':
-      return 'badge badge-danger';
+      return 'destructive';
     case 'NEGOTIATION':
     case 'PROPOSAL':
+      return 'warning';
+    default:
+      return 'secondary';
+  }
+};
+
+/** @deprecated Prefer `dealStageBadgeVariant` with `app-badge` */
+export const dealStageBadgeClass = (stage: DealStage): string => {
+  switch (dealStageBadgeVariant(stage)) {
+    case 'success':
+      return 'badge badge-success';
+    case 'destructive':
+      return 'badge badge-danger';
+    case 'warning':
       return 'badge badge-warning';
+    case 'secondary':
+      return 'badge badge-secondary';
     default:
       return 'badge';
   }

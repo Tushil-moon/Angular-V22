@@ -6,7 +6,7 @@ import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-card',
-  host: { class: 'block' },
+  host: { class: 'block min-w-0' },
   template: `
     <div class="card" [class.!gap-0]="noPadding()">
       <ng-content></ng-content>

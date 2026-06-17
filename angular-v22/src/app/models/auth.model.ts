@@ -41,6 +41,7 @@ export interface User {
   emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
+  permissions?: string[];
   roles?: Role[];
   sessions?: Session[];
 }

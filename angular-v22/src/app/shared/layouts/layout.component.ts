@@ -6,12 +6,13 @@ import { Component, DestroyRef, inject, computed, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { AuthService } from '@services/auth.service';
+import { AuthService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import { SidebarService } from '@services/sidebar.service';
 import {
   PLATFORM_NAV_ITEMS,
   PROFILE_MENU_ITEMS,
+  filterNavItemsByPermission,
   resolvePageTitle,
   type ProfileMenuItem,
 } from '@shared/config/navigation.config';
@@ -27,12 +28,14 @@ import {
 import { SheetComponent } from '../components/sheet.component';
 import { SeparatorComponent } from '../components/separator.component';
 import { ThemeToggleComponent } from '../components/theme-toggle.component';
+import { GlobalSearchComponent } from '../components/global-search.component';
+import { OrgSwitcherComponent } from '../components/org-switcher.component';
 
 @Component({
   selector: 'app-auth-layout',
   imports: [RouterOutlet, ThemeToggleComponent],
   template: `
-    <div class="min-h-screen bg-background flex items-center justify-center p-4">
+    <div class="min-h-svh bg-muted/40 flex items-center justify-center p-4">
       <div class="absolute right-4 top-4">
         <app-theme-toggle />
       </div>
@@ -65,6 +68,8 @@ export class AuthLayoutComponent {}
     SheetComponent,
     SeparatorComponent,
     ThemeToggleComponent,
+    GlobalSearchComponent,
+    OrgSwitcherComponent,
   ],
   template: `
     <div
@@ -89,8 +94,8 @@ export class AuthLayoutComponent {}
                 </svg>
               </div>
               <div class="sidebar-brand-text">
-                <span class="sidebar-brand-title">Shadcn UI Kit</span>
-                <span class="sidebar-brand-subtitle">Enterprise</span>
+                <span class="sidebar-brand-title">CRM Platform</span>
+                <span class="sidebar-brand-subtitle">Workspace</span>
               </div>
             </div>
             <button
@@ -106,7 +111,7 @@ export class AuthLayoutComponent {}
           <div class="sidebar-content custom-scrollbar">
             <div class="sidebar-group">
               <p class="sidebar-group-label sidebar-collapsible-text">Platform</p>
-              <app-nav-menu [items]="navItems" [collapsed]="sidebarService.collapsed()" />
+              <app-nav-menu [items]="navItems()" [collapsed]="sidebarService.collapsed()" />
             </div>
           </div>
 
@@ -175,15 +180,8 @@ export class AuthLayoutComponent {}
               <app-icon name="menu" [size]="18" />
             </button>
             <app-separator orientation="vertical" className="mr-2 h-4 hidden md:block" />
-            <div class="site-header-search">
-              <app-icon name="search" [size]="16" className="site-header-search-icon" />
-              <input
-                type="search"
-                class="site-header-search-input"
-                placeholder="Search..."
-                aria-label="Search"
-              />
-            </div>
+            <app-org-switcher />
+            <app-global-search />
           </div>
 
           <div class="flex items-center gap-2 shrink-0">
@@ -243,7 +241,7 @@ export class AuthLayoutComponent {}
     >
       <div class="sidebar-group !px-0">
         <p class="sidebar-group-label">Platform</p>
-        <app-nav-menu [items]="navItems" labelClass="" (itemSelected)="mobileNavOpen.set(false)" />
+        <app-nav-menu [items]="navItems()" labelClass="" (itemSelected)="mobileNavOpen.set(false)" />
       </div>
 
       <app-separator className="my-4" />
@@ -266,8 +264,13 @@ export class AdminLayoutComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   sidebarService = inject(SidebarService);
+  private readonly permissionService = inject(PermissionService);
 
-  readonly navItems = PLATFORM_NAV_ITEMS;
+  readonly navItems = computed(() =>
+    filterNavItemsByPermission(PLATFORM_NAV_ITEMS, (...permissions) =>
+      this.permissionService.hasAny(...permissions),
+    ),
+  );
   readonly profileMenuItems = PROFILE_MENU_ITEMS;
 
   mobileNavOpen = signal(false);

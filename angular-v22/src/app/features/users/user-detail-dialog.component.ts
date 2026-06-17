@@ -13,6 +13,7 @@ import {
   LoaderComponent,
   IconComponent,
   InputComponent,
+  CheckboxComponent,
   DropdownMenuComponent,
   DropdownItemComponent,
 } from '@shared/components';
@@ -40,6 +41,7 @@ type DialogMode = 'view' | 'edit' | 'delete';
     LoaderComponent,
     IconComponent,
     InputComponent,
+    CheckboxComponent,
     DropdownMenuComponent,
     DropdownItemComponent,
   ],
@@ -71,10 +73,7 @@ type DialogMode = 'view' | 'edit' | 'delete';
               formControlName="phone"
               [error]="fieldError('phone')"
             />
-            <label class="flex items-center gap-2 text-sm">
-              <input type="checkbox" formControlName="isActive" class="dashboard-checkbox" />
-              Active account
-            </label>
+            <app-checkbox id="edit-active" label="Active account" formControlName="isActive" />
           </form>
         } @else {
           <div class="space-y-6">

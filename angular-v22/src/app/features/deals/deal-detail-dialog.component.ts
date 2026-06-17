@@ -11,10 +11,11 @@ import {
   ButtonComponent,
   LoaderComponent,
   InputComponent,
+  BadgeComponent,
 } from '@shared/components';
 import { DIALOG_DATA, DialogRef } from '@shared/dialog';
 import {
-  dealStageBadgeClass,
+  dealStageBadgeVariant,
   formatDealDate,
   formatDealStage,
   formatDealValue,
@@ -43,7 +44,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
 @Component({
   selector: 'app-deal-detail-dialog',
   host: { class: 'contents' },
-  imports: [ReactiveFormsModule, DialogComponent, ButtonComponent, LoaderComponent, InputComponent],
+  imports: [ReactiveFormsModule, DialogComponent, ButtonComponent, LoaderComponent, InputComponent, BadgeComponent],
   template: `
     <app-dialog [title]="dialogTitle()" [description]="dialogDescription()">
       @if (mode() === 'delete') {
@@ -63,7 +64,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
             </div>
             <div class="form-group">
               <label for="edit-stage" class="form-label">Stage</label>
-              <select id="edit-stage" class="input" formControlName="stage">
+              <select id="edit-stage" class="select" formControlName="stage">
                 @for (option of stageOptions; track option[0]) {
                   <option [value]="option[0]">{{ option[1] }}</option>
                 }
@@ -72,14 +73,14 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
             <app-input id="edit-close-date" type="date" label="Expected close" formControlName="expectedCloseDate" />
             <div class="form-group">
               <label for="edit-description" class="form-label">Description</label>
-              <textarea id="edit-description" class="input min-h-24 resize-y" formControlName="description"></textarea>
+              <textarea id="edit-description" class="textarea" formControlName="description"></textarea>
             </div>
           </form>
         } @else if (mode() === 'activity') {
           <form [formGroup]="activityForm" class="space-y-4">
             <div class="form-group">
               <label for="deal-activity-type" class="form-label">Type</label>
-              <select id="deal-activity-type" class="input" formControlName="type">
+              <select id="deal-activity-type" class="select" formControlName="type">
                 @for (option of activityOptions; track option[0]) {
                   <option [value]="option[0]">{{ option[1] }}</option>
                 }
@@ -88,7 +89,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
             <app-input id="deal-activity-subject" label="Subject" formControlName="subject" />
             <div class="form-group">
               <label for="deal-activity-body" class="form-label">Details</label>
-              <textarea id="deal-activity-body" class="input min-h-24 resize-y" formControlName="body"></textarea>
+              <textarea id="deal-activity-body" class="textarea" formControlName="body"></textarea>
             </div>
           </form>
         } @else {
@@ -103,7 +104,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
                   }
                 </p>
               </div>
-              <span [class]="stageBadgeClass(item.stage)">{{ formatStage(item.stage) }}</span>
+              <app-badge [variant]="stageBadgeVariant(item.stage)">{{ formatStage(item.stage) }}</app-badge>
             </div>
 
             <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -191,7 +192,7 @@ export class DealDetailDialogComponent implements OnInit {
 
   readonly stageOptions = STAGE_OPTIONS;
   readonly activityOptions = ACTIVITY_OPTIONS;
-  readonly stageBadgeClass = dealStageBadgeClass;
+  readonly stageBadgeVariant = dealStageBadgeVariant;
   readonly formatStage = formatDealStage;
   readonly formatValue = formatDealValue;
   readonly formatDate = formatDealDate;

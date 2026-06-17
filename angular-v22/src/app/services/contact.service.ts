@@ -4,13 +4,15 @@
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClientService } from './http-client.service';
-import { Contact, PaginatedResponse, FilterOptions } from '@models/index';
 import {
   mapApiContact,
+  mapApiDeal,
   mapApiPaginated,
   ApiContactPayload,
+  ApiDealPayload,
   ApiPaginatedPayload,
 } from '@utils/api-mappers';
+import { Contact, Deal, PaginatedResponse, FilterOptions } from '@models/index';
 
 @Injectable({
   providedIn: 'root',
@@ -48,5 +50,20 @@ export class ContactService {
   async deleteContact(id: string): Promise<boolean> {
     await this.httpClient.delete(`/contacts/${id}`);
     return true;
+  }
+
+  async convertLead(
+    id: string,
+    payload: { status?: 'PROSPECT' | 'CUSTOMER'; deal?: { title: string; value: number } },
+  ): Promise<{ contact: Contact; deal: Deal | null } | null> {
+    const response = await this.httpClient.post<{
+      contact: ApiContactPayload;
+      deal: ApiDealPayload | null;
+    }>(`/contacts/${id}/convert`, payload);
+    if (!response.data) return null;
+    return {
+      contact: mapApiContact(response.data.contact),
+      deal: response.data.deal ? mapApiDeal(response.data.deal) : null,
+    };
   }
 }

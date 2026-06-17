@@ -4,7 +4,7 @@
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClientService } from './http-client.service';
-import { Deal, PaginatedResponse, PipelineStageSummary, FilterOptions } from '@models/index';
+import { PaginatedResponse, PipelineStageSummary, Deal, DealBoardColumn, FilterOptions } from '@models/index';
 import { mapApiDeal, mapApiPaginated, ApiDealPayload, ApiPaginatedPayload } from '@utils/api-mappers';
 
 @Injectable({
@@ -28,6 +28,18 @@ export class DealService {
   async getPipeline(): Promise<PipelineStageSummary[]> {
     const response = await this.httpClient.get<PipelineStageSummary[]>('/deals/pipeline');
     return response.data ?? [];
+  }
+
+  async getBoard(): Promise<DealBoardColumn[]> {
+    const response = await this.httpClient.get<Array<{ stage: string; deals: ApiDealPayload[] }>>(
+      '/deals/board',
+    );
+    return (
+      response.data?.map((column) => ({
+        stage: column.stage as Deal['stage'],
+        deals: column.deals.map(mapApiDeal),
+      })) ?? []
+    );
   }
 
   async getDealById(id: string): Promise<Deal | null> {

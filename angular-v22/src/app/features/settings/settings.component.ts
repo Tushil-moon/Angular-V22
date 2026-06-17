@@ -4,7 +4,7 @@
 
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AuthService, SessionService } from '@services/index';
+import { AuthService, OrganizationService, SessionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
   CardComponent,
@@ -21,7 +21,7 @@ import {
 import { changePasswordSchema, safeValidate } from '@utils/validators';
 import { getUserDisplayName, getUserInitials } from '@features/users/user.utils';
 
-type SettingsTab = 'profile' | 'security' | 'sessions';
+type SettingsTab = 'profile' | 'security' | 'sessions' | 'organization';
 
 @Component({
   selector: 'app-settings',
@@ -49,8 +49,10 @@ type SettingsTab = 'profile' | 'security' | 'sessions';
         @for (tab of tabs; track tab.id) {
           <button
             type="button"
+            role="tab"
             class="settings-tab"
             [class.settings-tab-active]="activeTab() === tab.id"
+            [attr.aria-selected]="activeTab() === tab.id"
             (click)="activeTab.set(tab.id)"
           >
             {{ tab.label }}
@@ -148,6 +150,40 @@ type SettingsTab = 'profile' | 'security' | 'sessions';
           </app-card>
         }
 
+        @case ('organization') {
+          <app-card>
+            <app-card-header>
+              <app-card-title>Organization</app-card-title>
+              <app-card-description>Workspace timezone, currency, and team invites</app-card-description>
+            </app-card-header>
+            <app-card-body class="space-y-6">
+              <form [formGroup]="organizationForm" class="grid max-w-md gap-4">
+                <app-input id="org-name" label="Organization name" formControlName="name" />
+                <app-input id="org-timezone" label="Timezone" formControlName="timezone" />
+                <app-input id="org-currency" label="Currency" formControlName="currency" />
+                <app-button type="button" size="sm" [disabled]="orgSaving()" (clicked)="saveOrganization()">
+                  Save organization settings
+                </app-button>
+              </form>
+
+              <div class="max-w-md space-y-3 border-t border-border pt-6">
+                <p class="text-sm font-medium text-foreground">Invite member</p>
+                <form [formGroup]="inviteForm" class="grid gap-3">
+                  <app-input id="invite-email" type="email" label="Email" formControlName="email" />
+                  <app-button type="button" size="sm" [disabled]="inviteSending()" (clicked)="sendInvite()">
+                    Send invite
+                  </app-button>
+                </form>
+                @if (lastInviteToken()) {
+                  <p class="text-xs text-muted-foreground break-all">
+                    Invite token (dev): {{ lastInviteToken() }}
+                  </p>
+                }
+              </div>
+            </app-card-body>
+          </app-card>
+        }
+
         @case ('sessions') {
           <app-card>
             <app-card-header [row]="true">
@@ -208,11 +244,13 @@ type SettingsTab = 'profile' | 'security' | 'sessions';
 export class SettingsComponent implements OnInit {
   authService = inject(AuthService);
   sessionService = inject(SessionService);
+  private readonly organizationService = inject(OrganizationService);
   private readonly toastService = inject(ToastService);
   private readonly fb = inject(NonNullableFormBuilder);
 
   readonly tabs: { id: SettingsTab; label: string }[] = [
     { id: 'profile', label: 'Profile' },
+    { id: 'organization', label: 'Organization' },
     { id: 'security', label: 'Security' },
     { id: 'sessions', label: 'Sessions' },
   ];
@@ -230,6 +268,20 @@ export class SettingsComponent implements OnInit {
     confirmPassword: ['', Validators.required],
   });
 
+  organizationForm = this.fb.group({
+    name: [''],
+    timezone: ['UTC'],
+    currency: ['USD'],
+  });
+
+  inviteForm = this.fb.group({
+    email: ['', Validators.required],
+  });
+
+  orgSaving = signal(false);
+  inviteSending = signal(false);
+  lastInviteToken = signal<string | null>(null);
+
   displayName = () => {
     const user = this.authService.currentUser();
     return user ? getUserDisplayName(user) : 'User';
@@ -246,6 +298,59 @@ export class SettingsComponent implements OnInit {
   ngOnInit(): void {
     void this.authService.refreshProfile();
     this.sessionService.reload();
+    void this.loadOrganizationSettings();
+  }
+
+  async loadOrganizationSettings(): Promise<void> {
+    const current = await this.organizationService.getCurrentOrganization();
+    if (!current) return;
+    this.organizationForm.patchValue({
+      name: current.organization.name,
+      timezone: current.organization.timezone,
+      currency: current.organization.currency,
+    });
+  }
+
+  async saveOrganization(): Promise<void> {
+    this.orgSaving.set(true);
+    try {
+      const raw = this.organizationForm.getRawValue();
+      await this.organizationService.updateOrganization({
+        name: raw.name.trim(),
+        timezone: raw.timezone.trim(),
+        currency: raw.currency.trim().toUpperCase(),
+      });
+      this.toastService.success('Organization updated', 'Workspace settings saved.');
+    } catch {
+      this.toastService.show({
+        title: 'Update failed',
+        description: 'Could not save organization settings.',
+        variant: 'destructive',
+      });
+    } finally {
+      this.orgSaving.set(false);
+    }
+  }
+
+  async sendInvite(): Promise<void> {
+    const email = this.inviteForm.controls.email.value.trim();
+    if (!email) return;
+
+    this.inviteSending.set(true);
+    try {
+      const invite = await this.organizationService.inviteMember(email);
+      this.lastInviteToken.set(invite?.token ?? null);
+      this.inviteForm.reset();
+      this.toastService.success('Invite sent', `Invitation created for ${email}.`);
+    } catch {
+      this.toastService.show({
+        title: 'Invite failed',
+        description: 'Could not create invite.',
+        variant: 'destructive',
+      });
+    } finally {
+      this.inviteSending.set(false);
+    }
   }
 
   formatDate(value: string): string {

@@ -25,10 +25,27 @@ export class RoleService {
         async () => {
           throwIfAborted(abortSignal);
 
-          const response = await this.httpClient.get<ApiRolePayload[]>('/roles');
+          const [rolesResponse, permissionsResponse] = await Promise.all([
+            this.httpClient.get<ApiRolePayload[]>('/roles'),
+            this.httpClient.get<Array<{ id: string; action: string; subject: string; code: string }>>(
+              '/roles/permissions/all',
+            ),
+          ]);
           throwIfAborted(abortSignal);
 
-          return response.data?.map(mapApiRole) ?? [];
+          this.permissionsSignal.set(
+            permissionsResponse.data?.map((permission) => ({
+              id: permission.id,
+              name: permission.code,
+              code: permission.code,
+              resource: permission.subject,
+              action: 'READ' as const,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            })) ?? [],
+          );
+
+          return rolesResponse.data?.map(mapApiRole) ?? [];
         },
         {
           fallback: [],
@@ -91,5 +108,21 @@ export class RoleService {
   async deleteRole(): Promise<boolean> {
     console.warn('Delete role is not supported by the API yet');
     return false;
+  }
+
+  async updateRolePermissions(roleId: string, permissionIds: string[]): Promise<Role | null> {
+    try {
+      const response = await this.httpClient.put<ApiRolePayload>(`/roles/${roleId}/permissions`, {
+        permissionIds,
+      });
+      if (response.data) {
+        void this.rolesResource.reload();
+        return mapApiRole(response.data);
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to update role permissions:', error);
+      throw error;
+    }
   }
 }

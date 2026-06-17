@@ -41,8 +41,9 @@ export const USER_TABLE_COLUMNS: UserTableColumn[] = [
     key: 'actions',
     label: 'Actions',
     align: 'right',
-    grid: '5.5rem',
-    skeletonClass: 'h-8 w-14 ml-auto',
+    headerSrOnly: true,
+    grid: '4.5rem',
+    skeletonClass: 'h-8 w-8 ml-auto rounded-md',
   },
 ];
 
