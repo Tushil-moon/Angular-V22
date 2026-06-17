@@ -1,0 +1,16 @@
+{
+  "name": "angular-v22-deploy",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Angular CRM frontend + Prisma Express API — Vercel monorepo deploy",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "install:all": "npm install --prefix prisma-backend && npm install --prefix angular-v22",
+    "build:deploy": "npm run vercel-build --prefix prisma-backend && npm run vercel-build --prefix angular-v22",
+    "vercel-build": "npm run build:deploy",
+    "dev:api": "npm run dev --prefix prisma-backend",
+    "dev:web": "npm run start --prefix angular-v22"
+  }
+}

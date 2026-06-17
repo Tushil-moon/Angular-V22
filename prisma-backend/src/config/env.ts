@@ -4,7 +4,7 @@ import { z } from "zod";
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   PORT: z.coerce.number().int().positive().default(3000),
-  API_BASE_URL: z.string().url().default("http://localhost:3000"),
+  API_BASE_URL: z.string().url().optional(),
   DATABASE_URL: z.string().min(1),
   DIRECT_URL: z.string().min(1),
   SHADOW_DATABASE_URL: z.string().optional(),
@@ -26,5 +26,16 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default("http://localhost:4200"),
 });
 
-export const env = envSchema.parse(process.env);
+const vercelOrigin = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined;
+
+export const env = envSchema.parse({
+  ...process.env,
+  API_BASE_URL:
+    process.env.API_BASE_URL ||
+    vercelOrigin ||
+    "http://localhost:3000",
+  CORS_ORIGIN:
+    process.env.CORS_ORIGIN ||
+    [vercelOrigin, "http://localhost:4200", "http://127.0.0.1:4200"].filter(Boolean).join(","),
+});
 export const isProduction = env.NODE_ENV === "production";

@@ -5,6 +5,8 @@
     "ng": "ng",
     "start": "ng serve --open",
     "build": "ng build",
+    "build:vercel": "node scripts/set-env.mjs && ng build --configuration production",
+    "vercel-build": "npm run build:vercel",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
