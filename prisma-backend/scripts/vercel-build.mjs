@@ -8,7 +8,13 @@
 import { execSync } from "node:child_process";
 
 const run = (command) => {
-  execSync(command, { stdio: "inherit", env: process.env });
+  try {
+    execSync(command, { stdio: "inherit", env: process.env });
+  } catch (error) {
+    if (error.stdout) console.error(error.stdout.toString());
+    if (error.stderr) console.error(error.stderr.toString());
+    throw error;
+  }
 };
 
 run("npx prisma generate");

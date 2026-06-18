@@ -7,7 +7,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "install:all": "npm install --prefix prisma-backend && npm install --prefix angular-v22",
+    "install:all": "npm install --include=dev --prefix prisma-backend && npm install --include=dev --prefix angular-v22",
     "build:deploy": "npm run vercel-build --prefix prisma-backend && npm run vercel-build --prefix angular-v22",
     "vercel-build": "npm run build:deploy",
     "dev:api": "npm run dev --prefix prisma-backend",
