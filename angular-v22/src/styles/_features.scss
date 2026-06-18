@@ -1,208 +1,173 @@
 /* Kanban board */
 .kanban-board {
-  @apply flex gap-4 overflow-x-auto pb-4;
-  scrollbar-gutter: stable;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
+    @apply flex gap-4 overflow-x-auto pb-4;
+    scrollbar-gutter: stable;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
 }
 
 .kanban-column {
-  @apply flex min-w-[17rem] max-w-[19rem] flex-1 flex-col rounded-xl border border-border bg-card shadow-sm;
-  scroll-snap-align: start;
+    @apply flex min-w-[17rem] max-w-[19rem] flex-1 flex-col rounded-xl border border-border bg-card shadow-sm;
+    scroll-snap-align: start;
 }
 
 .kanban-column-header {
-  @apply flex items-center justify-between gap-2 border-b border-border px-4 py-3;
+    @apply flex items-center justify-between gap-2 border-b border-border px-4 py-3;
 }
 
 .kanban-column-body {
-  @apply flex min-h-[12rem] flex-1 flex-col gap-2 p-3;
-  background-color: color-mix(in oklch, var(--muted) 40%, transparent);
+    @apply flex min-h-[12rem] flex-1 flex-col gap-2 p-3;
+    background-color: color-mix(in oklch, var(--muted) 40%, transparent);
 }
 
 .kanban-card {
-  @apply cursor-grab rounded-lg border border-border bg-card p-3 shadow-sm transition-colors
+    @apply cursor-grab rounded-lg border border-border bg-card p-3 shadow-sm transition-colors
          hover:shadow active:cursor-grabbing;
 }
 
 .kanban-card:hover {
-  border-color: color-mix(in oklch, var(--ring) 30%, transparent);
+    border-color: color-mix(in oklch, var(--ring) 30%, transparent);
 }
 
 .kanban-card-title {
-  @apply text-sm font-medium text-foreground;
+    @apply text-sm font-medium text-foreground;
 }
 
 .kanban-card-value {
-  @apply mt-1 text-sm font-semibold tabular-nums text-foreground;
+    @apply mt-1 text-sm font-semibold tabular-nums text-foreground;
 }
 
 .kanban-card-meta {
-  @apply mt-1 truncate text-xs text-muted-foreground;
+    @apply mt-1 truncate text-xs text-muted-foreground;
 }
 
 .cdk-drag-preview {
-  @apply rounded-md border border-border bg-card p-3 shadow-lg;
+    @apply rounded-md border border-border bg-card p-3 shadow-lg;
 }
 
 .cdk-drag-placeholder {
-  @apply rounded-md border border-dashed border-border bg-muted;
+    @apply rounded-md border border-dashed border-border bg-muted;
 }
 
 /* Org switcher */
 .org-switcher {
-  @apply hidden items-center gap-2 md:flex;
+    @apply hidden items-center gap-2 md:flex;
 }
 
 .org-switcher-drawer {
-  @apply flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center;
+    @apply flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center;
 }
 
 .org-switcher app-select {
-  @apply w-auto min-w-[10rem] max-w-[14rem];
+    @apply w-auto min-w-[10rem] max-w-[14rem];
 }
 
 .org-switcher-drawer app-select {
-  @apply w-full min-w-0 max-w-none;
+    @apply w-full min-w-0 max-w-none;
 }
 
-/* Auth shell */
+/* ── Auth (shadcn/ui login-01 / signup-01 blocks) ── */
 .auth-shell {
-  @apply relative flex min-h-svh w-full flex-col items-center justify-center;
-  background-color: var(--background);
-  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
-    max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
-}
-
-@media (min-width: 640px) {
-  .auth-shell {
-    padding: max(1.5rem, env(safe-area-inset-top)) max(1.5rem, env(safe-area-inset-right))
-      max(1.5rem, env(safe-area-inset-bottom)) max(1.5rem, env(safe-area-inset-left));
-  }
-}
-
-@media (min-width: 768px) {
-  .auth-shell {
-    padding: max(2.5rem, env(safe-area-inset-top)) max(2.5rem, env(safe-area-inset-right))
-      max(2.5rem, env(safe-area-inset-bottom)) max(2.5rem, env(safe-area-inset-left));
-  }
+    @apply flex min-h-svh w-full flex-col items-center justify-center gap-6 p-6 md:p-10;
+    background-color: var(--background);
+    padding-top: max(1.5rem, env(safe-area-inset-top));
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
 }
 
 .auth-shell-theme {
-  @apply absolute z-10;
-  top: max(1rem, env(safe-area-inset-top));
-  right: max(1rem, env(safe-area-inset-right));
+    @apply absolute z-10;
+    top: max(1rem, env(safe-area-inset-top));
+    right: max(1rem, env(safe-area-inset-right));
 }
 
 .auth-shell-content {
-  @apply mx-auto flex w-full max-w-[32.75rem] flex-col items-stretch;
-}
-
-.auth-brand-link {
-  @apply flex items-center justify-center gap-2 font-medium text-foreground no-underline;
-}
-
-.auth-brand-logo {
-  @apply flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground;
-}
-
-.auth-brand-name {
-  @apply text-sm font-medium;
-}
-
-.auth-card-brand {
-  @apply mx-auto flex w-fit items-center justify-center no-underline;
+    @apply mx-auto flex w-full max-w-sm flex-col gap-6;
 }
 
 .auth-card-inner {
-  @apply mx-auto flex w-full max-w-[26.75rem] flex-col gap-6;
+    @apply flex w-full flex-col gap-6;
 }
 
 .auth-page-header {
-  @apply flex flex-col gap-1 text-center;
+    @apply flex flex-col gap-2 px-6 pt-6;
 }
 
 .auth-page-title {
-  @apply text-2xl font-medium tracking-tight text-foreground;
-  letter-spacing: -0.025em;
+    @apply text-2xl font-semibold leading-none tracking-tight text-card-foreground;
 }
 
 .auth-page-description {
-  @apply text-sm leading-5 text-muted-foreground;
+    @apply text-sm text-muted-foreground;
+}
+
+.auth-card-stack {
+    @apply flex flex-col gap-6 px-6 pb-6;
 }
 
 .auth-social-stack {
-  @apply grid grid-cols-1 gap-3 sm:grid-cols-2;
+    @apply grid grid-cols-1 gap-3;
 }
 
 .auth-social-btn {
-  @apply h-9 justify-center gap-2 rounded-lg px-4 text-sm font-medium;
+    @apply h-9 justify-center gap-2 rounded-md px-4 text-sm font-medium;
 }
 
 .auth-social-icon {
-  @apply size-4 shrink-0;
+    @apply size-4 shrink-0;
 }
 
 .auth-divider {
-  @apply flex items-center gap-4 text-sm text-muted-foreground;
+    @apply relative flex items-center text-xs uppercase text-muted-foreground;
 }
 
 .auth-divider::before,
 .auth-divider::after {
-  content: '';
-  @apply h-px flex-1 bg-border;
+    content: '';
+    @apply h-px flex-1 bg-border;
 }
 
 .auth-divider span {
-  @apply shrink-0;
-}
-
-.auth-card-stack {
-  @apply flex flex-col gap-6;
+    @apply bg-card px-2 text-muted-foreground;
 }
 
 .auth-form {
-  @apply flex flex-col gap-4;
+    @apply flex flex-col gap-6;
 }
 
 .auth-form-row {
-  @apply flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
+    @apply flex items-center justify-between gap-2;
 }
 
 .auth-submit-stack {
-  @apply flex flex-col gap-4;
+    @apply flex flex-col gap-4;
 }
 
 .auth-card-footer {
-  @apply flex flex-wrap items-center justify-center gap-1 text-center text-sm text-muted-foreground;
+    @apply text-center text-sm text-muted-foreground px-6 pb-6;
 }
 
 .auth-card-footer a {
-  @apply font-medium text-foreground underline-offset-4 hover:underline;
+    @apply font-medium text-primary underline-offset-4 hover:underline;
 }
 
 .auth-shell .card {
-  @apply rounded-xl border border-border bg-card shadow-sm;
+    @apply w-full gap-6 py-0 shadow-sm;
 }
 
 .auth-shell .auth-card-body {
-  @apply p-6 md:p-12;
+    @apply p-0;
 }
 
 .auth-shell .form-group {
-  @apply space-y-1.5;
+    @apply space-y-2;
 }
 
-.auth-shell .input,
-.auth-shell .btn:not(.btn-icon) {
-  @apply rounded-lg;
+.auth-field-row {
+    @apply flex items-center justify-between;
 }
 
-.auth-shell .input {
-  @apply h-9 min-h-9 px-3 py-2 text-sm;
-}
-
-.auth-shell app-submit-button .btn,
-.auth-shell .btn-full {
-  @apply h-10 min-h-10 text-sm font-medium;
+.auth-field-link {
+    @apply text-sm text-primary underline-offset-4 hover:underline;
 }

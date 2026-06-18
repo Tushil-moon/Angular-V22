@@ -1,8 +1,8 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "version": 2,
-  "buildCommand": "npm run vercel-build",
-  "installCommand": "npm install",
-  "outputDirectory": "dist/angular-v22/browser",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "version": 2,
+    "buildCommand": "npm run vercel-build",
+    "installCommand": "npm install",
+    "outputDirectory": "dist/angular-v22/browser",
+    "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

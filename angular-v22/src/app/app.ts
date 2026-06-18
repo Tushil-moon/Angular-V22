@@ -3,11 +3,11 @@ import { RouterOutlet } from '@angular/router';
 import { ToasterComponent } from '@shared/components/toaster.component';
 
 @Component({
-  selector: 'app-root',
-  imports: [RouterOutlet, ToasterComponent],
-  templateUrl: './app.html',
-  styleUrl: './app.scss',
+    selector: 'app-root',
+    imports: [RouterOutlet, ToasterComponent],
+    templateUrl: './app.html',
+    styleUrl: './app.scss',
 })
 export class App {
-  protected readonly title = signal('angular-v22');
+    protected readonly title = signal('angular-v22');
 }

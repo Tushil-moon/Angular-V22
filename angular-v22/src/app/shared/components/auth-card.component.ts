@@ -1,41 +1,28 @@
 /**
- * Auth card shell — Shadcn Space login/register/forgot templates
+ * Auth card shell — shadcn/ui login-01 block pattern
  */
 
 import { Component, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { IconComponent } from './icon.component';
-import { CardComponent, CardBodyComponent } from './card.component';
+
 import { AuthPageHeaderComponent } from './auth-page-header.component';
+import { CardBodyComponent, CardComponent } from './card.component';
 
 @Component({
-  selector: 'app-auth-card',
-  imports: [
-    RouterLink,
-    IconComponent,
-    CardComponent,
-    CardBodyComponent,
-    AuthPageHeaderComponent,
-  ],
-  template: `
-    <app-card>
-      <app-card-body contentClass="auth-card-body">
+    selector: 'app-auth-card',
+    imports: [CardComponent, CardBodyComponent, AuthPageHeaderComponent],
+    template: `
         <div class="auth-card-inner">
-          <a routerLink="/auth/signin" class="auth-card-brand" aria-label="Angular V22 home">
-            <div class="auth-brand-logo" aria-hidden="true">
-              <app-icon name="layout-dashboard" [size]="20" />
-            </div>
-          </a>
-
-          <app-auth-page-header [title]="title()" [description]="description()" />
-
-          <ng-content />
+            <app-card>
+                <app-auth-page-header [title]="title()" [description]="description()" />
+                <app-card-body contentClass="auth-card-stack">
+                    <ng-content />
+                </app-card-body>
+                <ng-content select="[authCardFooter]" />
+            </app-card>
         </div>
-      </app-card-body>
-    </app-card>
-  `,
+    `,
 })
 export class AuthCardComponent {
-  title = input.required<string>();
-  description = input('');
+    title = input.required<string>();
+    description = input('');
 }

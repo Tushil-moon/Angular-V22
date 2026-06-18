@@ -8,23 +8,23 @@ import { AuthService } from '@services/auth.service';
 import { PermissionService } from '@services/permission.service';
 
 export const permissionGuard: CanActivateFn = async (route) => {
-  const authService = inject(AuthService);
-  const permissionService = inject(PermissionService);
-  const router = inject(Router);
+    const authService = inject(AuthService);
+    const permissionService = inject(PermissionService);
+    const router = inject(Router);
 
-  await authService.ensureSessionReady();
+    await authService.ensureSessionReady();
 
-  if (!authService.isAuthenticated()) {
-    return router.createUrlTree(['/auth/signin']);
-  }
+    if (!authService.isAuthenticated()) {
+        return router.createUrlTree(['/auth/signin']);
+    }
 
-  const required = route.data['permission'];
-  if (!required) return true;
+    const required = route.data['permission'];
+    if (!required) return true;
 
-  const permissions = Array.isArray(required) ? required : [required];
-  if (permissionService.hasAny(...permissions)) {
-    return true;
-  }
+    const permissions = Array.isArray(required) ? required : [required];
+    if (permissionService.hasAny(...permissions)) {
+        return true;
+    }
 
-  return router.createUrlTree(['/dashboard']);
+    return router.createUrlTree(['/dashboard']);
 };

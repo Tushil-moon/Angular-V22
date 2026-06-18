@@ -1,4 +1,5 @@
 import { InjectionToken } from '@angular/core';
+
 import type { DialogConfig } from './dialog.types';
 
 export const DIALOG_DATA = new InjectionToken<unknown>('DIALOG_DATA');

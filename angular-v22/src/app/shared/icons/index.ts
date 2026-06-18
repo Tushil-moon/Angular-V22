@@ -1,1 +1,1 @@
-export { APP_ICON_NAMES, provideAppIconConfig, provideAppIcons, type IconName } from './app-icons';
+export { APP_ICON_NAMES, type IconName, provideAppIconConfig, provideAppIcons } from './app-icons';

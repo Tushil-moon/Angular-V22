@@ -2,38 +2,38 @@
  * Sidebar Service — shadcn collapsible sidebar state
  */
 
-import { Injectable, signal, computed } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 
 const STORAGE_KEY = 'sidebar_state';
 
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root',
 })
 export class SidebarService {
-  private readonly collapsedSignal = signal(this.readStored());
+    private readonly collapsedSignal = signal(this.readStored());
 
-  readonly collapsed = this.collapsedSignal.asReadonly();
-  readonly state = computed(() => (this.collapsedSignal() ? 'collapsed' : 'expanded'));
+    readonly collapsed = this.collapsedSignal.asReadonly();
+    readonly state = computed(() => (this.collapsedSignal() ? 'collapsed' : 'expanded'));
 
-  toggle(): void {
-    this.setCollapsed(!this.collapsedSignal());
-  }
+    toggle(): void {
+        this.setCollapsed(!this.collapsedSignal());
+    }
 
-  expand(): void {
-    this.setCollapsed(false);
-  }
+    expand(): void {
+        this.setCollapsed(false);
+    }
 
-  collapse(): void {
-    this.setCollapsed(true);
-  }
+    collapse(): void {
+        this.setCollapsed(true);
+    }
 
-  private setCollapsed(value: boolean): void {
-    this.collapsedSignal.set(value);
-    localStorage.setItem(STORAGE_KEY, value ? 'collapsed' : 'expanded');
-  }
+    private setCollapsed(value: boolean): void {
+        this.collapsedSignal.set(value);
+        localStorage.setItem(STORAGE_KEY, value ? 'collapsed' : 'expanded');
+    }
 
-  private readStored(): boolean {
-    if (typeof localStorage === 'undefined') return false;
-    return localStorage.getItem(STORAGE_KEY) === 'collapsed';
-  }
+    private readStored(): boolean {
+        if (typeof localStorage === 'undefined') return false;
+        return localStorage.getItem(STORAGE_KEY) === 'collapsed';
+    }
 }

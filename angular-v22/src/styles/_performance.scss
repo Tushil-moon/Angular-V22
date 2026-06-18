@@ -1,21 +1,21 @@
 /* Respect user motion preferences — reduces paint/composite work on low-power devices */
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+    html {
+        scroll-behavior: auto;
+    }
 
-  .animate-slideInLeft,
-  .animate-fadeIn,
-  .animate-dialogIn,
-  .animate-slideUp,
-  .animate-slideDown,
-  .select-content,
-  .dropdown-content,
-  .skeleton::after {
-    animation: none !important;
-  }
+    .animate-slideInLeft,
+    .animate-fadeIn,
+    .animate-dialogIn,
+    .animate-slideUp,
+    .animate-slideDown,
+    .select-content,
+    .dropdown-content,
+    .skeleton::after {
+        animation: none !important;
+    }
 
-  .kanban-card {
-    transition: none;
-  }
+    .kanban-card {
+        transition: none;
+    }
 }
