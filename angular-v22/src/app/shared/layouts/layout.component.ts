@@ -4,7 +4,7 @@
 
 import { Component, DestroyRef, inject, computed, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
+import { Router, RouterLink, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -35,18 +35,11 @@ import { OrgSwitcherComponent } from '../components/org-switcher.component';
   selector: 'app-auth-layout',
   imports: [RouterOutlet, ThemeToggleComponent],
   template: `
-    <div class="min-h-svh bg-muted/40 flex items-center justify-center p-4">
-      <div class="absolute right-4 top-4">
+    <div class="auth-shell">
+      <div class="auth-shell-theme">
         <app-theme-toggle />
       </div>
-      <div class="w-full max-w-sm space-y-6">
-        <div class="flex flex-col items-center space-y-2 text-center mb-4">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground"
-          >
-            <span class="text-sm font-bold">A</span>
-          </div>
-        </div>
+      <div class="auth-shell-content">
         <router-outlet />
       </div>
     </div>
@@ -180,8 +173,16 @@ export class AuthLayoutComponent {}
               <app-icon name="menu" [size]="18" />
             </button>
             <app-separator orientation="vertical" className="mr-2 h-4 hidden md:block" />
-            <app-org-switcher />
-            <app-global-search />
+            <app-org-switcher mode="header" />
+            <app-global-search variant="header" />
+            <button
+              type="button"
+              class="btn btn-ghost btn-icon sm:hidden"
+              (click)="mobileSearchOpen.set(true)"
+              aria-label="Open search"
+            >
+              <app-icon name="search" [size]="18" />
+            </button>
           </div>
 
           <div class="flex items-center gap-2 shrink-0">
@@ -246,6 +247,13 @@ export class AuthLayoutComponent {}
 
       <app-separator className="my-4" />
 
+      <div class="mobile-drawer-section">
+        <p class="sidebar-group-label mb-2">Organization</p>
+        <app-org-switcher mode="drawer" />
+      </div>
+
+      <app-separator className="my-4" />
+
       <div class="mb-4">
         <app-theme-toggle />
       </div>
@@ -254,6 +262,14 @@ export class AuthLayoutComponent {}
         <app-icon name="log-out" [size]="16" />
         <span>Log out</span>
       </button>
+    </app-sheet>
+
+    <app-sheet
+      title="Search"
+      [isOpen]="mobileSearchOpen()"
+      (isOpenChange)="mobileSearchOpen.set($event)"
+    >
+      <app-global-search variant="drawer" />
     </app-sheet>
   `,
 })
@@ -274,6 +290,7 @@ export class AdminLayoutComponent {
   readonly profileMenuItems = PROFILE_MENU_ITEMS;
 
   mobileNavOpen = signal(false);
+  mobileSearchOpen = signal(false);
   pageTitle = signal('Dashboard');
 
   displayName = computed(() => {

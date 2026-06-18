@@ -102,6 +102,7 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
             emptyTitle="No activities found"
             emptyDescription="Log activity from a contact or deal detail view."
             [flush]="true"
+            displayMode="cards"
             [skeletonRowCount]="5"
           >
             @for (activity of activities(); track activity.id) {

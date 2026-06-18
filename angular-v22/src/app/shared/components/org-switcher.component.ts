@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { OrganizationContextService, OrganizationService } from '@services/index';
 import { OrganizationMembership } from '@models/index';
 import { IconComponent } from './icon.component';
@@ -9,7 +9,10 @@ import { SelectComponent, SelectOption } from './select.component';
   imports: [IconComponent, SelectComponent],
   template: `
     @if (memberships().length > 0) {
-      <div class="org-switcher">
+      <div
+        [class.org-switcher]="mode() === 'header'"
+        [class.org-switcher-drawer]="mode() === 'drawer'"
+      >
         <app-icon name="building-2" [size]="14" className="text-muted-foreground shrink-0" />
         <app-select
           [options]="orgOptions()"
@@ -25,6 +28,9 @@ import { SelectComponent, SelectOption } from './select.component';
 export class OrgSwitcherComponent implements OnInit {
   private readonly organizationService = inject(OrganizationService);
   private readonly organizationContext = inject(OrganizationContextService);
+
+  /** `header` — desktop header (hidden below md). `drawer` — full width in mobile nav sheet. */
+  mode = input<'header' | 'drawer'>('header');
 
   memberships = signal<OrganizationMembership[]>([]);
   activeOrganizationId = computed(() => this.organizationContext.activeOrganizationId());

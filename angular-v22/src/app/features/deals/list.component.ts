@@ -131,6 +131,7 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
             emptyTitle="No deals found"
             emptyDescription="Create a deal or adjust your filters."
             [flush]="true"
+            displayMode="cards"
             [skeletonRowCount]="5"
           >
             @for (deal of deals(); track deal.id) {

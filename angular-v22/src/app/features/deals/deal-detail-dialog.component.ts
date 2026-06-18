@@ -133,7 +133,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
             }
 
             <div class="space-y-3">
-              <div class="flex items-center justify-between gap-2">
+              <div class="dialog-section-toolbar">
                 <p class="text-sm font-medium text-foreground">Recent activity</p>
                 <app-button variant="outline" size="sm" type="button" (clicked)="mode.set('activity')">
                   Log activity

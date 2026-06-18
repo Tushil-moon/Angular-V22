@@ -20,7 +20,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
         <label [for]="id()" class="form-label">
           {{ label() }}
           @if (required()) {
-            <span class="text-destructive">*</span>
+            <span class="form-label-required" aria-hidden="true">*</span>
           }
         </label>
       }
@@ -56,6 +56,7 @@ export class InputComponent implements ControlValueAccessor {
   hint = input('');
 
   blurred = output<void>();
+  valueChange = output<string>();
 
   value = signal('');
   isDisabled = signal(false);
@@ -70,6 +71,7 @@ export class InputComponent implements ControlValueAccessor {
     const target = event.target as HTMLInputElement;
     this.value.set(target.value);
     this.onChange(target.value);
+    this.valueChange.emit(target.value);
   }
 
   onBlur(): void {

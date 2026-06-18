@@ -107,6 +107,7 @@ const EMPTY_PAGE: ContactsPageResult = { contacts: [], total: 0 };
             emptyTitle="No contacts found"
             emptyDescription="Try adjusting your search or add a new contact."
             [flush]="true"
+            displayMode="cards"
             [skeletonRowCount]="5"
           >
             @for (contact of contacts(); track contact.id) {

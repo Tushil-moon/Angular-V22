@@ -37,10 +37,10 @@ import { DashboardPanelsComponent } from './dashboard-panels.component';
           <p class="page-description">Here's what's happening in your workspace today.</p>
         </div>
         <div class="card-toolbar">
-          <app-button variant="outline" size="sm" (clicked)="refreshStats()">
+          <app-button variant="outline" size="sm" class="w-full sm:w-auto" (clicked)="refreshStats()">
             Refresh
           </app-button>
-          <app-button size="sm" (clicked)="showWelcomeToast()">
+          <app-button size="sm" class="w-full sm:w-auto" (clicked)="showWelcomeToast()">
             <app-icon name="plus" [size]="14" />
             Quick action
           </app-button>

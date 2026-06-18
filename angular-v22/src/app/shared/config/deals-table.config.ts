@@ -8,6 +8,7 @@ export const DEAL_TABLE_COLUMNS: FlexTableColumn[] = [
     key: 'title',
     label: 'Deal',
     grid: 'minmax(10rem, 1.5fr)',
+    primary: true,
     skeletonClass: 'h-4 w-full max-w-[10rem]',
   },
   {

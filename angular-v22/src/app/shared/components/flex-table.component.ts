@@ -41,6 +41,7 @@ const HIDE_CLASS: Record<FlexTableBreakpoint, string> = {
       [class.flex-table-fill]="fill()"
       [class.flex-table-loading]="loading()"
       [class.flex-table-empty-state]="empty() && !loading()"
+      [class.flex-table-cards-mode]="displayMode() === 'cards'"
     >
       <div class="flex-table-scroll" #scrollContainer>
         <div
@@ -126,6 +127,8 @@ export class FlexTableComponent {
   skeletonRowCount = input(5);
   sortColumn = input<string | null>(null);
   sortDirection = input<'ascending' | 'descending' | null>(null);
+  /** Below `sm`, stack rows as labeled cards instead of a horizontal table */
+  displayMode = input<'table' | 'cards'>('table');
 
   visibleColumns = computed(() => this.columns());
 
@@ -245,6 +248,8 @@ export class FlexTableRowComponent {
     class: 'flex-table-cell',
     role: 'cell',
     '[class]': 'hostClass()',
+    '[attr.data-label]': 'columnLabel()',
+    '[attr.data-primary]': 'isPrimary() ? "true" : null',
   },
   template: `<ng-content />`,
 })
@@ -255,8 +260,21 @@ export class FlexTableCellComponent {
 
   private readonly table = inject(FlexTableComponent, { optional: true });
 
+  private readonly columnDef = computed(() =>
+    this.table?.columns().find((item) => item.key === this.column()),
+  );
+
+  columnLabel = computed(() => this.columnDef()?.label ?? '');
+
+  isPrimary = computed(() => {
+    const col = this.columnDef();
+    if (col?.primary) return true;
+    const columns = this.table?.columns() ?? [];
+    return columns[0]?.key === this.column();
+  });
+
   hostClass = computed(() => {
-    const col = this.table?.columns().find((item) => item.key === this.column());
+    const col = this.columnDef();
     const classes: string[] = [];
 
     const align = col?.align ?? this.align();

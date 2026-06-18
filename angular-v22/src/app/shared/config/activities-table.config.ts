@@ -7,6 +7,7 @@ export const ACTIVITY_TABLE_COLUMNS: FlexTableColumn[] = [
     key: 'subject',
     label: 'Subject',
     grid: 'minmax(10rem, 1.4fr)',
+    primary: true,
     skeletonClass: 'h-4 w-full max-w-[10rem]',
   },
   {

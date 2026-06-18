@@ -4,55 +4,46 @@
 
 import { Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
+import { ToastService } from '@services/toast.service';
 import { InputComponent } from '@shared/components/input.component';
-import {
-  CardComponent,
-  CardHeaderComponent,
-  CardTitleComponent,
-  CardDescriptionComponent,
-  CardBodyComponent,
-} from '@shared/components/card.component';
-import { AlertComponent } from '@shared/components/alert.component';
 import { SubmitButtonComponent } from '@shared/components/submit-button.component';
+import { AuthCardComponent } from '@shared/components/auth-card.component';
+import { AuthSocialButtonsComponent } from '@shared/components/auth-social-buttons.component';
 import { SIGN_UP_FIELDS, SIGN_UP_NAME_FIELDS } from '@shared/config/auth-form.config';
 import { signUpSchema, safeValidate } from '@utils/validators';
+import {
+  addTouchedField,
+  clearFieldFromErrors,
+  resolveFieldError,
+  shouldShowFieldError,
+} from '@utils/form-display.util';
 
 @Component({
   selector: 'app-signup',
   imports: [
+    RouterLink,
     ReactiveFormsModule,
     InputComponent,
-    CardComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    CardDescriptionComponent,
-    CardBodyComponent,
-    AlertComponent,
     SubmitButtonComponent,
+    AuthCardComponent,
+    AuthSocialButtonsComponent,
   ],
   template: `
-    <app-card>
-      <app-card-header>
-        <app-card-title>Create an account</app-card-title>
-        <app-card-description>Enter your details below to get started</app-card-description>
-      </app-card-header>
+    <app-auth-card
+      title="Signup to Angular V22"
+      description="Signup to your account now"
+    >
+      <div class="auth-card-stack">
+        <app-auth-social-buttons action="signup" />
 
-      <app-card-body>
-        @if (authService.error()) {
-          <app-alert
-            type="danger"
-            title="Sign up failed"
-            [message]="authService.error() || ''"
-            [dismissible]="true"
-            (dismissed)="authService.clearError()"
-            class="mb-4 block"
-          />
-        }
+        <div class="auth-divider" aria-hidden="true">
+          <span>or sign up with</span>
+        </div>
 
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             @for (field of nameFields; track field.name) {
               <app-input
                 [id]="field.name"
@@ -61,6 +52,8 @@ import { signUpSchema, safeValidate } from '@utils/validators';
                 [placeholder]="field.placeholder"
                 [formControlName]="field.name"
                 [error]="getFieldError(field.name)"
+                (blurred)="onFieldBlur(field.name)"
+                (valueChange)="onFieldInput(field.name)"
               />
             }
           </div>
@@ -72,31 +65,33 @@ import { signUpSchema, safeValidate } from '@utils/validators';
               [label]="field.label"
               [placeholder]="field.placeholder"
               [formControlName]="field.name"
-              [error]="getFieldError(field.name)"
               [required]="field.required ?? false"
+              [error]="getFieldError(field.name)"
+              (blurred)="onFieldBlur(field.name)"
+              (valueChange)="onFieldInput(field.name)"
             />
           }
 
-          <app-submit-button
-            label="Create account"
-            loadingLabel="Creating account..."
-            [loading]="authService.isLoading()"
-          />
+          <div class="auth-submit-stack">
+            <app-submit-button
+              label="Sign up"
+              loadingLabel="Creating account..."
+              [loading]="authService.isLoading()"
+            />
+            <p class="auth-card-footer">
+              <span>Already have an account?</span>
+              <a routerLink="/auth/signin">Sign in</a>
+            </p>
+          </div>
         </form>
-      </app-card-body>
-    </app-card>
-
-    <p class="text-center text-sm text-muted-foreground mt-4">
-      Already have an account?
-      <a href="/auth/signin" class="text-foreground underline-offset-4 hover:underline font-medium"
-        >Sign in</a
-      >
-    </p>
+      </div>
+    </app-auth-card>
   `,
 })
 export class SignUpComponent {
   authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
   private readonly fb = inject(NonNullableFormBuilder);
 
   readonly nameFields = SIGN_UP_NAME_FIELDS;
@@ -111,8 +106,20 @@ export class SignUpComponent {
   });
 
   validationErrors = signal<Record<string, string[]>>({});
+  readonly submitted = signal(false);
+  readonly touchedFields = signal<Set<string>>(new Set());
+
+  onFieldBlur(field: string): void {
+    this.touchedFields.update((set) => addTouchedField(set, field));
+  }
+
+  onFieldInput(field: string): void {
+    this.validationErrors.update((errors) => clearFieldFromErrors(errors, field));
+  }
 
   async onSubmit(): Promise<void> {
+    this.submitted.set(true);
+
     const raw = this.form.getRawValue();
     const validation = safeValidate(signUpSchema, {
       email: raw.email,
@@ -138,13 +145,20 @@ export class SignUpComponent {
         lastName: raw.lastName || undefined,
       });
       this.router.navigate(['/dashboard']);
-    } catch (error) {
-      console.error('Sign up error:', error);
+    } catch {
+      const message = this.authService.error();
+      if (message) {
+        this.toastService.error('Sign up failed', message);
+        this.authService.clearError();
+      }
     }
   }
 
   getFieldError(field: string): string | null {
-    const errors = this.validationErrors()[field];
-    return errors?.[0] ?? null;
+    const show = shouldShowFieldError({
+      touched: this.touchedFields().has(field),
+      submitted: this.submitted(),
+    });
+    return resolveFieldError(this.validationErrors()[field]?.[0], show);
   }
 }

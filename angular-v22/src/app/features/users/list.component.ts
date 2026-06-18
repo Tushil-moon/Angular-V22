@@ -93,6 +93,7 @@ const EMPTY_USERS_PAGE: UsersPageResult = { users: [], total: 0 };
             emptyTitle="No users found"
             emptyDescription="Try adjusting your search or add a new user."
             [flush]="true"
+            displayMode="cards"
             [skeletonRowCount]="5"
           >
             @for (user of users(); track user.id) {

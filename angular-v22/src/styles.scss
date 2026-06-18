@@ -1,3 +1,5 @@
+@use 'sass:meta';
+
 @import '@angular/cdk/overlay-prebuilt.css';
 
 /* CDK overlay layer */
@@ -110,8 +112,10 @@
     --overlay-backdrop: rgb(0 0 0 / 0.4);
   }
 
-  * {
-    @apply border-border;
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
   }
 
   *:focus-visible {
@@ -119,8 +123,13 @@
   }
 
   html {
-    @apply scroll-smooth;
     color-scheme: light;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
 
   html.dark {
@@ -165,9 +174,17 @@
            transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
            disabled:pointer-events-none disabled:opacity-50 cursor-pointer
            [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0;
-    height: 2.25rem;
+    min-height: 2.75rem;
+    height: 2.75rem;
     padding-inline: 1rem;
     padding-block: 0.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .btn:not(.btn-sm):not(.btn-lg):not(.btn-xl):not(.btn-icon):not(.btn-link) {
+      min-height: 2.25rem;
+      height: 2.25rem;
+    }
   }
 
   .btn-primary {
@@ -215,7 +232,7 @@
   }
 
   .btn-icon {
-    @apply h-9 w-9 p-0;
+    @apply min-h-11 min-w-11 h-11 w-11 p-0 md:min-h-9 md:min-w-9 md:h-9 md:w-9;
   }
 
   .btn-outline {
@@ -232,7 +249,7 @@
   }
 
   .btn-sm {
-    @apply h-8 rounded-md px-3 text-xs;
+    @apply min-h-10 h-10 rounded-md px-3 text-xs md:min-h-8 md:h-8;
   }
 
   .btn-lg {
@@ -320,10 +337,10 @@
 
   /* ── Input (shadcn) ── */
   .input {
-    @apply flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm
+    @apply flex min-h-11 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm
            transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground
            placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
-           disabled:cursor-not-allowed disabled:opacity-50 md:text-sm text-foreground;
+           disabled:cursor-not-allowed disabled:opacity-50 md:min-h-9 md:py-1 md:text-sm text-foreground;
   }
 
   .input.border-destructive {
@@ -341,6 +358,10 @@
 
   .form-label {
     @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+  }
+
+  .form-label-required {
+    @apply ml-0.5 font-normal text-muted-foreground;
   }
 
   .form-error {
@@ -562,6 +583,10 @@
 
   .page-toolbar {
     @apply flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .page-toolbar > app-button {
+    @apply w-full shrink-0 sm:w-auto;
   }
 
   .page-title {
@@ -801,6 +826,100 @@
   @media (max-width: 1023px) {
     .flex-table-cell-hide-lg {
       display: none;
+    }
+  }
+
+  /* Stacked card rows on narrow viewports when displayMode is `cards` */
+  @media (max-width: 639px) {
+    .flex-table-cards-mode .flex-table-scroll {
+      overflow-x: visible;
+    }
+
+    .flex-table-cards-mode .flex-table-inner {
+      display: block;
+      min-width: 0;
+    }
+
+    .flex-table-cards-mode .flex-table-header {
+      display: none;
+    }
+
+    .flex-table-cards-mode .flex-table-body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 0.75rem;
+    }
+
+    .flex-table-cards-mode.flex-table-flush .flex-table-body {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .flex-table-cards-mode .flex-table-row:not(.flex-table-row-empty):not(.flex-table-row-skeleton) {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background-color: var(--card);
+      box-shadow: var(--tw-shadow-sm);
+      overflow: hidden;
+    }
+
+    .flex-table-cards-mode .flex-table-row-interactive {
+      @apply cursor-pointer;
+    }
+
+    .flex-table-cards-mode .flex-table-cell {
+      display: grid;
+      grid-template-columns: minmax(4.5rem, 34%) minmax(0, 1fr);
+      gap: 0.5rem 0.75rem;
+      align-items: start;
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+    }
+
+    .flex-table-cards-mode .flex-table-cell::before {
+      content: attr(data-label);
+      @apply text-xs font-medium text-muted-foreground;
+    }
+
+    .flex-table-cards-mode .flex-table-cell[data-primary='true'] {
+      display: block;
+      padding: 0.875rem 1rem 0.375rem;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+
+    .flex-table-cards-mode .flex-table-cell[data-primary='true']::before {
+      display: none;
+    }
+
+    .flex-table-cards-mode .flex-table-cell-actions {
+      display: flex;
+      justify-content: flex-end;
+      border-bottom: none;
+      padding: 0.5rem 1rem 0.75rem;
+    }
+
+    .flex-table-cards-mode .flex-table-cell-actions::before {
+      display: none;
+    }
+
+    .flex-table-cards-mode .flex-table-cell.flex-table-cell-hide-sm,
+    .flex-table-cards-mode .flex-table-cell.flex-table-cell-hide-md,
+    .flex-table-cards-mode .flex-table-cell.flex-table-cell-hide-lg {
+      display: grid;
+    }
+
+    .flex-table-cards-mode .flex-table-row:not(.flex-table-row-empty):last-child .flex-table-cell:last-child {
+      border-bottom: none;
+    }
+
+    .flex-table-cards-mode .flex-table-flush .flex-table-cell:first-child,
+    .flex-table-cards-mode .flex-table-flush .flex-table-cell:last-child {
+      padding-left: 1rem;
+      padding-right: 1rem;
     }
   }
 
@@ -1101,6 +1220,8 @@
   /* Site header — inside rounded inset panel */
   .site-header {
     @apply sticky top-0 z-[var(--z-sticky)] flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-4 md:px-5;
+    padding-top: env(safe-area-inset-top);
+    min-height: calc(3.5rem + env(safe-area-inset-top));
   }
 
   .site-header-start {
@@ -1121,6 +1242,18 @@
 
   .site-header-search-input {
     @apply input pl-9;
+  }
+
+  .global-search-drawer {
+    @apply w-full;
+  }
+
+  .global-search-drawer .site-header-search-input {
+    @apply w-full;
+  }
+
+  .mobile-drawer-section {
+    @apply w-full min-w-0;
   }
 
   .sidebar-theme {
@@ -1247,6 +1380,8 @@
   .sheet-content {
     @apply fixed inset-y-0 left-0 z-[var(--z-sheet)] flex w-3/4 max-w-sm flex-col gap-4
            border-r border-border bg-background p-6 shadow-lg sm:max-w-sm;
+    padding-top: max(1.5rem, env(safe-area-inset-top));
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
   }
 
   .sheet-header {
@@ -1344,12 +1479,28 @@
   }
 
   .dialog-detail-header {
-    @apply flex flex-wrap items-start justify-between gap-3;
+    @apply flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between;
+  }
+
+  .dialog-detail-header > div:first-child {
+    @apply min-w-0 flex-1;
   }
 
   .dialog-profile-header {
-    @apply flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border p-4;
+    @apply flex flex-col gap-3 rounded-lg border border-border p-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between;
     background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+  }
+
+  .dialog-profile-identity {
+    @apply flex min-w-0 items-center gap-3 sm:gap-4;
+  }
+
+  .dialog-section-toolbar {
+    @apply flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .dialog-section-toolbar app-button {
+    @apply w-full shrink-0 sm:w-auto;
   }
 
   .dialog-roles-section {
@@ -1397,6 +1548,8 @@
     flex-direction: column;
     gap: 0.5rem;
     padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    padding-right: max(1rem, env(safe-area-inset-right));
     pointer-events: none;
   }
 
@@ -1485,6 +1638,8 @@
       transparent 100%
     );
   }
+
+  @include meta.load-css('styles/features');
 }
 
 @keyframes skeleton-shimmer {
@@ -1575,10 +1730,6 @@
     animation: fadeIn 0.3s ease-in-out;
   }
 
-  .animate-fadeIn {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-
   .animate-dialogIn {
     animation: dialogIn 200ms ease-out;
   }
@@ -1593,6 +1744,7 @@
 
   .custom-scrollbar {
     overflow-y: auto;
+    scrollbar-gutter: stable;
   }
 
   .settings-tabs,
@@ -1647,58 +1799,4 @@
   }
 }
 
-/* Kanban board — aligned with Shadcn Space dashboard blocks */
-.kanban-board {
-  @apply flex gap-4 overflow-x-auto pb-4;
-  scrollbar-gutter: stable;
-}
-
-.kanban-column {
-  @apply flex min-w-[17rem] max-w-[19rem] flex-1 flex-col rounded-xl border border-border bg-card shadow-sm;
-}
-
-.kanban-column-header {
-  @apply flex items-center justify-between gap-2 border-b border-border px-4 py-3;
-}
-
-.kanban-column-body {
-  @apply flex min-h-[12rem] flex-1 flex-col gap-2 p-3;
-  background-color: color-mix(in oklch, var(--muted) 40%, transparent);
-}
-
-.kanban-card {
-  @apply cursor-grab rounded-lg border border-border bg-card p-3 shadow-sm transition-colors
-         hover:shadow active:cursor-grabbing;
-}
-
-.kanban-card:hover {
-  border-color: color-mix(in oklch, var(--ring) 30%, transparent);
-}
-
-.kanban-card-title {
-  @apply text-sm font-medium text-foreground;
-}
-
-.kanban-card-value {
-  @apply mt-1 text-sm font-semibold tabular-nums text-foreground;
-}
-
-.kanban-card-meta {
-  @apply mt-1 truncate text-xs text-muted-foreground;
-}
-
-.cdk-drag-preview {
-  @apply rounded-md border border-border bg-card p-3 shadow-lg;
-}
-
-.cdk-drag-placeholder {
-  @apply rounded-md border border-dashed border-border bg-muted;
-}
-
-.org-switcher {
-  @apply hidden items-center gap-2 md:flex;
-}
-
-.org-switcher app-select {
-  @apply w-auto min-w-[10rem] max-w-[14rem];
-}
+@include meta.load-css('styles/performance');

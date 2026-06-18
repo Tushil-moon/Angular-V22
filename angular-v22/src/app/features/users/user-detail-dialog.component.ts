@@ -68,27 +68,29 @@ type DialogMode = 'view' | 'edit' | 'delete';
       } @else if (selectedUser(); as user) {
         @if (mode() === 'edit') {
           <form [formGroup]="editForm" class="space-y-4">
-            <app-input
-              id="edit-email"
-              type="email"
-              label="Email"
-              formControlName="email"
-              [error]="fieldError('email')"
-              [required]="true"
-            />
-            <app-input
-              id="edit-phone"
-              type="text"
-              label="Phone"
-              formControlName="phone"
-              [error]="fieldError('phone')"
-            />
+            <div class="grid gap-4 sm:grid-cols-2">
+              <app-input
+                id="edit-email"
+                type="email"
+                label="Email"
+                formControlName="email"
+                [error]="fieldError('email')"
+                [required]="true"
+              />
+              <app-input
+                id="edit-phone"
+                type="text"
+                label="Phone"
+                formControlName="phone"
+                [error]="fieldError('phone')"
+              />
+            </div>
             <app-checkbox id="edit-active" label="Active account" formControlName="isActive" />
           </form>
         } @else {
           <div class="space-y-6">
             <div class="dialog-profile-header">
-              <div class="flex min-w-0 items-center gap-4">
+              <div class="dialog-profile-identity">
                 <app-avatar [fallback]="getUserInitials(user)" size="lg" />
                 <div class="min-w-0 space-y-1">
                   <p class="truncate text-lg font-semibold text-foreground">{{ getUserDisplayName(user) }}</p>

@@ -50,7 +50,7 @@ import { Deal, DealBoardColumn, DealStage } from '@models/index';
           <h1 class="page-title">Deal board</h1>
           <p class="page-description">Drag deals between pipeline stages</p>
         </div>
-        <app-button variant="outline" size="sm" routerLink="/dashboard/deals">
+        <app-button variant="outline" size="sm" class="w-full sm:w-auto" routerLink="/dashboard/deals">
           <app-icon name="list" [size]="14" />
           List view
         </app-button>

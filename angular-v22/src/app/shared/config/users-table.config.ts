@@ -7,6 +7,7 @@ export const USER_TABLE_COLUMNS: UserTableColumn[] = [
     key: 'email',
     label: 'Email',
     grid: 'minmax(10rem, 1.6fr)',
+    primary: true,
     skeletonClass: 'h-4 w-full max-w-[9rem]',
   },
   {

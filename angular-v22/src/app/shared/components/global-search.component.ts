@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { SearchService } from '@services/index';
 import { IconComponent } from './icon.component';
@@ -8,7 +8,12 @@ import { SearchResult } from '@models/index';
   selector: 'app-global-search',
   imports: [IconComponent],
   template: `
-    <div class="site-header-search relative" #container>
+    <div
+      class="relative"
+      [class.site-header-search]="variant() === 'header'"
+      [class.global-search-drawer]="variant() === 'drawer'"
+      #container
+    >
       <app-icon name="search" [size]="16" className="site-header-search-icon" />
       <input
         type="search"
@@ -53,6 +58,9 @@ export class GlobalSearchComponent {
   private readonly searchService = inject(SearchService);
   private readonly router = inject(Router);
   private readonly container = viewChild<ElementRef<HTMLElement>>('container');
+
+  /** `header` — inline in site header (hidden below sm). `drawer` — full width in mobile sheet. */
+  variant = input<'header' | 'drawer'>('header');
 
   query = signal('');
   results = signal<SearchResult[]>([]);

@@ -34,14 +34,14 @@ export const SIGN_UP_FIELDS: AuthFormField[] = [
     name: 'email',
     label: 'Email',
     type: 'email',
-    placeholder: 'name@example.com',
+    placeholder: 'example@example.com',
     required: true,
   },
   {
     name: 'password',
     label: 'Password',
     type: 'password',
-    placeholder: 'Create a password',
+    placeholder: 'Enter your password',
     required: true,
   },
   {

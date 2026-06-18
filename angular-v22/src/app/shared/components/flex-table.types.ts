@@ -1,5 +1,7 @@
 export type FlexTableBreakpoint = 'sm' | 'md' | 'lg';
 
+export type FlexTableDisplayMode = 'table' | 'cards';
+
 export interface FlexTableColumn {
   key: string;
   label: string;
@@ -10,4 +12,6 @@ export interface FlexTableColumn {
   grid: string;
   hideBelow?: FlexTableBreakpoint;
   skeletonClass?: string;
+  /** Card title on mobile when displayMode is `cards` */
+  primary?: boolean;
 }

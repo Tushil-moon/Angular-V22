@@ -7,6 +7,7 @@ import { LoaderComponent } from './loader.component';
 
 @Component({
   selector: 'app-submit-button',
+  host: { class: 'block w-full' },
   imports: [LoaderComponent],
   template: `
     <button
