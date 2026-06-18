@@ -46,3 +46,5 @@ Thumbs.db
 /libpeerconnection.log
 testem.log
 /typings
+
+.vercel

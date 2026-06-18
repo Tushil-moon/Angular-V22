@@ -18,8 +18,8 @@ In Vercel → **Project → Settings → Environment Variables**, add variables 
 
 | Variable | Required | Notes |
 |----------|----------|--------|
-| `DATABASE_URL` | Yes | Pooled connection (port 6543, `?pgbouncer=true`) |
-| `DIRECT_URL` | Yes | Direct connection for migrations at build |
+| `DATABASE_URL` | Yes | **Transaction** pooler (port **6543**, `?pgbouncer=true`) |
+| `DIRECT_URL` | Yes | Direct DB URL (used locally; not required to work from Vercel build) |
 | `JWT_ACCESS_SECRET` | Yes | ≥ 32 chars |
 | `JWT_REFRESH_SECRET` | Yes | ≥ 32 chars |
 | `JWT_EMAIL_SECRET` | Yes | ≥ 32 chars |
@@ -51,14 +51,19 @@ vercel --prod
 
 ## 4. Database migrations & seed
 
-- **Migrations** run during `prisma migrate deploy` in the Vercel build (`prisma-backend` `vercel-build` script)
-- **Seed** is not run on Vercel. Run locally against production DB when needed:
+**Migrations are skipped during the Vercel build** — Supabase direct host (`db.*.supabase.co`) is not reachable from Vercel’s build network.
+
+Run migrations from your machine before or after deploy:
 
 ```bash
 cd prisma-backend
-# Set DATABASE_URL / DIRECT_URL to production
-npm run seed
+# Use production DIRECT_URL in .env (or Supabase Session pooler :5432 on pooler host)
+npm run prisma:deploy
 ```
+
+Optional: run migrate on Vercel by setting `RUN_MIGRATE_ON_VERCEL=1` and `MIGRATE_DATABASE_URL` to the **Session pooler** (`*.pooler.supabase.com:5432`).
+
+**Seed** is not run on Vercel. Run locally against production when needed:
 
 ## Local development
 
@@ -81,7 +86,8 @@ To host API and frontend on separate Vercel projects:
 
 | Issue | Fix |
 |-------|-----|
-| `DATABASE_UNAVAILABLE` | Check `DATABASE_URL`, allow Vercel IPs on Supabase |
-| Build fails on migrate | Ensure `DIRECT_URL` is set and reachable from Vercel build |
+| `DATABASE_UNAVAILABLE` | Use Transaction pooler (6543) for `DATABASE_URL` |
+| `EMAXCONNSESSION` | Do not use Session pooler (5432) for runtime `DATABASE_URL` |
+| Build fails on migrate / P1001 | Migrations skip on Vercel; run `npm run prisma:deploy` locally |
 | 404 on client routes | `vercel.json` SPA rewrite to `/index.html` |
 | CORS errors | Set `CORS_ORIGIN` to your frontend URL (split deploy) |

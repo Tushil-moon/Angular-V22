@@ -27,9 +27,16 @@ const envSchema = z.object({
 });
 
 const vercelOrigin = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined;
+export const isServerless =
+  process.env.VERCEL === "1" || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
+const isVercel = isServerless;
 
 export const env = envSchema.parse({
   ...process.env,
+  NODE_ENV:
+    process.env.NODE_ENV === "development" && isVercel
+      ? "production"
+      : process.env.NODE_ENV || (isVercel ? "production" : undefined),
   API_BASE_URL:
     process.env.API_BASE_URL ||
     vercelOrigin ||
@@ -39,3 +46,5 @@ export const env = envSchema.parse({
     [vercelOrigin, "http://localhost:4200", "http://127.0.0.1:4200"].filter(Boolean).join(","),
 });
 export const isProduction = env.NODE_ENV === "production";
+/** Runtime DB: pooled URL on Vercel/Lambda and in production. */
+export const usePooledDatabase = isProduction || isServerless;

@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "tsnd --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "vercel-build": "prisma generate && prisma migrate deploy && npm run build",
+    "vercel-build": "node scripts/vercel-build.mjs",
     "postinstall": "prisma generate",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
