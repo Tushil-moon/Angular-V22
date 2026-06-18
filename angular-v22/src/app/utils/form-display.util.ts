@@ -39,3 +39,20 @@ export function addTouchedField(touched: Set<string>, field: string): Set<string
     next.add(field);
     return next;
 }
+
+/** Read a string filter value from saved-view / record payloads without `[object Object]` coercion. */
+export function readRecordString(value: unknown): string | undefined {
+    return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+/** Coerce unknown resource params to optional strings for API filters. */
+export function asOptionalString(value: unknown): string | undefined {
+    return typeof value === 'string' ? value : undefined;
+}
+
+/** Fire-and-forget async work without floating-promise or `void` operator warnings. */
+export function ignorePromise(result: PromiseLike<unknown> | null | undefined | void | boolean): void {
+    if (result != null && typeof result === 'object' && 'then' in result) {
+        Promise.resolve(result).catch(() => undefined);
+    }
+}

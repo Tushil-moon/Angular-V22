@@ -127,7 +127,10 @@ export class FlexTableComponent {
     private readonly destroyRef = inject(DestroyRef);
     private readonly scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
 
-    private resizeObserver: ResizeObserver | null = null;
+    private readonly resizeObserver: ResizeObserver | null =
+        typeof ResizeObserver !== 'undefined'
+            ? new ResizeObserver(() => this.updateDynamicSkeletonCount())
+            : null;
     private readonly dynamicSkeletonCount = signal<number | null>(null);
 
     columns = input.required<FlexTableColumn[]>();
@@ -170,10 +173,6 @@ export class FlexTableComponent {
         });
 
         this.destroyRef.onDestroy(() => this.resizeObserver?.disconnect());
-
-        if (typeof ResizeObserver !== 'undefined') {
-            this.resizeObserver = new ResizeObserver(() => this.updateDynamicSkeletonCount());
-        }
     }
 
     @HostListener('window:resize')

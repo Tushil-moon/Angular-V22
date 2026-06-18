@@ -106,7 +106,7 @@ export class RoleCreateDialogComponent {
         this.isSubmitting.set(true);
 
         try {
-            const role = await this.roleService.createRole(validation.data!);
+            const role = await this.roleService.createRole(validation.data);
             if (role) {
                 this.toastService.show({
                     title: 'Role created',

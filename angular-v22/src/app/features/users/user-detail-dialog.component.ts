@@ -21,6 +21,7 @@ import {
 } from '@shared/components';
 import type { BadgeVariant } from '@shared/components/badge.component';
 import { DIALOG_DATA, DialogRef } from '@shared/dialog';
+import { ignorePromise } from '@utils/form-display.util';
 import { safeValidate, userUpdateSchema } from '@utils/validators';
 
 import { buildUserDetailFields, getUserDisplayName, getUserInitials } from './user.utils';
@@ -308,8 +309,8 @@ export class UserDetailDialogComponent implements OnInit {
     });
 
     ngOnInit(): void {
-        void this.roleService.reloadRoles();
-        void this.loadUser(this.data.userId);
+        this.roleService.reloadRoles();
+        ignorePromise(this.loadUser(this.data.userId));
     }
 
     accountStatusLabel(user: User): string {
@@ -361,8 +362,9 @@ export class UserDetailDialogComponent implements OnInit {
         this.isSaving.set(true);
         this.fieldErrors.set({});
 
+        const validatedData = validation.data;
         try {
-            const updated = await this.userService.updateUser(user.id, validation.data!);
+            const updated = await this.userService.updateUser(user.id, validatedData);
             if (updated) {
                 this.selectedUser.set(updated);
                 this.wasUpdated.set(true);

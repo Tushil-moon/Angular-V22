@@ -194,7 +194,7 @@ export class DealsBoardComponent {
                 });
             }
         } catch {
-            void this.boardResource.reload();
+            this.boardResource.reload();
             this.toastService.show({
                 title: 'Move failed',
                 description: 'Could not update deal stage.',

@@ -63,12 +63,12 @@ export class DialogComponent {
     showFooter = input(true);
 
     panelClass = computed(() => {
-        const sizeClass =
-            this.size() === 'sm'
-                ? 'dialog-panel-sm'
-                : this.size() === 'lg'
-                  ? 'dialog-panel-lg'
-                  : 'dialog-panel-md';
+        const sizeClasses: Record<DialogSize, string> = {
+            sm: 'dialog-panel-sm',
+            default: 'dialog-panel-md',
+            lg: 'dialog-panel-lg',
+        };
+        const sizeClass = sizeClasses[this.size()];
         return `dialog-panel animate-dialogIn ${sizeClass}`;
     });
 

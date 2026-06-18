@@ -17,6 +17,7 @@ import {
     TextareaComponent,
 } from '@shared/components';
 import { DialogRef } from '@shared/dialog';
+import { ignorePromise } from '@utils/form-display.util';
 import { createDealSchema, safeValidate } from '@utils/validators';
 
 export type DealCreateDialogResult = 'created';
@@ -133,7 +134,7 @@ export class DealCreateDialogComponent implements OnInit {
         title: ['', Validators.required],
         value: [0, Validators.required],
         currency: ['USD'],
-        stage: ['LEAD' as DealStage],
+        stage: ['LEAD'],
         contactId: [''],
         expectedCloseDate: [''],
         tags: [''],
@@ -144,7 +145,7 @@ export class DealCreateDialogComponent implements OnInit {
     isSubmitting = signal(false);
 
     ngOnInit(): void {
-        void this.loadContacts();
+        ignorePromise(this.loadContacts());
     }
 
     close(): void {
@@ -186,9 +187,10 @@ export class DealCreateDialogComponent implements OnInit {
         this.fieldErrors.set({});
         this.isSubmitting.set(true);
 
+        const validatedData = validation.data;
         try {
             const deal = await this.dealService.createDeal({
-                ...validation.data!,
+                ...validatedData,
                 ...(tagNames.length ? { tagNames } : {}),
             });
             if (deal) {

@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { OrganizationMembership } from '@models/index';
 import { OrganizationContextService, OrganizationService } from '@services/index';
+import { ignorePromise } from '@utils/form-display.util';
 
 import { IconComponent } from './icon.component';
 import { SelectComponent, SelectOption } from './select.component';
@@ -48,13 +49,13 @@ export class OrgSwitcherComponent implements OnInit {
     );
 
     ngOnInit(): void {
-        void this.loadOrganizations();
+        ignorePromise(this.loadOrganizations());
     }
 
     async onSwitch(organizationId: string): Promise<void> {
         if (!organizationId) return;
         this.organizationContext.setActiveOrganizationId(organizationId);
-        window.location.reload();
+        globalThis.location.reload();
     }
 
     private async loadOrganizations(): Promise<void> {

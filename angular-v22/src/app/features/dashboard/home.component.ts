@@ -2,7 +2,7 @@
  * Dashboard Home Page — shadcn-style overview
  */
 
-import { Component, computed, inject, injectAsync, onIdle } from '@angular/core';
+import { Component, computed, inject, injectAsync, onIdle, OnInit } from '@angular/core';
 import { AuthService, DashboardService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
@@ -15,6 +15,7 @@ import {
     SkeletonComponent,
 } from '@shared/components';
 import { mapDashboardStats, STATS_SKELETON_COUNT } from '@shared/config/dashboard.config';
+import { ignorePromise } from '@utils/form-display.util';
 
 import { DashboardPanelsComponent } from './dashboard-panels.component';
 
@@ -159,7 +160,7 @@ import { DashboardPanelsComponent } from './dashboard-panels.component';
         </div>
     `,
 })
-export class DashboardHomeComponent {
+export class DashboardHomeComponent implements OnInit {
     authService = inject(AuthService);
     dashboardService = inject(DashboardService);
     toastService = inject(ToastService);
@@ -172,8 +173,8 @@ export class DashboardHomeComponent {
         { prefetch: onIdle },
     );
 
-    constructor() {
-        void this.authService.refreshProfile();
+    ngOnInit(): void {
+        ignorePromise(this.authService.refreshProfile());
     }
 
     readonly statsSkeletonItems = Array.from({ length: STATS_SKELETON_COUNT }, (_, i) => i);
@@ -192,7 +193,7 @@ export class DashboardHomeComponent {
 
     refreshStats(): void {
         this.dashboardService.reloadStats();
-        void this.reportService().then((report) => report.trackRefresh());
+        ignorePromise(this.reportService().then((report) => report.trackRefresh()));
         this.toastService.success('Dashboard refreshed', 'Stats updated successfully.');
     }
 

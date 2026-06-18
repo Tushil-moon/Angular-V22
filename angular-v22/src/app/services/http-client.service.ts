@@ -7,6 +7,7 @@ import { inject, Injectable, Injector } from '@angular/core';
 import { environment } from '@env';
 import { ApiError, ApiResponse, HttpConfig } from '@models/index';
 import { ApiRefreshResponsePayload, mapApiRefreshResponse } from '@utils/api-mappers';
+import { ignorePromise } from '@utils/form-display.util';
 import axios, {
     AxiosError,
     AxiosInstance,
@@ -209,9 +210,11 @@ export class HttpClientService {
             return;
         }
 
-        void import('./auth.service').then(({ AuthService }) => {
-            this.injector.get(AuthService).handleUnauthorized();
-        });
+        ignorePromise(
+            import('./auth.service').then(({ AuthService }) => {
+                this.injector.get(AuthService).handleUnauthorized();
+            }),
+        );
     }
 
     private isPublicAuthRequest(url?: string): boolean {

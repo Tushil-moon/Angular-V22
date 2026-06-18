@@ -15,6 +15,7 @@ import {
     mapApiRefreshResponse,
     mapApiUser,
 } from '@utils/api-mappers';
+import { ignorePromise } from '@utils/form-display.util';
 
 import { HttpClientService } from './http-client.service';
 import { OrganizationContextService } from './organization-context.service';
@@ -134,7 +135,7 @@ export class AuthService {
 
     handleUnauthorized(): void {
         this.clearAuth();
-        void this.router.navigate(['/auth/signin']);
+        ignorePromise(this.router.navigate(['/auth/signin']));
     }
 
     async signUp(request: SignUpRequest): Promise<void> {

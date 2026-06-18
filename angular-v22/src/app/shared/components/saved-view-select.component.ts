@@ -71,7 +71,7 @@ export class SavedViewSelectComponent {
     }
 
     async saveCurrentView(): Promise<void> {
-        const name = window.prompt('Name this view');
+        const name = globalThis.prompt('Name this view');
         if (!name?.trim()) return;
 
         const view = await this.savedViewService.createView({
@@ -82,7 +82,7 @@ export class SavedViewSelectComponent {
 
         if (view) {
             this.selectedId.set(view.id);
-            void this.viewsResource.reload();
+            this.viewsResource.reload();
             this.viewSaved.emit();
         }
     }

@@ -2,6 +2,7 @@ import { Component, ElementRef, inject, input, signal, viewChild } from '@angula
 import { Router } from '@angular/router';
 import { SearchResult } from '@models/index';
 import { SearchService } from '@services/index';
+import { ignorePromise } from '@utils/form-display.util';
 
 import { IconComponent } from './icon.component';
 
@@ -76,7 +77,8 @@ export class GlobalSearchComponent {
         if (typeof document !== 'undefined') {
             document.addEventListener('click', (event) => {
                 const el = this.container()?.nativeElement;
-                if (el && !el.contains(event.target as Node)) {
+                const target = event.target;
+                if (el && target instanceof Node && !el.contains(target)) {
                     this.showResults.set(false);
                 }
             });
@@ -97,7 +99,9 @@ export class GlobalSearchComponent {
         }
 
         this.isSearching.set(true);
-        this.debounceTimer = setTimeout(() => void this.runSearch(value.trim()), 300);
+        this.debounceTimer = setTimeout(() => {
+            ignorePromise(this.runSearch(value.trim()));
+        }, 300);
     }
 
     closeResults(): void {
@@ -121,7 +125,7 @@ export class GlobalSearchComponent {
         this.showResults.set(false);
         this.query.set('');
         this.results.set([]);
-        void this.router.navigateByUrl(result.route);
+        ignorePromise(this.router.navigateByUrl(result.route));
     }
 
     private async runSearch(term: string): Promise<void> {

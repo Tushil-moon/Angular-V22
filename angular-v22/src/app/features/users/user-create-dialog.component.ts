@@ -14,7 +14,7 @@ import {
 } from '@shared/components';
 import { USER_CREATE_FIELDS, USER_CREATE_NAME_FIELDS } from '@shared/config/auth-form.config';
 import { DialogRef } from '@shared/dialog';
-import { safeValidate, UserCreateInput, userCreateSchema } from '@utils/validators';
+import { safeValidate, userCreateSchema } from '@utils/validators';
 
 export type UserCreateDialogResult = 'created';
 
@@ -126,7 +126,7 @@ export class UserCreateDialogComponent {
         this.isSubmitting.set(true);
 
         try {
-            const user = await this.userService.createUser(validation.data as UserCreateInput);
+            const user = await this.userService.createUser(validation.data);
             if (user) {
                 this.toastService.show({
                     title: 'User created',

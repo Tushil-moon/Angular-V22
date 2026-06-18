@@ -28,6 +28,7 @@ import {
 import { Permissions } from '@shared/constants/permissions';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
+import { asOptionalString, readRecordString } from '@utils/form-display.util';
 
 interface ActivitiesPageResult {
     activities: Activity[];
@@ -210,8 +211,8 @@ export class ActivitiesListComponent {
                     const filters: FilterOptions = {
                         page: params.page,
                         pageSize: params.pageSize,
-                        search: params.search as string | undefined,
-                        type: params.type as string | undefined,
+                        search: asOptionalString(params.search),
+                        type: asOptionalString(params.type),
                     };
                     const result = await this.activityService.listActivities(filters);
                     throwIfAborted(abortSignal);
@@ -242,8 +243,10 @@ export class ActivitiesListComponent {
 
     applySavedView(filters: Record<string, unknown> | null): void {
         this.savedFilters.set(filters ?? {});
-        if (filters?.['search']) this.searchQuery.set(String(filters['search']));
-        if (filters?.['type']) this.typeFilter.set(String(filters['type']));
+        const search = readRecordString(filters?.['search']);
+        if (search) this.searchQuery.set(search);
+        const type = readRecordString(filters?.['type']);
+        if (type) this.typeFilter.set(type);
         this.currentPage.set(1);
     }
 }

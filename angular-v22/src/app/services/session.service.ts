@@ -44,7 +44,7 @@ export class SessionService {
     readonly isLoading = computed(() => this.sessionsResource.isLoading());
 
     reload(): void {
-        void this.sessionsResource.reload();
+        this.sessionsResource.reload();
     }
 
     async revokeSession(sessionId: string): Promise<boolean> {

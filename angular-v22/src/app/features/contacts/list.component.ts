@@ -28,6 +28,7 @@ import {
 import { Permissions } from '@shared/constants/permissions';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
+import { asOptionalString, readRecordString } from '@utils/form-display.util';
 
 import { ContactCreateDialogResult } from './contact-create-dialog.component';
 import {
@@ -214,7 +215,7 @@ export class ContactsListComponent {
                     const filters: FilterOptions = {
                         page: params.page,
                         pageSize: params.pageSize,
-                        search: params.search as string | undefined,
+                        search: asOptionalString(params.search),
                     };
                     const result = await this.contactService.listContacts(filters);
                     throwIfAborted(abortSignal);
@@ -240,7 +241,8 @@ export class ContactsListComponent {
 
     applySavedView(filters: Record<string, unknown> | null): void {
         this.savedFilters.set(filters ?? {});
-        if (filters?.['search']) this.searchQuery.set(String(filters['search']));
+        const search = readRecordString(filters?.['search']);
+        if (search) this.searchQuery.set(search);
         this.currentPage.set(1);
     }
 
@@ -254,7 +256,7 @@ export class ContactsListComponent {
         );
 
         ref.afterClosed().subscribe((result) => {
-            if (result === 'created') void this.contactsResource.reload();
+            if (result === 'created') this.contactsResource.reload();
         });
     }
 
@@ -274,7 +276,8 @@ export class ContactsListComponent {
         );
 
         ref.afterClosed().subscribe((result) => {
-            if (result === 'deleted' || result === 'updated') void this.contactsResource.reload();
+            if (result === 'deleted' || result === 'updated')
+                this.contactsResource.reload();
         });
     }
 }

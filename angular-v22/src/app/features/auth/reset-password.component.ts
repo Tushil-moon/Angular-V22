@@ -124,7 +124,7 @@ export class ResetPasswordComponent implements OnInit {
         this.validationErrors.set({});
 
         try {
-            await this.authService.resetPassword(this.token(), validation.data!.password);
+            await this.authService.resetPassword(this.token(), validation.data.password);
             this.success.set(true);
         } catch (err: unknown) {
             const message =

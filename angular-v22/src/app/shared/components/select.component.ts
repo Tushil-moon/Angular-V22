@@ -188,18 +188,18 @@ export class SelectComponent implements ControlValueAccessor {
         switch (event.key) {
             case 'ArrowDown':
                 event.preventDefault();
-                if (!this.open()) {
-                    this.openDropdown();
-                } else {
+                if (this.open()) {
                     this.moveFocus(1);
+                } else {
+                    this.openDropdown();
                 }
                 break;
             case 'ArrowUp':
                 event.preventDefault();
-                if (!this.open()) {
-                    this.openDropdown();
-                } else {
+                if (this.open()) {
                     this.moveFocus(-1);
+                } else {
+                    this.openDropdown();
                 }
                 break;
             case 'Enter':
@@ -229,7 +229,7 @@ export class SelectComponent implements ControlValueAccessor {
     }
 
     onTriggerBlur(): void {
-        window.setTimeout(() => {
+        globalThis.setTimeout(() => {
             if (!this.open()) {
                 this.onTouched();
             }
@@ -335,7 +335,7 @@ export class SelectComponent implements ControlValueAccessor {
     }
 
     private scheduleOutsideListener(triggerEl: HTMLElement, generation: number): void {
-        this.outsideListenerTimeout = window.setTimeout(() => {
+        this.outsideListenerTimeout = globalThis.setTimeout(() => {
             this.outsideListenerTimeout = null;
             if (generation !== this.openGeneration || !this.open()) return;
 
@@ -419,8 +419,7 @@ export class SelectComponent implements ControlValueAccessor {
         if (!count) return;
 
         let index = this.focusedIndex();
-        for (const _unused of Array(count)) {
-            void _unused;
+        for (let step = 0; step < count; step += 1) {
             index = (index + delta + count) % count;
             if (!items[index]?.disabled) {
                 this.focusedIndex.set(index);

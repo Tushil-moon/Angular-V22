@@ -33,6 +33,7 @@ import {
 } from '@shared/config/contacts-table.config';
 import { Permissions } from '@shared/constants/permissions';
 import { DIALOG_DATA, DialogRef } from '@shared/dialog';
+import { ignorePromise } from '@utils/form-display.util';
 import { createActivitySchema, safeValidate, updateContactSchema } from '@utils/validators';
 
 export interface ContactDetailDialogData {
@@ -398,18 +399,18 @@ export class ContactDetailDialogComponent implements OnInit {
         phone: [''],
         company: [''],
         jobTitle: [''],
-        status: ['LEAD' as ContactStatus],
+        status: ['LEAD'],
         notes: [''],
     });
 
     activityForm = this.fb.group({
-        type: ['NOTE' as ActivityType],
+        type: ['NOTE'],
         subject: [''],
         body: [''],
     });
 
     convertForm = this.fb.group({
-        status: ['PROSPECT' as 'PROSPECT' | 'CUSTOMER'],
+        status: ['PROSPECT'],
         createDeal: [true],
         dealTitle: [''],
         dealValue: [0],
@@ -452,7 +453,7 @@ export class ContactDetailDialogComponent implements OnInit {
     });
 
     ngOnInit(): void {
-        void this.loadContact();
+        ignorePromise(this.loadContact());
     }
 
     close(): void {
@@ -493,7 +494,7 @@ export class ContactDetailDialogComponent implements OnInit {
         try {
             const contact = await this.contactService.getContactById(this.data.contactId);
             this.contact.set(contact);
-            if (contact) void this.loadActivities(contact.id);
+            if (contact) ignorePromise(this.loadActivities(contact.id));
         } finally {
             this.isLoading.set(false);
         }
@@ -534,8 +535,9 @@ export class ContactDetailDialogComponent implements OnInit {
         this.fieldErrors.set({});
         this.isSubmitting.set(true);
 
+        const validatedData = validation.data;
         try {
-            const updated = await this.contactService.updateContact(item.id, validation.data!);
+            const updated = await this.contactService.updateContact(item.id, validatedData);
             if (updated) {
                 this.contact.set(updated);
                 this.wasUpdated.set(true);
@@ -574,9 +576,10 @@ export class ContactDetailDialogComponent implements OnInit {
         this.activityFieldErrors.set({});
         this.isSubmitting.set(true);
 
+        const activityData = validation.data;
         try {
             const activity = await this.activityService.createActivity({
-                ...validation.data!,
+                ...activityData,
                 contactId: item.id,
             });
             if (activity) {
@@ -601,6 +604,10 @@ export class ContactDetailDialogComponent implements OnInit {
         if (!item) return;
 
         const raw = this.convertForm.getRawValue();
+        if (raw.status !== 'PROSPECT' && raw.status !== 'CUSTOMER') {
+            return;
+        }
+
         const payload: {
             status: 'PROSPECT' | 'CUSTOMER';
             deal?: { title: string; value: number };

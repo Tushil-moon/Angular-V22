@@ -65,6 +65,6 @@ export class DashboardService {
     readonly statsError = computed(() => this.statsResource.error());
 
     reloadStats(): void {
-        void this.statsResource.reload();
+        this.statsResource.reload();
     }
 }

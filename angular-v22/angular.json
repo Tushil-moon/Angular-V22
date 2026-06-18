@@ -3,7 +3,12 @@
     "version": 1,
     "cli": {
         "packageManager": "npm",
-        "schematicCollections": ["angular-eslint"]
+        "schematicCollections": ["angular-eslint"],
+        "analytics": false,
+        "cache": {
+            "enabled": true,
+            "environment": "all"
+        }
     },
     "newProjectRoot": "projects",
     "projects": {
@@ -11,7 +16,29 @@
             "projectType": "application",
             "schematics": {
                 "@schematics/angular:component": {
-                    "style": "scss"
+                    "style": "scss",
+                    "standalone": true,
+                    "changeDetection": "OnPush",
+                    "skipTests": true,
+                    "displayBlock": true,
+                    "flat": false
+                },
+                "@schematics/angular:service": {
+                    "skipTests": true
+                },
+                "@schematics/angular:directive": {
+                    "skipTests": true,
+                    "standalone": true
+                },
+                "@schematics/angular:pipe": {
+                    "skipTests": true,
+                    "standalone": true
+                },
+                "@schematics/angular:guard": {
+                    "skipTests": true
+                },
+                "@schematics/angular:resolver": {
+                    "skipTests": true
                 }
             },
             "root": "",
@@ -21,49 +48,95 @@
                 "build": {
                     "builder": "@angular/build:application",
                     "options": {
+                        "outputPath": "dist/angular-v22",
                         "browser": "src/main.ts",
+                        "index": "src/index.html",
                         "tsConfig": "tsconfig.app.json",
                         "inlineStyleLanguage": "scss",
                         "assets": [
                             {
                                 "glob": "**/*",
-                                "input": "public"
+                                "input": "public",
+                                "ignore": ["**/*.psd", "**/*.ai", "**/*.sketch"]
                             }
                         ],
-                        "styles": ["src/styles.scss"]
+                        "styles": ["src/styles.scss"],
+                        "scripts": [],
+                        "stylePreprocessorOptions": {
+                            "includePaths": ["src/styles"]
+                        },
+                        "allowedCommonJsDependencies": [],
+                        "crossOrigin": "anonymous",
+                        "security": {
+                            "autoCsp": true
+                        }
                     },
                     "configurations": {
                         "production": {
+                            "subresourceIntegrity": true,
                             "fileReplacements": [
                                 {
                                     "replace": "src/environments/environment.ts",
                                     "with": "src/environments/environment.production.ts"
                                 }
                             ],
+                            "optimization": {
+                                "scripts": true,
+                                "styles": {
+                                    "minify": true,
+                                    "inlineCritical": true
+                                },
+                                "fonts": {
+                                    "inline": true
+                                }
+                            },
+                            "sourceMap": {
+                                "scripts": false,
+                                "styles": false,
+                                "vendor": false,
+                                "hidden": true
+                            },
+                            "extractLicenses": true,
+                            "outputHashing": "all",
                             "budgets": [
                                 {
                                     "type": "initial",
-                                    "maximumWarning": "600kB",
+                                    "maximumWarning": "500kB",
                                     "maximumError": "1MB"
                                 },
                                 {
+                                    "type": "bundle",
+                                    "name": "main",
+                                    "maximumWarning": "300kB",
+                                    "maximumError": "600kB"
+                                },
+                                {
                                     "type": "anyComponentStyle",
-                                    "maximumWarning": "4kB",
-                                    "maximumError": "8kB"
+                                    "maximumWarning": "6kB",
+                                    "maximumError": "10kB"
                                 }
-                            ],
-                            "outputHashing": "all"
+                            ]
                         },
                         "development": {
                             "optimization": false,
                             "extractLicenses": false,
-                            "sourceMap": true
+                            "subresourceIntegrity": false,
+                            "sourceMap": {
+                                "scripts": true,
+                                "styles": true,
+                                "vendor": true
+                            },
+                            "namedChunks": true
                         }
                     },
                     "defaultConfiguration": "production"
                 },
                 "serve": {
                     "builder": "@angular/build:dev-server",
+                    "options": {
+                        "host": "0.0.0.0",
+                        "port": 4200
+                    },
                     "configurations": {
                         "production": {
                             "buildTarget": "angular-v22:build:production"

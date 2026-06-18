@@ -272,7 +272,7 @@ export class UsersListComponent {
 
         ref.afterClosed().subscribe((result) => {
             if (result === 'created') {
-                void this.usersResource.reload();
+                this.usersResource.reload();
             }
         });
     }
@@ -290,7 +290,7 @@ export class UsersListComponent {
 
         ref.afterClosed().subscribe((result) => {
             if (result === 'deleted' || result === 'updated') {
-                void this.usersResource.reload();
+                this.usersResource.reload();
             }
         });
     }

@@ -34,6 +34,7 @@ import {
 import { Permissions } from '@shared/constants/permissions';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
+import { asOptionalString, readRecordString } from '@utils/form-display.util';
 
 import { DealCreateDialogResult } from './deal-create-dialog.component';
 import { DealDetailDialogData, DealDetailDialogResult } from './deal-detail-dialog.component';
@@ -262,8 +263,8 @@ export class DealsListComponent {
                     const filters: FilterOptions = {
                         page: params.page,
                         pageSize: params.pageSize,
-                        search: params.search as string | undefined,
-                        stage: params.stage as string | undefined,
+                        search: asOptionalString(params.search),
+                        stage: asOptionalString(params.stage),
                     };
                     const result = await this.dealService.listDeals(filters);
                     throwIfAborted(abortSignal);
@@ -291,8 +292,10 @@ export class DealsListComponent {
 
     applySavedView(filters: Record<string, unknown> | null): void {
         this.savedFilters.set(filters ?? {});
-        if (filters?.['search']) this.searchQuery.set(String(filters['search']));
-        if (filters?.['stage']) this.stageFilter.set(String(filters['stage']));
+        const search = readRecordString(filters?.['search']);
+        if (search) this.searchQuery.set(search);
+        const stage = readRecordString(filters?.['stage']);
+        if (stage) this.stageFilter.set(stage);
         this.currentPage.set(1);
     }
 
@@ -304,7 +307,7 @@ export class DealsListComponent {
         >(() => import('./deal-create-dialog.component').then((m) => m.DealCreateDialogComponent));
 
         ref.afterClosed().subscribe((result) => {
-            if (result === 'created') void this.dealsResource.reload();
+            if (result === 'created') this.dealsResource.reload();
         });
     }
 
@@ -320,7 +323,8 @@ export class DealsListComponent {
         });
 
         ref.afterClosed().subscribe((result) => {
-            if (result === 'deleted' || result === 'updated') void this.dealsResource.reload();
+            if (result === 'deleted' || result === 'updated')
+                this.dealsResource.reload();
         });
     }
 }

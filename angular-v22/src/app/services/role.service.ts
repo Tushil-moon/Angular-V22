@@ -68,7 +68,7 @@ export class RoleService {
     readonly totalRoles = computed(() => this.roles().length);
 
     reloadRoles(): void {
-        void this.rolesResource.reload();
+        this.rolesResource.reload();
     }
 
     async createRole(payload: { name: string; description?: string }): Promise<Role | null> {
@@ -76,7 +76,7 @@ export class RoleService {
             const response = await this.httpClient.post<ApiRolePayload>('/roles', payload);
             if (response.data) {
                 const role = mapApiRole(response.data);
-                void this.rolesResource.reload();
+                this.rolesResource.reload();
                 return role;
             }
             return null;
@@ -120,7 +120,7 @@ export class RoleService {
                 },
             );
             if (response.data) {
-                void this.rolesResource.reload();
+                this.rolesResource.reload();
                 return mapApiRole(response.data);
             }
             return null;

@@ -15,6 +15,7 @@ import {
     type ProfileMenuItem,
     resolvePageTitle,
 } from '@shared/config/navigation.config';
+import { ignorePromise } from '@utils/form-display.util';
 import { filter } from 'rxjs/operators';
 
 import { AvatarComponent } from '../components/avatar.component';
@@ -347,11 +348,11 @@ export class AdminLayoutComponent {
     onProfileMenuAction(item: ProfileMenuItem, menu: DropdownMenuComponent): void {
         menu.close();
         if (item.action === 'logout') {
-            void this.logout();
+            ignorePromise(this.logout());
             return;
         }
         if (item.route) {
-            void this.router.navigateByUrl(item.route);
+            ignorePromise(this.router.navigateByUrl(item.route));
         }
     }
 
@@ -363,6 +364,6 @@ export class AdminLayoutComponent {
         this.mobileNavOpen.set(false);
         await this.authService.signOut();
         this.toastService.success('Signed out', 'You have been logged out successfully.');
-        void this.router.navigate(['/auth/signin']);
+        ignorePromise(this.router.navigate(['/auth/signin']));
     }
 }

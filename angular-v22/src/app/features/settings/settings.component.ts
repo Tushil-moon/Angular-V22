@@ -24,6 +24,7 @@ import {
     TabsListComponent,
     TabsTriggerComponent,
 } from '@shared/components';
+import { ignorePromise } from '@utils/form-display.util';
 import { changePasswordSchema, safeValidate } from '@utils/validators';
 
 type SettingsTab = 'profile' | 'security' | 'sessions' | 'organization';
@@ -409,9 +410,9 @@ export class SettingsComponent implements OnInit {
     emailVerified = () => this.authService.currentUser()?.emailVerified ?? false;
 
     ngOnInit(): void {
-        void this.authService.refreshProfile();
+        ignorePromise(this.authService.refreshProfile());
         this.sessionService.reload();
-        void this.loadOrganizationSettings();
+        ignorePromise(this.loadOrganizationSettings());
     }
 
     async loadOrganizationSettings(): Promise<void> {
@@ -496,10 +497,8 @@ export class SettingsComponent implements OnInit {
         this.passwordErrors.set({});
 
         try {
-            await this.authService.changePassword(
-                validation.data!.currentPassword,
-                validation.data!.newPassword,
-            );
+            const { currentPassword, newPassword } = validation.data;
+            await this.authService.changePassword(currentPassword, newPassword);
             this.passwordForm.reset();
             this.toastService.success('Password updated', 'Your password has been changed.');
         } catch {

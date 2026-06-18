@@ -102,7 +102,7 @@ export class ForgotPasswordComponent {
         this.validationErrors.set({});
 
         try {
-            await this.authService.requestPasswordReset(validation.data!.email);
+            await this.authService.requestPasswordReset(validation.data.email);
             this.success.set(true);
         } catch (err: unknown) {
             const message =

@@ -31,6 +31,7 @@ import {
     formatDealValue,
 } from '@shared/config/deals-table.config';
 import { DIALOG_DATA, DialogRef } from '@shared/dialog';
+import { ignorePromise } from '@utils/form-display.util';
 import { createActivitySchema, safeValidate, updateDealSchema } from '@utils/validators';
 
 export interface DealDetailDialogData {
@@ -326,13 +327,13 @@ export class DealDetailDialogComponent implements OnInit {
         title: [''],
         value: [0],
         currency: ['USD'],
-        stage: ['LEAD' as DealStage],
+        stage: ['LEAD'],
         expectedCloseDate: [''],
         description: [''],
     });
 
     activityForm = this.fb.group({
-        type: ['NOTE' as ActivityType],
+        type: ['NOTE'],
         subject: [''],
         body: [''],
     });
@@ -358,7 +359,7 @@ export class DealDetailDialogComponent implements OnInit {
     });
 
     ngOnInit(): void {
-        void this.loadDeal();
+        ignorePromise(this.loadDeal());
     }
 
     close(): void {
@@ -390,7 +391,7 @@ export class DealDetailDialogComponent implements OnInit {
         try {
             const deal = await this.dealService.getDealById(this.data.dealId);
             this.deal.set(deal);
-            if (deal) void this.loadActivities(deal.id);
+            if (deal) ignorePromise(this.loadActivities(deal.id));
         } finally {
             this.isLoading.set(false);
         }
@@ -455,9 +456,10 @@ export class DealDetailDialogComponent implements OnInit {
         if (!validation.success) return;
 
         this.isSubmitting.set(true);
+        const activityData = validation.data;
         try {
             const activity = await this.activityService.createActivity({
-                ...validation.data!,
+                ...activityData,
                 dealId: item.id,
                 contactId: item.contactId ?? undefined,
             });

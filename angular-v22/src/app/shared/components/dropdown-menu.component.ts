@@ -52,7 +52,8 @@ export class DropdownMenuComponent {
 
     constructor() {
         const onDocumentClick = (event: MouseEvent): void => {
-            if (!this.host.nativeElement.contains(event.target as Node)) {
+            const target = event.target;
+            if (target instanceof Node && !this.host.nativeElement.contains(target)) {
                 this.close();
             }
         };

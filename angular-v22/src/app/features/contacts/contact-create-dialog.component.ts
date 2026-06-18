@@ -133,7 +133,7 @@ export class ContactCreateDialogComponent {
         phone: [''],
         company: [''],
         jobTitle: [''],
-        status: ['LEAD' as ContactStatus],
+        status: ['LEAD'],
         tags: [''],
         notes: [''],
     });
@@ -176,9 +176,10 @@ export class ContactCreateDialogComponent {
         this.fieldErrors.set({});
         this.isSubmitting.set(true);
 
+        const validatedData = validation.data;
         try {
             const contact = await this.contactService.createContact({
-                ...validation.data!,
+                ...validatedData,
                 ...(tagNames.length ? { tagNames } : {}),
             });
             if (contact) {
