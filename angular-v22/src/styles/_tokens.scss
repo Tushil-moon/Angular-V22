@@ -47,13 +47,14 @@
         --warning: oklch(0.96 0.05 85);
         --warning-foreground: oklch(0.45 0.12 75);
         --overlay-backdrop: rgb(0 0 0 / 0.5);
-        --sidebar-width: 16rem;
+        --sidebar-width: 15.9375rem;
         --sidebar-width-icon: 3rem;
         --sidebar-item-size: 2rem;
         --sidebar-transition-duration: 200ms;
         --sidebar-transition-easing: ease-in-out;
-        --shell-padding: 0.5rem;
+        --shell-radius: calc(var(--radius) + 4px);
         --inset-radius: 0.75rem;
+        --inset-gutter: 0.5rem;
         --z-sidebar-rail: 20;
         --z-sticky: 40;
         --z-dropdown: 50;

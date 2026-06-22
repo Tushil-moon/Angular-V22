@@ -834,7 +834,7 @@
     }
 
     .page-content {
-        @apply flex min-h-0 flex-1 flex-col gap-4 overflow-auto bg-card p-4 md:gap-6 md:p-6;
+        @apply flex min-h-0 flex-1 flex-col gap-4 overflow-auto bg-background p-6;
     }
 
     .page-content:has(.page-shell-fill) {
@@ -845,11 +845,10 @@
         @apply flex min-h-0 flex-1 flex-col;
     }
 
-    /* Sidebar — single width transition; inner layout stays stable */
+    /* Sidebar — shadcn inset shell (Figma 1094:3206) */
     .sidebar-wrapper {
-        @apply flex h-svh w-full overflow-hidden bg-background;
-        padding: var(--shell-padding);
-        gap: var(--shell-padding);
+        @apply flex h-svh w-full overflow-hidden border border-border bg-sidebar text-sidebar-foreground;
+        border-radius: var(--shell-radius);
     }
 
     .sidebar {
@@ -859,8 +858,7 @@
         height: 100%;
         overflow: hidden;
         transition: width var(--sidebar-transition-duration) var(--sidebar-transition-easing);
-        @apply flex flex-col text-sidebar-foreground;
-        background: transparent;
+        @apply flex flex-col bg-sidebar;
     }
 
     .sidebar-wrapper[data-state='collapsed'] .sidebar {
@@ -876,70 +874,49 @@
     }
 
     .sidebar-inset {
-        @apply flex min-w-0 flex-1 flex-col overflow-hidden border border-border bg-card text-card-foreground shadow-sm;
-        height: 100%;
+        @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden;
+        padding-block: var(--inset-gutter);
+        padding-inline-end: var(--inset-gutter);
+    }
+
+    .sidebar-inset-main {
+        @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background text-foreground shadow-sm;
         border-radius: var(--inset-radius);
+        box-shadow: 0 1px 1.5px 0 rgb(0 0 0 / 10%);
     }
 
     .sidebar-header {
-        @apply relative flex h-12 shrink-0 items-center gap-2 border-b border-sidebar-border px-2;
+        @apply shrink-0 p-2;
     }
 
     .sidebar-brand {
-        @apply flex min-w-0 flex-1 items-center gap-2 overflow-hidden;
+        @apply flex min-w-0 items-center gap-2 overflow-hidden rounded-md p-2;
     }
 
     .sidebar-wrapper[data-state='collapsed'] .sidebar-header {
-        @apply w-full justify-center gap-0 border-b border-sidebar-border px-0;
+        @apply w-full p-2;
     }
 
     .sidebar-wrapper[data-state='collapsed'] .sidebar-brand {
-        @apply flex-none shrink-0 justify-center gap-0;
-        width: var(--sidebar-item-size);
+        @apply w-full justify-center gap-0 p-2;
     }
 
     .sidebar-brand-icon {
-        @apply flex shrink-0 items-center justify-center rounded-lg border border-sidebar-border bg-sidebar-primary text-sidebar-primary-foreground;
+        @apply flex shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground;
         width: var(--sidebar-item-size);
         height: var(--sidebar-item-size);
     }
 
     .sidebar-brand-text {
-        @apply flex min-w-0 flex-1 flex-col leading-tight;
+        @apply flex min-w-0 flex-1 flex-col gap-0.5 leading-tight;
     }
 
     .sidebar-brand-title {
-        @apply truncate text-sm font-semibold text-sidebar-foreground;
+        @apply block truncate text-sm font-semibold leading-none text-sidebar-foreground;
     }
 
     .sidebar-brand-subtitle {
-        @apply truncate text-xs text-muted-foreground;
-    }
-
-    .sidebar-header-toggle {
-        @apply inline-flex shrink-0 items-center justify-center rounded-md text-sidebar-foreground transition-colors;
-        width: var(--sidebar-item-size);
-        height: var(--sidebar-item-size);
-        border: 0;
-        background: transparent;
-        cursor: pointer;
-    }
-
-    .sidebar-header-toggle:hover {
-        @apply bg-sidebar-accent text-sidebar-accent-foreground;
-    }
-
-    .sidebar-header-toggle:active {
-        @apply bg-sidebar-accent text-sidebar-accent-foreground;
-    }
-
-    .sidebar-header-toggle:focus-visible {
-        @apply outline-none ring-2 ring-sidebar-ring ring-offset-2 ring-offset-background;
-    }
-
-    .sidebar-wrapper[data-state='collapsed'] .sidebar-brand-text,
-    .sidebar-wrapper[data-state='collapsed'] .sidebar-header-toggle {
-        @apply hidden;
+        @apply block truncate text-xs leading-none text-muted-foreground;
     }
 
     .sidebar-fade,
@@ -967,13 +944,19 @@
             visibility 0s linear 120ms;
     }
 
+    .sidebar-wrapper[data-state='expanded'] .sidebar-brand-text.sidebar-collapsible-text,
+    .sidebar-wrapper[data-state='expanded'] .sidebar-user-info.sidebar-collapsible-text {
+        @apply flex min-w-0 flex-col gap-0.5 leading-tight;
+    }
+
     .sidebar-group {
-        @apply flex w-full min-w-0 flex-col gap-0.5 py-1;
+        @apply flex w-full min-w-0 flex-col gap-1 p-2;
     }
 
     .sidebar-group-label {
-        @apply px-2 pb-1.5 pt-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground;
-        line-height: 1.25rem;
+        @apply h-8 shrink-0 px-2 text-xs font-medium text-sidebar-foreground;
+        line-height: 2rem;
+        opacity: 0.7;
     }
 
     .sidebar-wrapper[data-state='collapsed'] .sidebar-group-label {
@@ -981,21 +964,20 @@
     }
 
     .sidebar-menu {
-        @apply flex w-full min-w-0 flex-col gap-0.5;
+        @apply flex w-full min-w-0 flex-col gap-1;
     }
 
     .sidebar-menu-button {
-        @apply relative flex w-full min-w-0 items-center overflow-hidden rounded-md text-sm font-normal text-sidebar-foreground outline-none;
+        @apply relative flex w-full min-w-0 items-center overflow-hidden rounded-md p-2 text-sm font-normal text-sidebar-foreground outline-none;
         height: var(--sidebar-item-size);
         gap: 0.5rem;
-        padding-inline: 0.5rem;
         transition:
             background-color 150ms ease,
             color 150ms ease;
     }
 
     .sidebar-content {
-        @apply flex-1 overflow-x-hidden overflow-y-auto px-2;
+        @apply flex-1 overflow-x-hidden overflow-y-auto;
     }
 
     .sidebar-wrapper[data-state='collapsed'] .sidebar-menu-button {
@@ -1022,18 +1004,34 @@
     }
 
     .sidebar-footer {
-        @apply mt-auto flex w-full shrink-0 flex-col gap-2 p-2;
+        @apply mt-auto shrink-0 p-2;
     }
 
     .sidebar-wrapper[data-state='collapsed'] .sidebar-footer {
-        @apply w-full items-center gap-1 p-0;
+        @apply w-full p-2;
+    }
+
+    .sidebar-user-shell {
+        @apply w-full min-w-0;
+    }
+
+    .sidebar-user-shell app-dropdown-menu {
+        @apply block w-full min-w-0;
+    }
+
+    .sidebar-user-shell app-dropdown-menu > div {
+        @apply block w-full min-w-0 text-left;
+    }
+
+    .sidebar-user-shell app-dropdown-menu > div > [role='button'] {
+        @apply block w-full min-w-0;
     }
 
     .sidebar-user {
-        @apply flex min-w-0 w-full items-center overflow-hidden rounded-md text-sidebar-foreground outline-none;
-        height: var(--sidebar-item-size);
+        @apply flex min-h-8 min-w-0 w-full cursor-pointer items-center overflow-hidden rounded-md p-2 text-sidebar-foreground outline-none;
         gap: 0.5rem;
-        padding: 0.25rem;
+        border: 0;
+        background: transparent;
         transition:
             background-color 150ms ease,
             color 150ms ease;
@@ -1050,46 +1048,54 @@
         max-width: var(--sidebar-item-size);
     }
 
-    .sidebar-wrapper[data-state='collapsed'] .sidebar-user > app-dropdown-menu {
+    .sidebar-wrapper[data-state='collapsed'] .sidebar-user-info,
+    .sidebar-wrapper[data-state='collapsed'] .sidebar-user-chevron {
         @apply hidden;
+    }
+
+    .sidebar-user-avatar {
+        @apply rounded-lg;
+    }
+
+    .sidebar-user-avatar.avatar {
+        @apply rounded-lg;
     }
 
     .sidebar-user-info {
-        @apply flex min-w-0 flex-1 flex-col;
-    }
-
-    .sidebar-wrapper[data-state='collapsed'] .sidebar-user-info,
-    .sidebar-wrapper[data-state='collapsed'] .sidebar-user-menu {
-        @apply hidden;
+        @apply flex min-w-0 flex-1 flex-col gap-0.5 text-left leading-tight;
     }
 
     .sidebar-user-name {
-        @apply truncate text-sm font-medium text-sidebar-foreground;
+        @apply block truncate text-sm font-medium leading-none text-sidebar-foreground;
     }
 
     .sidebar-user-email {
-        @apply truncate text-xs text-muted-foreground;
+        @apply block truncate text-xs leading-none text-muted-foreground;
     }
 
-    .sidebar-user-menu {
-        @apply inline-flex shrink-0 items-center justify-center rounded-md text-sidebar-foreground transition-colors;
-        width: var(--sidebar-item-size);
-        height: var(--sidebar-item-size);
+    .sidebar-user-chevron {
+        @apply ml-auto shrink-0 text-muted-foreground;
+    }
+
+    .sidebar-wrapper[data-state='expanded'] .sidebar-user-chevron.sidebar-collapsible-text {
+        @apply ml-auto inline-flex shrink-0;
+    }
+
+    .sidebar-trigger-btn {
+        @apply inline-flex shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors;
+        width: 1.75rem;
+        height: 1.75rem;
         border: 0;
         background: transparent;
         cursor: pointer;
     }
 
-    .sidebar-user-menu:hover {
-        @apply bg-sidebar-accent text-sidebar-accent-foreground;
+    .sidebar-trigger-btn:hover {
+        @apply bg-accent text-accent-foreground;
     }
 
-    .sidebar-user-menu:focus-visible {
-        @apply outline-none ring-2 ring-sidebar-ring;
-    }
-
-    .sidebar-trigger {
-        @apply text-muted-foreground;
+    .sidebar-trigger-btn:focus-visible {
+        @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
     }
 
     .sidebar-trigger-icon {
@@ -1109,11 +1115,11 @@
     }
 
     .sidebar-wrapper[data-state='collapsed'] .sidebar-group {
-        @apply w-full items-center gap-1 px-0 py-0;
+        @apply w-full items-center gap-1 p-2;
     }
 
     .sidebar-wrapper[data-state='collapsed'] .sidebar-menu {
-        @apply w-full items-center gap-1 px-0;
+        @apply w-full items-center gap-1;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1125,15 +1131,39 @@
         }
     }
 
-    /* Site header — inside rounded inset panel */
+    /* Site header — inside inset main panel */
     .site-header {
-        @apply sticky top-0 z-[var(--z-sticky)] flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-4 md:px-5;
+        @apply sticky top-0 z-[var(--z-sticky)] flex h-16 shrink-0 items-center justify-between gap-2 bg-background px-4;
         padding-top: env(safe-area-inset-top);
-        min-height: calc(3.5rem + env(safe-area-inset-top));
+        min-height: calc(4rem + env(safe-area-inset-top));
     }
 
     .site-header-start {
         @apply flex min-w-0 flex-1 items-center gap-2;
+    }
+
+    .site-header-separator {
+        @apply h-4;
+    }
+
+    .site-header-breadcrumb {
+        @apply flex min-w-0 items-center gap-1.5 text-sm;
+    }
+
+    .site-header-breadcrumb-muted {
+        @apply truncate text-muted-foreground;
+    }
+
+    .site-header-breadcrumb-current {
+        @apply truncate font-normal text-foreground;
+    }
+
+    .site-header-tools {
+        @apply ml-auto flex min-w-0 items-center gap-2 lg:ml-0;
+    }
+
+    .site-header-actions {
+        @apply flex shrink-0 items-center gap-2;
     }
 
     .site-header-title {
@@ -1164,37 +1194,8 @@
         @apply w-full min-w-0;
     }
 
-    .sidebar-theme {
-        @apply flex w-full;
-    }
-
     .theme-toggle-btn {
         @apply gap-2 overflow-hidden text-foreground;
-    }
-
-    .sidebar-theme-toggle-btn {
-        @apply inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-sidebar-foreground shadow-none transition-colors;
-        width: var(--sidebar-item-size);
-        height: var(--sidebar-item-size);
-        padding: 0;
-        cursor: pointer;
-    }
-
-    .sidebar-theme-toggle-btn:hover {
-        @apply bg-sidebar-accent text-sidebar-accent-foreground;
-        border-color: transparent;
-    }
-
-    .sidebar-theme-toggle-btn:active {
-        @apply bg-sidebar-accent text-sidebar-accent-foreground;
-    }
-
-    .sidebar-theme-toggle-btn:focus-visible {
-        @apply outline-none ring-2 ring-sidebar-ring ring-offset-2 ring-offset-background;
-    }
-
-    .sidebar-wrapper[data-state='collapsed'] .sidebar-theme {
-        @apply w-auto shrink-0 justify-center self-center;
     }
 
     /* Avatar */

@@ -88,19 +88,11 @@ export class AuthLayoutComponent {}
                                     <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" />
                                 </svg>
                             </div>
-                            <div class="sidebar-brand-text">
+                            <div class="sidebar-brand-text sidebar-collapsible-text">
                                 <span class="sidebar-brand-title">Angular V22</span>
                                 <span class="sidebar-brand-subtitle">Workspace</span>
                             </div>
                         </div>
-                        <button
-                            type="button"
-                            class="sidebar-header-toggle"
-                            (click)="sidebarService.toggle()"
-                            aria-label="Toggle sidebar"
-                        >
-                            <app-icon name="chevrons-up-down" [size]="16" />
-                        </button>
                     </div>
 
                     <div class="sidebar-content custom-scrollbar">
@@ -114,30 +106,33 @@ export class AuthLayoutComponent {}
                     </div>
 
                     <div class="sidebar-footer">
-                        <div class="sidebar-theme">
-                            <app-theme-toggle [sidebar]="true" [collapsed]="sidebarService.collapsed()" />
-                        </div>
-                        <div class="sidebar-user">
-                            <app-avatar [fallback]="userInitials()" size="sm" />
-                            <div class="sidebar-user-info sidebar-collapsible-text">
-                                <span class="sidebar-user-name">{{ displayName() }}</span>
-                                <span class="sidebar-user-email">{{ userEmail() }}</span>
-                            </div>
-                            <app-dropdown-menu #sidebarUserMenu align="end">
+                        <div class="sidebar-user-shell">
+                            <app-dropdown-menu #sidebarUserMenu align="end" class="sidebar-user-menu">
                                 <button
                                     dropdownTrigger
                                     type="button"
-                                    class="sidebar-user-menu"
+                                    class="sidebar-user"
                                     aria-label="Account menu"
                                 >
-                                    <app-icon name="more-vertical" [size]="16" />
+                                    <app-avatar
+                                        [fallback]="userInitials()"
+                                        size="sm"
+                                        className="sidebar-user-avatar"
+                                    />
+                                    <div class="sidebar-user-info sidebar-collapsible-text">
+                                        <span class="sidebar-user-name">{{ displayName() }}</span>
+                                        <span class="sidebar-user-email">{{ userEmail() }}</span>
+                                    </div>
+                                    <app-icon
+                                        name="chevrons-up-down"
+                                        [size]="16"
+                                        className="sidebar-user-chevron sidebar-collapsible-text"
+                                    />
                                 </button>
                                 <div dropdownContent>
                                     <app-dropdown-label>
                                         <div class="flex flex-col">
-                                            <span class="text-sm font-medium">{{
-                                                displayName()
-                                            }}</span>
+                                            <span class="text-sm font-medium">{{ displayName() }}</span>
                                             <span class="text-xs text-muted-foreground">{{
                                                 userEmail()
                                             }}</span>
@@ -163,56 +158,64 @@ export class AuthLayoutComponent {}
             </aside>
 
             <div class="sidebar-inset">
-                <header class="site-header">
-                    <div class="site-header-start">
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-icon sidebar-trigger -ml-1 hidden md:inline-flex"
-                            (click)="sidebarService.toggle()"
-                            aria-label="Toggle sidebar"
-                        >
-                            <app-icon
-                                name="panel-left"
-                                [size]="18"
-                                className="sidebar-trigger-icon"
+                <div class="sidebar-inset-main">
+                    <header class="site-header">
+                        <div class="site-header-start">
+                            <button
+                                type="button"
+                                class="sidebar-trigger-btn hidden md:inline-flex"
+                                (click)="sidebarService.toggle()"
+                                aria-label="Toggle sidebar"
+                            >
+                                <app-icon
+                                    name="panel-left"
+                                    [size]="16"
+                                    className="sidebar-trigger-icon"
+                                />
+                            </button>
+                            <button
+                                type="button"
+                                class="sidebar-trigger-btn md:hidden"
+                                (click)="mobileNavOpen.set(true)"
+                                aria-label="Open menu"
+                            >
+                                <app-icon name="menu" [size]="16" />
+                            </button>
+                            <app-separator
+                                orientation="vertical"
+                                className="site-header-separator hidden md:block"
                             />
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-icon -ml-1 md:hidden"
-                            (click)="mobileNavOpen.set(true)"
-                            aria-label="Open menu"
-                        >
-                            <app-icon name="menu" [size]="18" />
-                        </button>
-                        <app-separator
-                            orientation="vertical"
-                            className="mr-2 h-4 hidden md:block"
-                        />
-                        <app-org-switcher mode="header" />
-                        <app-global-search variant="header" />
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-icon sm:hidden"
-                            (click)="mobileSearchOpen.set(true)"
-                            aria-label="Open search"
-                        >
-                            <app-icon name="search" [size]="18" />
-                        </button>
-                    </div>
+                            <nav class="site-header-breadcrumb hidden lg:flex" aria-label="Breadcrumb">
+                                <span class="site-header-breadcrumb-muted">Dashboard</span>
+                                <app-icon name="chevron-right" [size]="14" className="text-muted-foreground" />
+                                <span class="site-header-breadcrumb-current">{{ pageTitle() }}</span>
+                            </nav>
+                            <div class="site-header-tools">
+                                <app-org-switcher mode="header" />
+                                <app-global-search variant="header" />
+                                <button
+                                    type="button"
+                                    class="sidebar-trigger-btn sm:hidden"
+                                    (click)="mobileSearchOpen.set(true)"
+                                    aria-label="Open search"
+                                >
+                                    <app-icon name="search" [size]="16" />
+                                </button>
+                            </div>
+                        </div>
 
-                    <div class="flex items-center gap-2 shrink-0">
-                        <span class="site-header-title hidden xl:inline">{{ pageTitle() }}</span>
-                        <button
-                            type="button"
-                            class="btn btn-outline btn-sm hidden sm:inline-flex"
-                            (click)="showDemoToast()"
-                        >
-                            <app-icon name="bell" [size]="14" />
-                            <span class="hidden md:inline">Notifications</span>
-                        </button>
+                        <div class="site-header-actions">
+                            <app-theme-toggle class="hidden sm:inline-flex" />
+                            <button
+                                type="button"
+                                class="btn btn-outline btn-sm hidden sm:inline-flex"
+                                (click)="showDemoToast()"
+                            >
+                                <app-icon name="bell" [size]="14" />
+                                <span class="hidden md:inline">Notifications</span>
+                            </button>
 
-                        <div class="md:hidden">
+                            <div class="md:hidden">
                             <app-dropdown-menu #profileMenu align="end">
                                 <button
                                     dropdownTrigger
@@ -252,14 +255,15 @@ export class AuthLayoutComponent {}
                                 </div>
                             </app-dropdown-menu>
                         </div>
-                    </div>
-                </header>
+                        </div>
+                    </header>
 
-                <main class="flex min-h-0 flex-1 flex-col overflow-hidden">
-                    <div class="page-content container-responsive flex min-h-0 flex-1 flex-col">
-                        <router-outlet />
-                    </div>
-                </main>
+                    <main class="flex min-h-0 flex-1 flex-col overflow-hidden">
+                        <div class="page-content container-responsive flex min-h-0 flex-1 flex-col">
+                            <router-outlet />
+                        </div>
+                    </main>
+                </div>
             </div>
         </div>
 
