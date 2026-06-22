@@ -115,7 +115,7 @@ export class AuthLayoutComponent {}
 
                     <div class="sidebar-footer">
                         <div class="sidebar-theme">
-                            <app-theme-toggle [sidebar]="true" />
+                            <app-theme-toggle [sidebar]="true" [collapsed]="sidebarService.collapsed()" />
                         </div>
                         <div class="sidebar-user">
                             <app-avatar [fallback]="userInitials()" size="sm" />

@@ -10,6 +10,9 @@ import { IconComponent } from './icon.component';
 
 @Component({
     selector: 'app-nav-menu',
+    host: {
+        class: 'block w-full min-w-0',
+    },
     imports: [RouterLink, RouterLinkActive, IconComponent],
     template: `
         <nav class="sidebar-menu">

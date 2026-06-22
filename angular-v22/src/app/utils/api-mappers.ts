@@ -10,7 +10,6 @@ import {
     Deal,
     PaginatedResponse,
     Role,
-    SavedView,
     SearchResult,
     User,
 } from '@models/index';
@@ -413,28 +412,4 @@ export const mapApiSearchResult = (result: {
     title: result.title,
     subtitle: result.subtitle,
     route: result.route,
-});
-
-export const mapApiSavedView = (view: {
-    id: string;
-    user_id: string;
-    entity_type: string;
-    name: string;
-    filters: Record<string, unknown>;
-    sort?: Record<string, unknown> | null;
-    columns?: string[] | null;
-    is_default: boolean;
-    created_at?: string | Date;
-    updated_at?: string | Date;
-}): SavedView => ({
-    id: view.id,
-    userId: view.user_id,
-    entityType: view.entity_type as SavedView['entityType'],
-    name: view.name,
-    filters: view.filters,
-    sort: view.sort,
-    columns: view.columns,
-    isDefault: view.is_default,
-    createdAt: view.created_at ? new Date(view.created_at) : new Date(),
-    updatedAt: view.updated_at ? new Date(view.updated_at) : new Date(),
 });

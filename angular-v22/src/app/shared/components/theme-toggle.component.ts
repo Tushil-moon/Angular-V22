@@ -13,8 +13,8 @@ import { IconComponent } from './icon.component';
     host: {
         '[class.inline-flex]': 'true',
         '[class.shrink-0]': 'true',
-        '[class.w-full]': 'sidebar()',
-        '[class.justify-start]': 'sidebar()',
+        '[class.w-full]': 'sidebar() && !collapsed()',
+        '[class.justify-start]': 'sidebar() && !collapsed()',
     },
     template: `
         <button
@@ -39,6 +39,7 @@ import { IconComponent } from './icon.component';
 export class ThemeToggleComponent {
     readonly themeService = inject(ThemeService);
     sidebar = input(false);
+    collapsed = input(false);
 
     readonly iconName = computed(() => (this.themeService.isDark() ? 'sun' : 'moon'));
     readonly actionLabel = computed(() => (this.themeService.isDark() ? 'Light' : 'Dark'));

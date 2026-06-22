@@ -22,7 +22,6 @@ import {
     SearchInputComponent,
     SelectOption,
 } from '@shared/components';
-import { SavedViewSelectComponent } from '@shared/components/saved-view-select.component';
 import { TagBadgesComponent } from '@shared/components/tag-badges.component';
 import {
     DEAL_TABLE_COLUMNS,
@@ -34,7 +33,7 @@ import {
 import { Permissions } from '@shared/constants/permissions';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
-import { asOptionalString, readRecordString } from '@utils/form-display.util';
+import { asOptionalString } from '@utils/form-display.util';
 
 import { DealCreateDialogResult } from './deal-create-dialog.component';
 import { DealDetailDialogData, DealDetailDialogResult } from './deal-detail-dialog.component';
@@ -63,7 +62,6 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
         FlexTableCellComponent,
         BadgeComponent,
         FilterSelectComponent,
-        SavedViewSelectComponent,
         TagBadgesComponent,
     ],
     template: `
@@ -123,12 +121,6 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
                             placeholder="All stages"
                             ariaLabel="Filter by deal stage"
                             (valueChange)="onStageFilterValue($event)"
-                        />
-                        <app-saved-view-select
-                            entityType="DEALS"
-                            [currentFilters]="activeFilters()"
-                            [canSave]="canManage()"
-                            (viewSelected)="applySavedView($event)"
                         />
                         <app-search-input
                             placeholder="Search deals..."
@@ -235,15 +227,8 @@ export class DealsListComponent {
 
     searchQuery = signal('');
     stageFilter = signal('');
-    savedFilters = signal<Record<string, unknown>>({});
     currentPage = signal(1);
     pageSize = signal(10);
-
-    readonly activeFilters = computed(() => ({
-        search: this.searchQuery().trim() || undefined,
-        stage: this.stageFilter() || undefined,
-        ...this.savedFilters(),
-    }));
 
     readonly dealsResource = resource({
         params: () => {
@@ -251,7 +236,8 @@ export class DealsListComponent {
             return {
                 page: this.currentPage(),
                 pageSize: this.pageSize(),
-                ...this.activeFilters(),
+                search: this.searchQuery().trim() || undefined,
+                stage: this.stageFilter() || undefined,
             };
         },
         loader: async ({ params, abortSignal }) => {
@@ -287,15 +273,6 @@ export class DealsListComponent {
 
     onStageFilterValue(value: string): void {
         this.stageFilter.set(value);
-        this.currentPage.set(1);
-    }
-
-    applySavedView(filters: Record<string, unknown> | null): void {
-        this.savedFilters.set(filters ?? {});
-        const search = readRecordString(filters?.['search']);
-        if (search) this.searchQuery.set(search);
-        const stage = readRecordString(filters?.['stage']);
-        if (stage) this.stageFilter.set(stage);
         this.currentPage.set(1);
     }
 

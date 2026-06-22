@@ -4,7 +4,7 @@
 
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import { Company, FilterOptions } from '@models/index';
-import { AuthService, CompanyService, PermissionService } from '@services/index';
+import { AuthService, CompanyService } from '@services/index';
 import {
     CardBodyComponent,
     CardComponent,
@@ -16,12 +16,10 @@ import {
     FlexTableRowComponent,
     SearchInputComponent,
 } from '@shared/components';
-import { SavedViewSelectComponent } from '@shared/components/saved-view-select.component';
 import { COMPANY_TABLE_COLUMNS, formatCompanyDate } from '@shared/config/companies-table.config';
-import { Permissions } from '@shared/constants/permissions';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
-import { asOptionalString, readRecordString } from '@utils/form-display.util';
+import { asOptionalString } from '@utils/form-display.util';
 
 interface CompaniesPageResult {
     companies: Company[];
@@ -42,7 +40,6 @@ const EMPTY_PAGE: CompaniesPageResult = { companies: [], total: 0 };
         FlexTableComponent,
         FlexTableRowComponent,
         FlexTableCellComponent,
-        SavedViewSelectComponent,
     ],
     template: `
         <div class="page-shell page-shell-fill">
@@ -66,12 +63,6 @@ const EMPTY_PAGE: CompaniesPageResult = { companies: [], total: 0 };
                         >
                     </div>
                     <div class="card-toolbar">
-                        <app-saved-view-select
-                            entityType="COMPANIES"
-                            [currentFilters]="activeFilters()"
-                            [canSave]="canManage()"
-                            (viewSelected)="applySavedView($event)"
-                        />
                         <app-search-input
                             placeholder="Search companies..."
                             [initialValue]="searchQuery()"
@@ -136,24 +127,13 @@ const EMPTY_PAGE: CompaniesPageResult = { companies: [], total: 0 };
 export class CompaniesListComponent {
     private readonly authService = inject(AuthService);
     private readonly companyService = inject(CompanyService);
-    private readonly permissionService = inject(PermissionService);
-
-    readonly canManage = computed(() =>
-        this.permissionService.hasPermission(Permissions.ManageCompanies),
-    );
 
     readonly columns = COMPANY_TABLE_COLUMNS;
     readonly formatDate = formatCompanyDate;
 
     searchQuery = signal('');
-    savedFilters = signal<Record<string, unknown>>({});
     currentPage = signal(1);
     pageSize = signal(10);
-
-    readonly activeFilters = computed(() => ({
-        search: this.searchQuery().trim() || undefined,
-        ...this.savedFilters(),
-    }));
 
     readonly companiesResource = resource({
         params: () => {
@@ -161,7 +141,7 @@ export class CompaniesListComponent {
             return {
                 page: this.currentPage(),
                 pageSize: this.pageSize(),
-                ...this.activeFilters(),
+                search: this.searchQuery().trim() || undefined,
             };
         },
         loader: async ({ params, abortSignal }) => {
@@ -194,13 +174,6 @@ export class CompaniesListComponent {
 
     onSearch(query: string): void {
         this.searchQuery.set(query);
-        this.currentPage.set(1);
-    }
-
-    applySavedView(filters: Record<string, unknown> | null): void {
-        this.savedFilters.set(filters ?? {});
-        const search = readRecordString(filters?.['search']);
-        if (search) this.searchQuery.set(search);
         this.currentPage.set(1);
     }
 }

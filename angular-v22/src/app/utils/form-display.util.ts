@@ -40,11 +40,6 @@ export function addTouchedField(touched: Set<string>, field: string): Set<string
     return next;
 }
 
-/** Read a string filter value from saved-view / record payloads without `[object Object]` coercion. */
-export function readRecordString(value: unknown): string | undefined {
-    return typeof value === 'string' && value.length > 0 ? value : undefined;
-}
-
 /** Coerce unknown resource params to optional strings for API filters. */
 export function asOptionalString(value: unknown): string | undefined {
     return typeof value === 'string' ? value : undefined;

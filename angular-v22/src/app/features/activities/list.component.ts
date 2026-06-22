@@ -4,7 +4,7 @@
 
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import { Activity, ActivityType, FilterOptions } from '@models/index';
-import { ActivityService, AuthService, PermissionService } from '@services/index';
+import { ActivityService, AuthService } from '@services/index';
 import {
     BadgeComponent,
     CardBodyComponent,
@@ -19,16 +19,14 @@ import {
     SearchInputComponent,
     SelectOption,
 } from '@shared/components';
-import { SavedViewSelectComponent } from '@shared/components/saved-view-select.component';
 import {
     ACTIVITY_TABLE_COLUMNS,
     formatActivityDate,
     formatActivityType,
 } from '@shared/config/activities-table.config';
-import { Permissions } from '@shared/constants/permissions';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
-import { asOptionalString, readRecordString } from '@utils/form-display.util';
+import { asOptionalString } from '@utils/form-display.util';
 
 interface ActivitiesPageResult {
     activities: Activity[];
@@ -51,7 +49,6 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
         FlexTableCellComponent,
         BadgeComponent,
         FilterSelectComponent,
-        SavedViewSelectComponent,
     ],
     template: `
         <div class="page-shell page-shell-fill">
@@ -81,12 +78,6 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
                             placeholder="All types"
                             ariaLabel="Filter by activity type"
                             (valueChange)="onTypeFilterValue($event)"
-                        />
-                        <app-saved-view-select
-                            entityType="ACTIVITIES"
-                            [currentFilters]="activeFilters()"
-                            [canSave]="canManage()"
-                            (viewSelected)="applySavedView($event)"
                         />
                         <app-search-input
                             placeholder="Search activities..."
@@ -158,11 +149,6 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
 export class ActivitiesListComponent {
     private readonly authService = inject(AuthService);
     private readonly activityService = inject(ActivityService);
-    private readonly permissionService = inject(PermissionService);
-
-    readonly canManage = computed(() =>
-        this.permissionService.hasPermission(Permissions.ManageActivities),
-    );
 
     readonly columns = ACTIVITY_TABLE_COLUMNS;
     readonly formatDate = formatActivityDate;
@@ -183,15 +169,8 @@ export class ActivitiesListComponent {
 
     searchQuery = signal('');
     typeFilter = signal('');
-    savedFilters = signal<Record<string, unknown>>({});
     currentPage = signal(1);
     pageSize = signal(20);
-
-    readonly activeFilters = computed(() => ({
-        search: this.searchQuery().trim() || undefined,
-        type: this.typeFilter() || undefined,
-        ...this.savedFilters(),
-    }));
 
     readonly activitiesResource = resource({
         params: () => {
@@ -199,7 +178,8 @@ export class ActivitiesListComponent {
             return {
                 page: this.currentPage(),
                 pageSize: this.pageSize(),
-                ...this.activeFilters(),
+                search: this.searchQuery().trim() || undefined,
+                type: this.typeFilter() || undefined,
             };
         },
         loader: async ({ params, abortSignal }) => {
@@ -238,15 +218,6 @@ export class ActivitiesListComponent {
 
     onTypeFilterValue(value: string): void {
         this.typeFilter.set(value);
-        this.currentPage.set(1);
-    }
-
-    applySavedView(filters: Record<string, unknown> | null): void {
-        this.savedFilters.set(filters ?? {});
-        const search = readRecordString(filters?.['search']);
-        if (search) this.searchQuery.set(search);
-        const type = readRecordString(filters?.['type']);
-        if (type) this.typeFilter.set(type);
         this.currentPage.set(1);
     }
 }

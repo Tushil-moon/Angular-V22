@@ -99,19 +99,6 @@ export interface SearchResult {
     route: string;
 }
 
-export interface SavedView {
-    id: string;
-    userId: string;
-    entityType: 'CONTACTS' | 'DEALS' | 'COMPANIES' | 'ACTIVITIES';
-    name: string;
-    filters: Record<string, unknown>;
-    sort?: Record<string, unknown> | null;
-    columns?: string[] | null;
-    isDefault: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
 export interface Activity {
     id: string;
     type: ActivityType;

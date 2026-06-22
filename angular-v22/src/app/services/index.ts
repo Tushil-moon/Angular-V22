@@ -11,7 +11,6 @@ export * from './organization.service';
 export * from './organization-context.service';
 export * from './permission.service';
 export * from './role.service';
-export * from './saved-view.service';
 export * from './search.service';
 export * from './session.service';
 export * from './sidebar.service';
