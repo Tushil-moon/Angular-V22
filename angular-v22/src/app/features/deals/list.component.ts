@@ -10,10 +10,11 @@ import {
     BadgeComponent,
     ButtonComponent,
     CardBodyComponent,
-    CardComponent,
     CardDescriptionComponent,
     CardHeaderComponent,
     CardTitleComponent,
+    CardComponent,
+    DateRangePickerComponent,
     FilterSelectComponent,
     FlexTableCellComponent,
     FlexTableComponent,
@@ -34,6 +35,7 @@ import { Permissions } from '@shared/constants/permissions';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
 import { asOptionalString } from '@utils/form-display.util';
+import { DateRangeValue, EMPTY_DATE_RANGE, isDateWithinRange } from '@utils/date.util';
 
 import { DealCreateDialogResult } from './deal-create-dialog.component';
 import { DealDetailDialogData, DealDetailDialogResult } from './deal-detail-dialog.component';
@@ -62,6 +64,7 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
         FlexTableCellComponent,
         BadgeComponent,
         FilterSelectComponent,
+        DateRangePickerComponent,
         TagBadgesComponent,
     ],
     template: `
@@ -116,6 +119,12 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
                             ariaLabel="Filter by deal stage"
                             (valueChange)="onStageFilterValue($event)"
                         />
+                        <app-date-range-picker
+                            [compact]="true"
+                            placeholder="Close date"
+                            ariaLabel="Filter by expected close date"
+                            (valueChange)="onCloseDateRangeChange($event)"
+                        />
                         <app-search-input
                             placeholder="Search deals..."
                             [initialValue]="searchQuery()"
@@ -129,13 +138,13 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
                         [columns]="columns"
                         [fill]="true"
                         [loading]="isLoading()"
-                        [empty]="!isLoading() && deals().length === 0"
+                        [empty]="!isLoading() && filteredDeals().length === 0"
                         emptyTitle="No deals found"
                         emptyDescription="Create a deal or adjust your filters."
                         [flush]="true"
                         [skeletonRowCount]="5"
                     >
-                        @for (deal of deals(); track deal.id) {
+                        @for (deal of filteredDeals(); track deal.id) {
                             <app-flex-table-row
                                 [interactive]="true"
                                 (click)="openDetailDialog(deal)"
@@ -220,6 +229,7 @@ export class DealsListComponent {
 
     searchQuery = signal('');
     stageFilter = signal('');
+    closeDateRange = signal<DateRangeValue>(EMPTY_DATE_RANGE);
     currentPage = signal(1);
     pageSize = signal(10);
 
@@ -255,6 +265,12 @@ export class DealsListComponent {
     });
 
     readonly deals = computed(() => this.dealsResource.value()?.deals ?? []);
+    readonly filteredDeals = computed(() => {
+        const range = this.closeDateRange();
+        return this.deals().filter((deal) =>
+            isDateWithinRange(deal.expectedCloseDate, range),
+        );
+    });
     readonly totalDeals = computed(() => this.dealsResource.value()?.total ?? 0);
     readonly isLoading = computed(() => this.dealsResource.isLoading());
     readonly loadError = computed(() => this.dealsResource.error()?.message ?? null);
@@ -267,6 +283,10 @@ export class DealsListComponent {
     onStageFilterValue(value: string): void {
         this.stageFilter.set(value);
         this.currentPage.set(1);
+    }
+
+    onCloseDateRangeChange(range: DateRangeValue): void {
+        this.closeDateRange.set(range);
     }
 
     async openCreateDialog(): Promise<void> {

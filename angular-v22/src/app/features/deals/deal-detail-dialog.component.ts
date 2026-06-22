@@ -17,6 +17,7 @@ import { ToastService } from '@services/toast.service';
 import {
     BadgeComponent,
     ButtonComponent,
+    DatePickerComponent,
     DialogComponent,
     InputComponent,
     LoaderComponent,
@@ -54,6 +55,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
         ButtonComponent,
         LoaderComponent,
         InputComponent,
+        DatePickerComponent,
         BadgeComponent,
         SelectComponent,
         TextareaComponent,
@@ -96,9 +98,8 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
                             formControlName="stage"
                             [options]="stageSelectOptions"
                         />
-                        <app-input
+                        <app-date-picker
                             id="edit-close-date"
-                            type="date"
                             label="Expected close"
                             formControlName="expectedCloseDate"
                         />
@@ -125,6 +126,11 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
                             id="deal-activity-body"
                             label="Details"
                             formControlName="body"
+                        />
+                        <app-date-picker
+                            id="deal-activity-due"
+                            label="Due date"
+                            formControlName="dueAt"
                         />
                     </form>
                 } @else {
@@ -336,6 +342,7 @@ export class DealDetailDialogComponent implements OnInit {
         type: ['NOTE'],
         subject: [''],
         body: [''],
+        dueAt: [''],
     });
 
     dialogTitle = computed(() => {
@@ -452,6 +459,7 @@ export class DealDetailDialogComponent implements OnInit {
             type: raw.type,
             subject: raw.subject.trim(),
             body: raw.body.trim() || undefined,
+            dueAt: raw.dueAt || undefined,
         });
         if (!validation.success) return;
 
@@ -465,7 +473,7 @@ export class DealDetailDialogComponent implements OnInit {
             });
             if (activity) {
                 this.activities.update((items) => [activity, ...items].slice(0, 5));
-                this.activityForm.reset({ type: 'NOTE', subject: '', body: '' });
+                this.activityForm.reset({ type: 'NOTE', subject: '', body: '', dueAt: '' });
                 this.wasUpdated.set(true);
                 this.toastService.show({ title: 'Activity logged', description: activity.subject });
                 this.mode.set('view');

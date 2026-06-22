@@ -1,0 +1,205 @@
+@use 'mixins' as *;
+
+/* ── Calendar (shadcn) ── */
+.calendar {
+    @apply w-full min-w-[17.5rem] p-3;
+}
+
+.calendar-header {
+    @apply mb-4 flex items-center justify-between gap-2;
+}
+
+.calendar-caption {
+    @apply text-sm font-medium text-foreground;
+}
+
+.calendar-nav-btn {
+    @apply inline-flex size-7 items-center justify-center rounded-md text-foreground transition-colors;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover {
+        @apply bg-accent text-accent-foreground;
+    }
+
+    &:focus-visible {
+        @include focus-ring-offset;
+    }
+}
+
+.calendar-weekdays {
+    @apply mb-2 grid grid-cols-7 gap-0;
+}
+
+.calendar-weekday {
+    @apply text-center text-[0.8rem] font-normal text-muted-foreground;
+    width: var(--calendar-cell-size);
+}
+
+.calendar-grid {
+    @apply grid grid-cols-7 gap-0;
+}
+
+.calendar-day {
+    --calendar-cell-size: 2.25rem;
+    @apply inline-flex size-9 items-center justify-center rounded-md p-0 text-sm font-normal text-foreground transition-colors;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+        @apply bg-accent text-accent-foreground;
+    }
+
+    &:focus-visible {
+        @include focus-ring-offset;
+    }
+
+    &:disabled {
+        @apply cursor-not-allowed opacity-50;
+    }
+}
+
+.calendar-day-outside {
+    @apply text-muted-foreground opacity-50;
+}
+
+.calendar-day-today:not(.calendar-day-selected) {
+    @apply bg-accent text-accent-foreground;
+}
+
+.calendar-day-selected {
+    @apply bg-primary text-primary-foreground;
+
+    &:hover:not(:disabled) {
+        @apply bg-primary text-primary-foreground;
+    }
+}
+
+/* ── Date picker ── */
+.date-picker-overlay-panel {
+    z-index: calc(var(--z-dropdown) + 1) !important;
+}
+
+.date-picker-popover {
+    @apply overflow-hidden rounded-md border border-border bg-popover p-0 text-popover-foreground shadow-md;
+}
+
+.date-picker-trigger {
+    @apply flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-left text-sm shadow-sm transition-colors
+       disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30;
+    @include shadcn-input-focus;
+}
+
+.date-picker-trigger-invalid {
+    border-color: var(--destructive);
+
+    &:focus-visible {
+        --tw-ring-color: var(--destructive);
+    }
+}
+
+.date-picker-trigger-placeholder .date-picker-value {
+    @apply text-muted-foreground;
+}
+
+.date-picker-value {
+    @apply min-w-0 flex-1 truncate;
+}
+
+.date-picker-icon {
+    @apply text-muted-foreground;
+}
+
+/* ── Date range picker ── */
+.date-range-picker-trigger {
+    min-width: 13rem;
+}
+
+.date-range-picker-popover {
+    @apply overflow-hidden rounded-md border border-border bg-popover p-0 text-popover-foreground shadow-md;
+}
+
+.date-range-picker-layout {
+    @apply flex flex-col md:flex-row;
+}
+
+.date-range-presets {
+    @apply flex flex-col gap-1 border-b border-border p-3 md:w-36 md:border-b-0 md:border-r;
+}
+
+.date-range-preset-btn {
+    @apply rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover {
+        @apply bg-accent text-accent-foreground;
+    }
+
+    &:focus-visible {
+        @include focus-ring-offset;
+    }
+}
+
+.date-range-preset-btn-active {
+    @apply bg-accent text-accent-foreground;
+}
+
+.calendar-range {
+    @apply w-full p-3;
+}
+
+.calendar-range-header {
+    @apply mb-4 flex items-center justify-between gap-2;
+}
+
+.calendar-range-captions {
+    @apply grid flex-1 grid-cols-2 gap-2 px-1;
+}
+
+.calendar-range-caption-right {
+    @apply text-right;
+}
+
+.calendar-range-months {
+    @apply grid gap-4 md:grid-cols-2;
+}
+
+.calendar-range-month {
+    @apply min-w-[17.5rem];
+}
+
+.calendar-day-range-middle {
+    @apply rounded-none bg-accent text-accent-foreground;
+
+    &:hover:not(:disabled) {
+        @apply bg-accent text-accent-foreground;
+    }
+}
+
+.calendar-day-range-start {
+    @apply rounded-none rounded-l-md bg-primary text-primary-foreground;
+
+    &:hover:not(:disabled) {
+        @apply bg-primary text-primary-foreground;
+    }
+}
+
+.calendar-day-range-end {
+    @apply rounded-none rounded-r-md bg-primary text-primary-foreground;
+
+    &:hover:not(:disabled) {
+        @apply bg-primary text-primary-foreground;
+    }
+}
+
+.date-range-picker-compact {
+    @apply inline-flex min-w-0;
+
+    .form-group {
+        @apply mb-0 w-full;
+    }
+}

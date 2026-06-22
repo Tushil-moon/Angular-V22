@@ -18,6 +18,7 @@ import {
     BadgeComponent,
     ButtonComponent,
     CheckboxComponent,
+    DatePickerComponent,
     DialogComponent,
     InputComponent,
     LoaderComponent,
@@ -56,6 +57,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
         ButtonComponent,
         LoaderComponent,
         InputComponent,
+        DatePickerComponent,
         TagBadgesComponent,
         SelectComponent,
         TextareaComponent,
@@ -138,6 +140,11 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
                             [error]="activityFieldError('subject')"
                         />
                         <app-textarea id="activity-body" label="Details" formControlName="body" />
+                        <app-date-picker
+                            id="activity-due"
+                            label="Due date"
+                            formControlName="dueAt"
+                        />
                     </form>
                 } @else if (mode() === 'convert') {
                     <form [formGroup]="convertForm" class="space-y-4">
@@ -407,6 +414,7 @@ export class ContactDetailDialogComponent implements OnInit {
         type: ['NOTE'],
         subject: [''],
         body: [''],
+        dueAt: [''],
     });
 
     convertForm = this.fb.group({
@@ -564,6 +572,7 @@ export class ContactDetailDialogComponent implements OnInit {
             type: raw.type,
             subject: raw.subject.trim(),
             body: raw.body.trim() || undefined,
+            dueAt: raw.dueAt || undefined,
             contactId: item.id,
         };
 
@@ -584,7 +593,7 @@ export class ContactDetailDialogComponent implements OnInit {
             });
             if (activity) {
                 this.activities.update((items) => [activity, ...items].slice(0, 5));
-                this.activityForm.reset({ type: 'NOTE', subject: '', body: '' });
+                this.activityForm.reset({ type: 'NOTE', subject: '', body: '', dueAt: '' });
                 this.wasUpdated.set(true);
                 this.toastService.show({ title: 'Activity logged', description: activity.subject });
                 this.mode.set('view');

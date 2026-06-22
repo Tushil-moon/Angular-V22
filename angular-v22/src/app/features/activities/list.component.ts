@@ -8,10 +8,11 @@ import { ActivityService, AuthService } from '@services/index';
 import {
     BadgeComponent,
     CardBodyComponent,
-    CardComponent,
     CardDescriptionComponent,
     CardHeaderComponent,
     CardTitleComponent,
+    CardComponent,
+    DateRangePickerComponent,
     FilterSelectComponent,
     FlexTableCellComponent,
     FlexTableComponent,
@@ -27,6 +28,7 @@ import {
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
 import { asOptionalString } from '@utils/form-display.util';
+import { DateRangeValue, EMPTY_DATE_RANGE, isDateWithinRange } from '@utils/date.util';
 
 interface ActivitiesPageResult {
     activities: Activity[];
@@ -49,6 +51,7 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
         FlexTableCellComponent,
         BadgeComponent,
         FilterSelectComponent,
+        DateRangePickerComponent,
     ],
     template: `
         <div class="page-shell page-shell-fill">
@@ -79,6 +82,12 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
                             ariaLabel="Filter by activity type"
                             (valueChange)="onTypeFilterValue($event)"
                         />
+                        <app-date-range-picker
+                            [compact]="true"
+                            placeholder="Due date"
+                            ariaLabel="Filter by due date"
+                            (valueChange)="onDueDateRangeChange($event)"
+                        />
                         <app-search-input
                             placeholder="Search activities..."
                             [initialValue]="searchQuery()"
@@ -92,13 +101,13 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
                         [columns]="columns"
                         [fill]="true"
                         [loading]="isLoading()"
-                        [empty]="!isLoading() && activities().length === 0"
+                        [empty]="!isLoading() && filteredActivities().length === 0"
                         emptyTitle="No activities found"
                         emptyDescription="Log activity from a contact or deal detail view."
                         [flush]="true"
                         [skeletonRowCount]="5"
                     >
-                        @for (activity of activities(); track activity.id) {
+                        @for (activity of filteredActivities(); track activity.id) {
                             <app-flex-table-row>
                                 <app-flex-table-cell column="subject">
                                     <div class="min-w-0">
@@ -168,6 +177,7 @@ export class ActivitiesListComponent {
 
     searchQuery = signal('');
     typeFilter = signal('');
+    dueDateRange = signal<DateRangeValue>(EMPTY_DATE_RANGE);
     currentPage = signal(1);
     pageSize = signal(20);
 
@@ -206,6 +216,10 @@ export class ActivitiesListComponent {
     });
 
     readonly activities = computed(() => this.activitiesResource.value()?.activities ?? []);
+    readonly filteredActivities = computed(() => {
+        const range = this.dueDateRange();
+        return this.activities().filter((activity) => isDateWithinRange(activity.dueAt, range));
+    });
     readonly totalActivities = computed(() => this.activitiesResource.value()?.total ?? 0);
     readonly isLoading = computed(() => this.activitiesResource.isLoading());
     readonly loadError = computed(() => this.activitiesResource.error()?.message ?? null);
@@ -218,5 +232,9 @@ export class ActivitiesListComponent {
     onTypeFilterValue(value: string): void {
         this.typeFilter.set(value);
         this.currentPage.set(1);
+    }
+
+    onDueDateRangeChange(range: DateRangeValue): void {
+        this.dueDateRange.set(range);
     }
 }

@@ -126,6 +126,7 @@ export const createActivitySchema = z.object({
     type: activityTypeSchema.optional(),
     subject: z.string().trim().min(1, 'Subject is required').max(200),
     body: z.string().max(5000).optional(),
+    dueAt: z.string().optional(),
 });
 
 /**

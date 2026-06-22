@@ -9,6 +9,7 @@ import { ContactService, DealService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
     ButtonComponent,
+    DatePickerComponent,
     DialogComponent,
     InputComponent,
     LoaderComponent,
@@ -32,6 +33,7 @@ const STAGE_OPTIONS = Object.entries(DEAL_STAGE_LABELS) as [DealStage, string][]
         DialogComponent,
         ButtonComponent,
         InputComponent,
+        DatePickerComponent,
         LoaderComponent,
         SelectComponent,
         TextareaComponent,
@@ -75,9 +77,8 @@ const STAGE_OPTIONS = Object.entries(DEAL_STAGE_LABELS) as [DealStage, string][]
                     placeholder="No contact"
                     [options]="contactSelectOptions()"
                 />
-                <app-input
+                <app-date-picker
                     id="deal-close-date"
-                    type="date"
                     label="Expected close date"
                     formControlName="expectedCloseDate"
                 />
