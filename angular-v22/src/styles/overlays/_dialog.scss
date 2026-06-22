@@ -1,0 +1,137 @@
+/* ── Dialog (shadcn/ui v4 new-york) ── */
+.cdk-overlay-backdrop.dialog-backdrop {
+    background-color: rgb(0 0 0 / 0.5) !important;
+    transition: opacity 200ms ease-out !important;
+}
+
+.cdk-overlay-pane.dialog-overlay-pane {
+    @apply pointer-events-none flex h-[100dvh] w-screen items-center justify-center p-4;
+    max-height: none !important;
+    max-width: none !important;
+    width: 100vw !important;
+}
+
+.dialog-panel {
+    @apply pointer-events-auto relative mx-auto grid w-full max-w-[calc(100vw-2rem)] gap-4 overflow-hidden rounded-lg border border-border
+       bg-background p-6 text-foreground shadow-lg;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    max-height: calc(100vh - 2rem);
+    flex: 0 1 auto;
+}
+
+.dialog-panel-sm {
+    max-width: 24rem;
+}
+
+.dialog-panel-md {
+    max-width: 32rem;
+}
+
+.dialog-panel-lg {
+    max-width: 42rem;
+}
+
+.dialog-close {
+    @apply absolute right-4 top-4 z-10 inline-flex rounded-sm opacity-70 ring-offset-background
+       transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring
+       focus:ring-offset-2 disabled:pointer-events-none;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    padding: 0.125rem;
+}
+
+.dialog-header {
+    @apply flex shrink-0 flex-col gap-2 pr-8 text-center sm:text-left;
+}
+
+.dialog-title {
+    @apply text-lg font-semibold leading-none tracking-tight text-foreground;
+}
+
+.dialog-description {
+    @apply text-sm text-muted-foreground;
+}
+
+.dialog-body {
+    @apply min-h-0 overflow-y-auto text-foreground;
+}
+
+.dialog-footer {
+    @apply flex shrink-0 flex-col-reverse gap-2 sm:flex-row sm:justify-end;
+}
+
+/* Projected footer slot — don't break flex layout */
+.dialog-footer [dialogFooter] {
+    display: contents;
+}
+
+.dialog-footer app-button {
+    @apply w-full sm:w-auto;
+
+    .btn {
+        @apply w-full sm:w-auto;
+    }
+}
+
+.dialog-footer:empty {
+    display: none;
+}
+
+.dialog-detail-header {
+    @apply flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between;
+}
+
+.dialog-detail-header > div:first-child {
+    @apply min-w-0 flex-1;
+}
+
+.dialog-profile-header {
+    @apply flex flex-col gap-3 rounded-lg border border-border p-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between;
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+}
+
+.dialog-profile-identity {
+    @apply flex min-w-0 items-center gap-3 sm:gap-4;
+}
+
+.dialog-section-toolbar {
+    @apply flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between;
+}
+
+.dialog-section-toolbar app-button {
+    @apply w-full shrink-0 sm:w-auto;
+}
+
+.dialog-roles-section {
+    @apply space-y-3 rounded-lg border border-border p-4;
+}
+
+.dialog-role-badge {
+    @apply inline-flex items-center gap-1;
+}
+
+.dialog-role-remove {
+    @apply inline-flex rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.dialog-activity-list {
+    @apply divide-y divide-border overflow-hidden rounded-md border border-border;
+}
+
+.dialog-activity-item {
+    @apply space-y-1 px-3 py-3;
+}
+
+.dialog-loading {
+    @apply flex justify-center py-10;
+}
+
+.dialog-convert-panel {
+    @apply space-y-3 rounded-md border border-border p-4;
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+}

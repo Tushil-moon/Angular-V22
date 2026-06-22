@@ -1,0 +1,59 @@
+.spinner {
+    @apply animate-spin;
+}
+
+.page-header {
+    @apply flex flex-col gap-1.5;
+}
+
+.page-shell {
+    @apply flex flex-col gap-4;
+}
+
+.page-shell-fill {
+    @apply flex flex-1 min-h-0 flex-col gap-4 overflow-hidden;
+}
+
+.page-toolbar {
+    @apply flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
+}
+
+.page-toolbar > app-button {
+    @apply w-full shrink-0 sm:w-auto;
+}
+
+.page-title {
+    @apply text-2xl font-semibold tracking-tight text-foreground;
+}
+
+.page-description {
+    @apply text-muted-foreground text-sm;
+}
+
+.separator {
+    @apply shrink-0 bg-border h-px w-full;
+}
+
+.nav-link {
+    @apply flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground;
+}
+
+.nav-link-active {
+    @apply nav-link bg-sidebar-accent font-medium text-sidebar-accent-foreground;
+}
+
+.container-responsive {
+    @apply w-full max-w-screen-2xl mx-auto;
+}
+
+.page-content {
+    @apply flex min-h-0 flex-1 flex-col gap-4 overflow-auto bg-background p-6;
+}
+
+.page-content:has(.page-shell-fill) {
+    @apply overflow-hidden;
+}
+
+.page-content > *:has(.page-shell-fill) {
+    @apply flex min-h-0 flex-1 flex-col;
+}

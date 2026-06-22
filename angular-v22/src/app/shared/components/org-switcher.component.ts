@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, input, OnInit, signal, ViewEncapsulation } from '@angular/core';
 import { OrganizationMembership } from '@models/index';
 import { OrganizationContextService, OrganizationService } from '@services/index';
 import { ignorePromise } from '@utils/form-display.util';
@@ -30,6 +30,8 @@ import { SelectComponent, SelectOption } from './select.component';
             </div>
         }
     `,
+    styleUrl: './org-switcher.component.scss',
+    encapsulation: ViewEncapsulation.None,
 })
 export class OrgSwitcherComponent implements OnInit {
     private readonly organizationService = inject(OrganizationService);

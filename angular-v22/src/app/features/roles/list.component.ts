@@ -2,7 +2,7 @@
  * Roles List Page Component
  */
 
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ViewEncapsulation } from '@angular/core';
 import { DialogService, PermissionService, RoleService } from '@services/index';
 import {
     ButtonComponent,
@@ -139,6 +139,8 @@ import { RoleCreateDialogComponent, RoleCreateDialogResult } from './role-create
             </app-card>
         </div>
     `,
+    styleUrl: './list.component.scss',
+    encapsulation: ViewEncapsulation.None,
 })
 export class RolesListComponent {
     roleService = inject(RoleService);

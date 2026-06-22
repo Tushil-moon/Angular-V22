@@ -1,0 +1,24 @@
+/* ── Switch (shadcn) ── */
+.switch {
+    @apply relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent
+       shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50
+       disabled:cursor-not-allowed disabled:opacity-50;
+    background-color: var(--input);
+}
+
+.switch[data-state='checked'] {
+    background-color: var(--primary);
+}
+
+.switch-thumb {
+    @apply pointer-events-none block size-5 rounded-full bg-background shadow-lg ring-0 transition-transform;
+    transform: translateX(0);
+}
+
+.switch[data-state='checked'] .switch-thumb {
+    transform: translateX(1.25rem);
+}
+
+.switch-label {
+    @apply flex cursor-pointer items-center gap-2 text-sm font-medium leading-none;
+}

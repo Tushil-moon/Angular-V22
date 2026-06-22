@@ -1,0 +1,53 @@
+@use 'mixins' as *;
+
+/* ── Dropdown (shadcn) ── */
+.dropdown-content {
+    @apply absolute z-[var(--z-dropdown)] mt-1 min-w-[12rem] origin-top overflow-hidden rounded-md border
+       border-border bg-popover p-1 text-popover-foreground shadow-lg;
+    @include overlay-panel-animation;
+}
+
+.dropdown-content-end {
+    @apply right-0;
+}
+
+.dropdown-content-start {
+    @apply left-0;
+}
+
+.dropdown-label {
+    @apply px-2 py-1.5 text-sm font-semibold;
+}
+
+.dropdown-item {
+    @apply relative flex w-full cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm
+       outline-none transition-colors focus-visible:bg-accent focus-visible:text-accent-foreground
+       [&_svg]:size-4 [&_svg]:shrink-0;
+}
+
+.dropdown-item:hover:not(:disabled) {
+    @apply bg-accent text-accent-foreground;
+}
+
+.dropdown-item-destructive {
+    @apply text-destructive;
+}
+
+.dropdown-item-destructive:hover:not(:disabled),
+.dropdown-item-destructive:focus-visible {
+    background-color: color-mix(in oklch, var(--destructive) 10%, transparent);
+    color: var(--destructive);
+}
+
+.dark .dropdown-item-destructive:hover:not(:disabled),
+.dark .dropdown-item-destructive:focus-visible {
+    background-color: color-mix(in oklch, var(--destructive) 20%, transparent);
+}
+
+.dropdown-item-disabled {
+    @apply pointer-events-none opacity-50;
+}
+
+.dropdown-separator {
+    @apply -mx-1 my-1 h-px bg-border;
+}

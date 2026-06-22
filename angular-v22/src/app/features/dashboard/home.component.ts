@@ -2,7 +2,7 @@
  * Dashboard Home Page — shadcn-style overview
  */
 
-import { Component, computed, inject, injectAsync, onIdle, OnInit } from '@angular/core';
+import { Component, computed, inject, injectAsync, onIdle, OnInit, ViewEncapsulation } from '@angular/core';
 import { AuthService, DashboardService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
@@ -159,6 +159,8 @@ import { DashboardPanelsComponent } from './dashboard-panels.component';
             }
         </div>
     `,
+    styleUrl: './home.component.scss',
+    encapsulation: ViewEncapsulation.None,
 })
 export class DashboardHomeComponent implements OnInit {
     authService = inject(AuthService);

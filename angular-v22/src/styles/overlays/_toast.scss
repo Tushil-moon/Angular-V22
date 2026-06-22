@@ -1,0 +1,54 @@
+/* ── Toast ── */
+.toaster-viewport {
+    position: fixed;
+    z-index: var(--z-toast);
+    right: 0;
+    bottom: 0;
+    display: flex;
+    width: 100%;
+    max-width: 420px;
+    max-height: 100vh;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    pointer-events: none;
+}
+
+.toast-item {
+    @apply pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-lg border p-4 pr-8 shadow-lg;
+}
+
+.toast-default {
+    @apply toast-item border-border bg-background text-foreground;
+}
+
+.toast-success {
+    @apply toast-item border-border bg-background text-foreground;
+}
+
+.toast-destructive {
+    @apply toast-item border-destructive/50 bg-background text-destructive dark:border-destructive;
+}
+
+.toast-icon {
+    @apply mt-0.5 shrink-0;
+}
+
+.toast-content {
+    @apply flex-1 space-y-1;
+}
+
+.toast-title {
+    @apply text-sm font-semibold leading-none;
+}
+
+.toast-description {
+    @apply text-sm text-muted-foreground;
+}
+
+.toast-close {
+    @apply absolute right-2 top-2 shrink-0 rounded-sm p-1 text-muted-foreground opacity-70
+       transition-opacity hover:opacity-100 focus:outline-none focus:ring-1 focus:ring-ring;
+}

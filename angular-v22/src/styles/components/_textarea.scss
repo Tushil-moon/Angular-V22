@@ -1,0 +1,16 @@
+@use 'mixins' as *;
+
+.form-error {
+    @apply text-sm font-medium text-destructive;
+}
+
+.textarea {
+    @apply flex min-h-[5rem] w-full resize-y rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm
+       transition-colors placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 md:text-sm
+       text-foreground dark:bg-input/30;
+    @include shadcn-input-focus;
+}
+
+.textarea.border-destructive {
+    border-color: var(--destructive);
+}

@@ -1,0 +1,326 @@
+@use 'mixins' as *;
+
+/* Sidebar — shadcn inset shell (Figma 1094:3206) */
+.sidebar-wrapper {
+    @apply flex h-svh w-full overflow-hidden border border-border bg-sidebar text-sidebar-foreground;
+    border-radius: var(--shell-radius);
+}
+
+.sidebar {
+    position: relative;
+    flex-shrink: 0;
+    width: var(--sidebar-width);
+    height: 100%;
+    overflow: hidden;
+    transition: width var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+    @apply flex flex-col bg-sidebar;
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar {
+    width: var(--sidebar-width-icon);
+}
+
+.sidebar-inner {
+    @apply flex h-full w-full min-w-0 flex-col;
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar-inner {
+    @apply items-center;
+}
+
+.sidebar-inset {
+    @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden;
+    padding-block: var(--inset-gutter);
+    padding-inline-end: var(--inset-gutter);
+}
+
+.sidebar-inset-main {
+    @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background text-foreground shadow-sm;
+    border-radius: var(--inset-radius);
+    box-shadow: 0 1px 1.5px 0 rgb(0 0 0 / 10%);
+}
+
+.sidebar-header {
+    @apply shrink-0 p-2;
+}
+
+.sidebar-brand {
+    @apply flex min-w-0 items-center gap-2 overflow-hidden rounded-md p-2;
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar-header {
+    @apply w-full p-2;
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar-brand {
+    @apply w-full justify-center gap-0 p-2;
+}
+
+.sidebar-brand-icon {
+    @apply flex shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground;
+    width: var(--sidebar-item-size);
+    height: var(--sidebar-item-size);
+}
+
+.sidebar-brand-text {
+    @include text-stack;
+    @apply flex-1;
+}
+
+.sidebar-brand-title {
+    @include text-stack-title;
+}
+
+.sidebar-brand-subtitle {
+    @include text-stack-subtitle;
+}
+
+.sidebar-fade,
+.sidebar-collapsible-text {
+    @include collapsible-sidebar-text-base;
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar-fade,
+.sidebar-wrapper[data-state='collapsed'] .sidebar-collapsible-text {
+    @apply hidden;
+}
+
+.sidebar-wrapper[data-state='expanded'] .sidebar-fade,
+.sidebar-wrapper[data-state='expanded'] .sidebar-collapsible-text {
+    @include collapsible-sidebar-text-expanded;
+}
+
+.sidebar-wrapper[data-state='expanded'] .sidebar-brand-text.sidebar-collapsible-text,
+.sidebar-wrapper[data-state='expanded'] .sidebar-user-info.sidebar-collapsible-text {
+    @include text-stack;
+}
+
+.sidebar-group {
+    @apply flex w-full min-w-0 flex-col gap-1 p-2;
+}
+
+.sidebar-group-label {
+    @apply h-8 shrink-0 px-2 text-xs font-medium text-sidebar-foreground;
+    line-height: 2rem;
+    opacity: 0.7;
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar-group-label {
+    @apply hidden;
+}
+
+.sidebar-menu {
+    @apply flex w-full min-w-0 flex-col gap-1;
+}
+
+.sidebar-menu-button {
+    @include sidebar-interactive;
+    @apply relative flex w-full min-w-0 items-center overflow-hidden p-2 text-sm font-normal text-sidebar-foreground;
+    height: var(--sidebar-item-size);
+    gap: 0.5rem;
+}
+
+.sidebar-content {
+    @apply flex-1 overflow-x-hidden overflow-y-auto;
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar-menu-button {
+    @apply size-8 max-w-8 min-w-8 shrink-0 justify-center gap-0 self-center p-0;
+    width: var(--sidebar-item-size);
+    min-width: var(--sidebar-item-size);
+    max-width: var(--sidebar-item-size);
+}
+
+.sidebar-menu-button-active {
+    @apply bg-sidebar-accent font-medium text-sidebar-accent-foreground;
+}
+
+.sidebar-footer {
+    @apply mt-auto shrink-0 p-2;
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar-footer {
+    @apply w-full p-2;
+}
+
+.sidebar-user-shell {
+    @apply w-full min-w-0;
+}
+
+.sidebar-user-shell app-dropdown-menu {
+    @apply block w-full min-w-0;
+}
+
+.sidebar-user-shell app-dropdown-menu > div {
+    @apply block w-full min-w-0 text-left;
+}
+
+.sidebar-user-shell app-dropdown-menu > div > [role='button'] {
+    @apply block w-full min-w-0;
+}
+
+.sidebar-user {
+    @include sidebar-interactive;
+    @apply flex min-h-8 min-w-0 w-full cursor-pointer items-center overflow-hidden p-2 text-sidebar-foreground;
+    gap: 0.5rem;
+    border: 0;
+    background: transparent;
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar-user {
+    @apply size-8 max-w-8 min-w-8 shrink-0 justify-center gap-0 self-center p-0;
+    width: var(--sidebar-item-size);
+    min-width: var(--sidebar-item-size);
+    max-width: var(--sidebar-item-size);
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar-user-info,
+.sidebar-wrapper[data-state='collapsed'] .sidebar-user-chevron {
+    @apply hidden;
+}
+
+.sidebar-user-avatar {
+    @apply rounded-lg;
+}
+
+.sidebar-user-avatar.avatar {
+    @apply rounded-lg;
+}
+
+.sidebar-user-info {
+    @include text-stack;
+    @apply flex-1 text-left;
+}
+
+.sidebar-user-name {
+    @include text-stack-name;
+}
+
+.sidebar-user-email {
+    @include text-stack-subtitle;
+}
+
+.sidebar-user-chevron {
+    @apply ml-auto shrink-0 text-muted-foreground;
+}
+
+.sidebar-wrapper[data-state='expanded'] .sidebar-user-chevron.sidebar-collapsible-text {
+    @apply ml-auto inline-flex shrink-0;
+}
+
+.sidebar-trigger-btn {
+    @apply inline-flex shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.sidebar-trigger-btn:hover {
+    @apply bg-accent text-accent-foreground;
+}
+
+.sidebar-trigger-btn:focus-visible {
+    @include focus-ring-offset;
+}
+
+.sidebar-trigger-icon {
+    transition: transform var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar-trigger-icon {
+    transform: rotate(-180deg);
+}
+
+/* Collapsed overrides — must follow base sidebar rules to win cascade */
+.sidebar-wrapper[data-state='collapsed'] .sidebar-content {
+    @apply flex flex-1 w-full flex-col items-center overflow-x-hidden overflow-y-auto;
+    padding: 0;
+    padding-inline: 0;
+    scrollbar-gutter: auto;
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar-group {
+    @apply w-full items-center gap-1 p-2;
+}
+
+.sidebar-wrapper[data-state='collapsed'] .sidebar-menu {
+    @apply w-full items-center gap-1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar,
+    .sidebar-fade,
+    .sidebar-collapsible-text,
+    .sidebar-trigger-icon {
+        transition: none !important;
+    }
+}
+
+/* Site header — inside inset main panel */
+.site-header {
+    @apply sticky top-0 z-[var(--z-sticky)] flex h-16 shrink-0 items-center justify-between gap-2 bg-background px-4;
+    padding-top: env(safe-area-inset-top);
+    min-height: calc(4rem + env(safe-area-inset-top));
+}
+
+.site-header-start {
+    @apply flex min-w-0 flex-1 items-center gap-2;
+}
+
+.site-header-separator {
+    @apply h-4;
+}
+
+.site-header-breadcrumb {
+    @apply flex min-w-0 items-center gap-1.5 text-sm;
+}
+
+.site-header-breadcrumb-muted {
+    @apply truncate text-muted-foreground;
+}
+
+.site-header-breadcrumb-current {
+    @apply truncate font-normal text-foreground;
+}
+
+.site-header-tools {
+    @apply ml-auto flex min-w-0 items-center gap-2 lg:ml-0;
+}
+
+.site-header-actions {
+    @apply flex shrink-0 items-center gap-2;
+}
+
+.site-header-title {
+    @apply text-sm font-medium text-foreground;
+}
+
+.site-header-search {
+    @apply relative hidden max-w-sm flex-1 sm:block;
+}
+
+.site-header-search-icon {
+    @apply pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground;
+}
+
+.site-header-search-input {
+    @apply input pl-9;
+}
+
+.global-search-drawer {
+    @apply w-full;
+}
+
+.global-search-drawer .site-header-search-input {
+    @apply w-full;
+}
+
+.mobile-drawer-section {
+    @apply w-full min-w-0;
+}
+
+.theme-toggle-btn {
+    @apply gap-2 overflow-hidden text-foreground;
+}

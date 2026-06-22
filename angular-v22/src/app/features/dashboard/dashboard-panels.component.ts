@@ -2,7 +2,7 @@
  * Dashboard Panels — activity feed and quick links (deferred chunk)
  */
 
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ViewEncapsulation } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService, DashboardService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -185,6 +185,8 @@ import { formatDealValue } from '@shared/config/deals-table.config';
             </app-card>
         </div>
     `,
+    styleUrl: './dashboard-panels.component.scss',
+    encapsulation: ViewEncapsulation.None,
 })
 export class DashboardPanelsComponent {
     dashboardService = inject(DashboardService);

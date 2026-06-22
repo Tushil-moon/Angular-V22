@@ -1,0 +1,7 @@
+.role-card {
+    @apply rounded-xl border border-border bg-card p-6 shadow transition-colors;
+}
+
+.role-card:hover {
+    background-color: color-mix(in oklch, var(--muted) 50%, transparent);
+}

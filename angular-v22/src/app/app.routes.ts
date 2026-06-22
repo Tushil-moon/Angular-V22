@@ -3,7 +3,6 @@ import { authGuard } from '@guards/auth.guard';
 import { guestGuard } from '@guards/guest.guard';
 import { permissionGuard } from '@guards/permission.guard';
 import { Permissions } from '@shared/constants/permissions';
-import { AdminLayoutComponent, AuthLayoutComponent } from '@shared/layouts/layout.component';
 
 export const routes: Routes = [
     {
@@ -13,7 +12,8 @@ export const routes: Routes = [
     },
     {
         path: 'auth',
-        component: AuthLayoutComponent,
+        loadComponent: () =>
+            import('@shared/layouts/auth-layout.component').then((m) => m.AuthLayoutComponent),
         canActivate: [guestGuard],
         children: [
             {
@@ -49,7 +49,8 @@ export const routes: Routes = [
     },
     {
         path: 'dashboard',
-        component: AdminLayoutComponent,
+        loadComponent: () =>
+            import('@shared/layouts/admin-layout.component').then((m) => m.AdminLayoutComponent),
         canActivate: [authGuard],
         children: [
             {

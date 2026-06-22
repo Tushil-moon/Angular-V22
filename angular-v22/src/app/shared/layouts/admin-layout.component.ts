@@ -1,11 +1,18 @@
 /**
- * Layout Components
+ * Admin shell layout — lazy-loaded with dashboard routes
  */
 
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import {
+    Component,
+    computed,
+    DestroyRef,
+    inject,
+    signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { AuthService, PermissionService } from '@services/index';
+import { AuthService } from '@services/auth.service';
+import { PermissionService } from '@services/permission.service';
 import { SidebarService } from '@services/sidebar.service';
 import { ToastService } from '@services/toast.service';
 import {
@@ -32,22 +39,6 @@ import { OrgSwitcherComponent } from '../components/org-switcher.component';
 import { SeparatorComponent } from '../components/separator.component';
 import { SheetComponent } from '../components/sheet.component';
 import { ThemeToggleComponent } from '../components/theme-toggle.component';
-
-@Component({
-    selector: 'app-auth-layout',
-    imports: [RouterOutlet, ThemeToggleComponent],
-    template: `
-        <div class="auth-shell">
-            <div class="auth-shell-theme">
-                <app-theme-toggle />
-            </div>
-            <div class="auth-shell-content">
-                <router-outlet />
-            </div>
-        </div>
-    `,
-})
-export class AuthLayoutComponent {}
 
 @Component({
     selector: 'app-admin-layout',
@@ -187,7 +178,11 @@ export class AuthLayoutComponent {}
                             />
                             <nav class="site-header-breadcrumb hidden lg:flex" aria-label="Breadcrumb">
                                 <span class="site-header-breadcrumb-muted">Dashboard</span>
-                                <app-icon name="chevron-right" [size]="14" className="text-muted-foreground" />
+                                <app-icon
+                                    name="chevron-right"
+                                    [size]="14"
+                                    className="text-muted-foreground"
+                                />
                                 <span class="site-header-breadcrumb-current">{{ pageTitle() }}</span>
                             </nav>
                             <div class="site-header-tools">
@@ -216,45 +211,45 @@ export class AuthLayoutComponent {}
                             </button>
 
                             <div class="md:hidden">
-                            <app-dropdown-menu #profileMenu align="end">
-                                <button
-                                    dropdownTrigger
-                                    type="button"
-                                    class="btn btn-ghost btn-sm gap-2 pl-1 pr-2"
-                                >
-                                    <app-avatar [fallback]="userInitials()" size="sm" />
-                                    <app-icon
-                                        name="chevron-down"
-                                        [size]="14"
-                                        className="text-muted-foreground"
-                                    />
-                                </button>
-                                <div dropdownContent>
-                                    <app-dropdown-label>
-                                        <div class="flex flex-col">
-                                            <span class="text-sm font-medium">{{
-                                                displayName()
-                                            }}</span>
-                                            <span class="text-xs text-muted-foreground">{{
-                                                userEmail()
-                                            }}</span>
-                                        </div>
-                                    </app-dropdown-label>
-                                    @for (item of profileMenuItems; track item.label) {
-                                        @if (item.destructive) {
-                                            <app-dropdown-separator />
+                                <app-dropdown-menu #profileMenu align="end">
+                                    <button
+                                        dropdownTrigger
+                                        type="button"
+                                        class="btn btn-ghost btn-sm gap-2 pl-1 pr-2"
+                                    >
+                                        <app-avatar [fallback]="userInitials()" size="sm" />
+                                        <app-icon
+                                            name="chevron-down"
+                                            [size]="14"
+                                            className="text-muted-foreground"
+                                        />
+                                    </button>
+                                    <div dropdownContent>
+                                        <app-dropdown-label>
+                                            <div class="flex flex-col">
+                                                <span class="text-sm font-medium">{{
+                                                    displayName()
+                                                }}</span>
+                                                <span class="text-xs text-muted-foreground">{{
+                                                    userEmail()
+                                                }}</span>
+                                            </div>
+                                        </app-dropdown-label>
+                                        @for (item of profileMenuItems; track item.label) {
+                                            @if (item.destructive) {
+                                                <app-dropdown-separator />
+                                            }
+                                            <app-dropdown-item
+                                                [destructive]="item.destructive ?? false"
+                                                (itemClick)="onProfileMenuAction(item, profileMenu)"
+                                            >
+                                                <app-icon [name]="item.icon" [size]="14" />
+                                                {{ item.label }}
+                                            </app-dropdown-item>
                                         }
-                                        <app-dropdown-item
-                                            [destructive]="item.destructive ?? false"
-                                            (itemClick)="onProfileMenuAction(item, profileMenu)"
-                                        >
-                                            <app-icon [name]="item.icon" [size]="14" />
-                                            {{ item.label }}
-                                        </app-dropdown-item>
-                                    }
-                                </div>
-                            </app-dropdown-menu>
-                        </div>
+                                    </div>
+                                </app-dropdown-menu>
+                            </div>
                         </div>
                     </header>
 

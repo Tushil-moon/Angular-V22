@@ -1,2 +1,3 @@
 // Re-export all layouts
-export * from './layout.component';
+export { AdminLayoutComponent } from './admin-layout.component';
+export { AuthLayoutComponent } from './auth-layout.component';

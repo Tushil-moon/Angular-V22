@@ -1,0 +1,30 @@
+@use 'mixins' as *;
+
+/* ── Input (shadcn/ui v4) ── */
+.input {
+    @apply flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm
+       transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground
+       placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 md:text-sm text-foreground
+       dark:bg-input/30;
+    @include shadcn-input-focus;
+}
+
+.input.border-destructive {
+    border-color: var(--destructive);
+}
+
+.input.border-destructive:focus-visible {
+    --tw-ring-color: var(--destructive);
+}
+
+.form-group {
+    @apply space-y-2;
+}
+
+.form-label {
+    @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+}
+
+.form-label-required {
+    @apply ml-0.5 font-normal text-muted-foreground;
+}

@@ -1,0 +1,15 @@
+.org-switcher {
+    @apply hidden items-center gap-2 md:flex;
+}
+
+.org-switcher-drawer {
+    @apply flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center;
+}
+
+.org-switcher app-select {
+    @apply w-auto min-w-[10rem] max-w-[14rem];
+}
+
+.org-switcher-drawer app-select {
+    @apply w-full min-w-0 max-w-none;
+}

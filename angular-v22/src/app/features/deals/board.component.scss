@@ -1,0 +1,50 @@
+/* Kanban — loaded with lazy deals board route */
+.kanban-board {
+    @apply flex gap-4 overflow-x-auto pb-4;
+    scrollbar-gutter: stable;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+}
+
+.kanban-column {
+    @apply flex min-w-[17rem] max-w-[19rem] flex-1 flex-col rounded-xl border border-border bg-card shadow-sm;
+    scroll-snap-align: start;
+}
+
+.kanban-column-header {
+    @apply flex items-center justify-between gap-2 border-b border-border px-4 py-3;
+}
+
+.kanban-column-body {
+    @apply flex min-h-[12rem] flex-1 flex-col gap-2 p-3;
+    background-color: color-mix(in oklch, var(--muted) 40%, transparent);
+}
+
+.kanban-card {
+    @apply cursor-grab rounded-lg border border-border bg-card p-3 shadow-sm transition-colors
+         hover:shadow active:cursor-grabbing;
+}
+
+.kanban-card:hover {
+    border-color: color-mix(in oklch, var(--ring) 30%, transparent);
+}
+
+.kanban-card-title {
+    @apply text-sm font-medium text-foreground;
+}
+
+.kanban-card-value {
+    @apply mt-1 text-sm font-semibold tabular-nums text-foreground;
+}
+
+.kanban-card-meta {
+    @apply mt-1 truncate text-xs text-muted-foreground;
+}
+
+.cdk-drag-preview {
+    @apply rounded-md border border-border bg-card p-3 shadow-lg;
+}
+
+.cdk-drag-placeholder {
+    @apply rounded-md border border-dashed border-border bg-muted;
+}

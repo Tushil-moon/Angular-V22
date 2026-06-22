@@ -1,0 +1,24 @@
+/* ── Alert (shadcn) ── */
+.alert {
+    @apply relative w-full rounded-lg border px-4 py-3 text-sm
+       [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4
+       [&>svg]:text-foreground [&>svg~*]:pl-7;
+}
+
+.alert-default,
+.alert-info,
+.alert-success,
+.alert-warning {
+    @apply alert border bg-background text-foreground;
+}
+
+.alert-destructive,
+.alert-danger {
+    @apply alert text-destructive [&>svg]:text-destructive;
+    border-color: color-mix(in oklch, var(--destructive) 50%, transparent);
+}
+
+.dark .alert-destructive,
+.dark .alert-danger {
+    @apply border-destructive;
+}

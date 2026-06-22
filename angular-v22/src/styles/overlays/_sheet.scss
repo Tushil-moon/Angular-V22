@@ -1,0 +1,24 @@
+/* ── Sheet (shadcn) ── */
+.sheet-overlay {
+    @apply fixed inset-0 z-[var(--z-sheet)];
+    background-color: rgb(0 0 0 / 0.5);
+}
+
+.sheet-content {
+    @apply fixed inset-y-0 left-0 z-[var(--z-sheet)] flex w-3/4 max-w-sm flex-col gap-4
+       border-r border-border bg-background p-6 shadow-lg sm:max-w-sm;
+    padding-top: max(1.5rem, env(safe-area-inset-top));
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+.sheet-header {
+    @apply flex flex-col gap-2 text-left sm:flex-row sm:items-center sm:justify-between;
+}
+
+.sheet-title {
+    @apply text-lg font-semibold text-foreground;
+}
+
+.sheet-body {
+    @apply flex-1 overflow-auto;
+}

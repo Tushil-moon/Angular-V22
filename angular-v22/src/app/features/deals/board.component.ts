@@ -10,7 +10,7 @@ import {
     moveItemInArray,
     transferArrayItem,
 } from '@angular/cdk/drag-drop';
-import { Component, computed, inject, resource, signal } from '@angular/core';
+import { Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Deal, DealBoardColumn, DealStage } from '@models/index';
 import { AuthService, DealService, PermissionService } from '@services/index';
@@ -126,6 +126,8 @@ import { runResourceLoader } from '@shared/utils/resource-error';
             }
         </div>
     `,
+    styleUrl: './board.component.scss',
+    encapsulation: ViewEncapsulation.None,
 })
 export class DealsBoardComponent {
     private readonly authService = inject(AuthService);

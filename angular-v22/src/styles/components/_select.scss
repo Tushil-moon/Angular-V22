@@ -1,0 +1,64 @@
+@use 'mixins' as *;
+
+/* ── Select (shadcn / Radix) ── */
+.select-root {
+    @apply w-full min-w-0;
+}
+
+.select-wrap {
+    @apply relative inline-flex w-full min-w-0;
+}
+
+.select-trigger {
+    @apply flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm
+       shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 text-foreground dark:bg-input/30;
+    @include shadcn-input-focus;
+}
+
+.select-trigger-sm {
+    @apply h-8 py-1;
+}
+
+.select-trigger-invalid {
+    @apply border-destructive focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40;
+}
+
+.select-value {
+    @apply pointer-events-none line-clamp-1 text-left;
+}
+
+.select-trigger-icon {
+    @apply shrink-0 opacity-50;
+}
+
+.select-content {
+    @apply z-[var(--z-dropdown)] max-h-60 min-w-full overflow-y-auto rounded-md border border-border
+       bg-popover p-1 text-popover-foreground shadow-md;
+    @include overlay-panel-animation;
+}
+
+.select-overlay-panel {
+    z-index: calc(var(--z-overlay) + 1) !important;
+}
+
+.select-item {
+    @apply relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm
+       outline-none transition-colors disabled:pointer-events-none disabled:opacity-50;
+}
+
+.select-item:hover:not(:disabled),
+.select-item-focused:not(:disabled) {
+    @apply bg-accent text-accent-foreground;
+}
+
+.select-item-indicator {
+    @apply absolute right-2 flex h-4 w-4 items-center justify-center;
+}
+
+.select-filter {
+    @apply w-full sm:w-36 shrink-0;
+}
+
+.card-toolbar > app-filter-select {
+    @apply w-full sm:w-36 shrink-0;
+}
