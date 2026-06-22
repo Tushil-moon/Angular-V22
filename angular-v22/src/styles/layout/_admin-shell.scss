@@ -3,7 +3,6 @@
 /* Sidebar — shadcn inset shell (Figma 1094:3206) */
 .sidebar-wrapper {
     @apply flex h-svh w-full overflow-hidden border border-border bg-sidebar text-sidebar-foreground;
-    border-radius: var(--shell-radius);
 }
 
 .sidebar {
