@@ -44,7 +44,7 @@ import { runResourceLoader } from '@shared/utils/resource-error';
         BadgeComponent,
     ],
     template: `
-        <div class="page-shell">
+        <div class="page-shell page-shell-fill">
             <div class="page-toolbar">
                 <div class="page-header">
                     <h1 class="page-title">Deal board</h1>
