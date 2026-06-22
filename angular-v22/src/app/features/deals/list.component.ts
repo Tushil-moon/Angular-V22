@@ -72,21 +72,16 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
                     <p class="page-description">Track pipeline opportunities and revenue</p>
                 </div>
                 @if (canManage()) {
-                    <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                    <div class="toolbar-actions">
                         <app-button
                             variant="outline"
-                            class="w-full sm:w-auto"
                             size="sm"
                             routerLink="/dashboard/deals/board"
                         >
                             <app-icon name="list" [size]="14" />
                             Board view
                         </app-button>
-                        <app-button
-                            class="w-full sm:w-auto"
-                            size="sm"
-                            (clicked)="openCreateDialog()"
-                        >
+                        <app-button size="sm" (clicked)="openCreateDialog()">
                             <app-icon name="plus" [size]="14" />
                             Create deal
                         </app-button>
@@ -94,7 +89,6 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
                 } @else {
                     <app-button
                         variant="outline"
-                        class="w-full sm:w-auto"
                         size="sm"
                         routerLink="/dashboard/deals/board"
                     >

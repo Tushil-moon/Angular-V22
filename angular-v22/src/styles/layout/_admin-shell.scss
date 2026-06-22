@@ -2,7 +2,10 @@
 
 /* Sidebar — shadcn inset shell (Figma 1094:3206) */
 .sidebar-wrapper {
-    @apply flex h-svh w-full overflow-hidden border border-border bg-sidebar text-sidebar-foreground;
+    @apply flex w-full overflow-hidden border border-border bg-sidebar text-sidebar-foreground;
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
 }
 
 .sidebar {
@@ -29,8 +32,6 @@
 
 .sidebar-inset {
     @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden;
-    padding-block: var(--inset-gutter);
-    padding-inline-end: var(--inset-gutter);
 }
 
 .sidebar-inset-main {
@@ -259,13 +260,47 @@
 
 /* Site header — inside inset main panel */
 .site-header {
-    @apply sticky top-0 z-[var(--z-sticky)] flex h-16 shrink-0 items-center justify-between gap-2 bg-background px-4;
+    @apply sticky top-0 z-[var(--z-sticky)] flex h-16 shrink-0 items-center justify-between gap-2 overflow-hidden bg-background px-4;
     padding-top: env(safe-area-inset-top);
     min-height: calc(4rem + env(safe-area-inset-top));
 }
 
 .site-header-start {
-    @apply flex min-w-0 flex-1 items-center gap-2;
+    @apply flex min-w-0 flex-1 items-center gap-2 overflow-hidden;
+}
+
+.site-header-mobile-title {
+    @apply min-w-0 flex-1 truncate text-sm font-semibold leading-none text-foreground lg:hidden;
+}
+
+.site-header-icon-btn {
+    @apply inline-flex size-9 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.site-header-icon-btn:hover {
+    @apply bg-accent text-accent-foreground;
+}
+
+.site-header-icon-btn:focus-visible {
+    @include focus-ring-offset;
+}
+
+.site-header-profile-btn {
+    @apply inline-flex h-9 shrink-0 items-center gap-1 rounded-md px-1.5 text-muted-foreground transition-colors;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.site-header-profile-btn:hover {
+    @apply bg-accent text-accent-foreground;
+}
+
+.site-header-profile-btn:focus-visible {
+    @include focus-ring-offset;
 }
 
 .site-header-separator {
@@ -285,11 +320,11 @@
 }
 
 .site-header-tools {
-    @apply ml-auto flex min-w-0 items-center gap-2 lg:ml-0;
+    @apply flex shrink-0 items-center gap-1.5 sm:gap-2;
 }
 
 .site-header-actions {
-    @apply flex shrink-0 items-center gap-2;
+    @apply flex shrink-0 items-center gap-1.5 sm:gap-2;
 }
 
 .site-header-title {
@@ -322,4 +357,66 @@
 
 .theme-toggle-btn {
     @apply gap-2 overflow-hidden text-foreground;
+}
+
+/* ── Responsive shell ── */
+@media (max-width: 767px) {
+    .sidebar-wrapper {
+        @apply border-0;
+    }
+
+    .sidebar-inset {
+        padding: 0;
+    }
+
+    .sidebar-inset-main {
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .site-header {
+        @apply h-14 gap-2 border-b border-border px-4;
+        min-height: calc(3.5rem + env(safe-area-inset-top));
+    }
+
+    .site-header-start {
+        @apply min-w-0 gap-2.5;
+    }
+
+    .site-header-actions {
+        @apply gap-0.5;
+    }
+
+    .page-content {
+        @apply gap-4 px-4 pb-5 pt-3;
+        padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .page-content::-webkit-scrollbar {
+        width: 4px;
+    }
+}
+
+@media (min-width: 768px) {
+    .sidebar-inset {
+        padding-block: var(--inset-gutter);
+        padding-inline-end: var(--inset-gutter);
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .site-header {
+        @apply px-4;
+    }
+
+    .site-header-tools {
+        @apply gap-2;
+    }
+}
+
+@media (min-width: 1024px) {
+    .site-header {
+        @apply gap-2 px-4;
+    }
 }

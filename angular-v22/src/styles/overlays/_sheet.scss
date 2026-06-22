@@ -22,3 +22,43 @@
 .sheet-body {
     @apply flex-1 overflow-auto;
 }
+
+.sheet-content-sidebar {
+    width: min(100%, var(--sidebar-width));
+    max-width: var(--sidebar-width);
+    @apply gap-0 border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-lg;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.sheet-content-sidebar .sheet-body {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden p-0;
+}
+
+.sidebar-mobile-shell {
+    @apply flex h-full min-h-0 flex-col;
+}
+
+.sidebar-mobile-top {
+    @apply flex shrink-0 items-center gap-2 border-b border-sidebar-border p-2;
+}
+
+.sidebar-mobile-top .sidebar-brand {
+    @apply min-w-0 flex-1 p-2;
+}
+
+.sidebar-mobile-footer {
+    @apply mt-auto shrink-0 gap-0 border-t border-sidebar-border p-0;
+}
+
+.sidebar-mobile-footer .sidebar-group {
+    @apply gap-1 p-2 pb-1;
+}
+
+.sidebar-mobile-footer .sidebar-menu {
+    @apply gap-1 px-2 pb-2;
+}
+
+.sidebar-mobile-footer .sidebar-menu app-theme-toggle {
+    @apply block w-full min-w-0;
+}

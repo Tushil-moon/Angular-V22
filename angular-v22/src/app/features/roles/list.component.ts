@@ -40,7 +40,7 @@ import { RoleCreateDialogComponent, RoleCreateDialogResult } from './role-create
                     <p class="page-description">Manage roles and permissions</p>
                 </div>
                 @if (canManage()) {
-                    <app-button class="w-full sm:w-auto" size="sm" (clicked)="openCreateDialog()">
+                    <app-button size="sm" (clicked)="openCreateDialog()">
                         <app-icon name="plus" [size]="14" />
                         Create role
                     </app-button>

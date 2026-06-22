@@ -11,7 +11,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl' | 'icon';
 @Component({
     selector: 'app-button',
     host: {
-        class: 'inline-flex',
+        '[class]': 'hostClass()',
     },
     template: `
         <button
@@ -32,6 +32,13 @@ export class ButtonComponent {
     type = input<'button' | 'submit' | 'reset'>('button');
     form = input('');
     className = input('');
+
+    hostClass = computed(() => {
+        const extra = this.className();
+        const stretch = extra.includes('toolbar-btn') || extra.includes('w-full') || extra.includes('btn-full');
+        return cn('inline-flex shrink-0 min-w-0', extra, stretch && 'flex w-full');
+    });
+
     clicked = output<MouseEvent>();
 
     buttonClass = computed(() => {

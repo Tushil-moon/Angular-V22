@@ -26,7 +26,7 @@ export class TabsListComponent {}
 @Component({
     selector: 'app-tabs-trigger',
     host: {
-        class: 'flex min-w-0 flex-1',
+        class: 'tabs-trigger-host',
     },
     template: `
         <button

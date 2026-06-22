@@ -1,3 +1,33 @@
+.dashboard-home {
+    @apply min-w-0;
+}
+
+.dashboard-stats-grid {
+    @apply grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3;
+}
+
+.dashboard-stat-card app-card-header.stat-card-header .card-header {
+    @apply flex-row items-center justify-between gap-3 p-4 pb-2;
+}
+
+.dashboard-stat-card app-card-body .card-content {
+    @apply px-4 pb-4 pt-0;
+}
+
 .stat-icon {
-    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground;
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground;
+}
+
+.dashboard-stat-value {
+    @apply text-2xl font-bold tracking-tight text-foreground;
+}
+
+.dashboard-stat-detail {
+    @apply mt-1.5 text-xs leading-relaxed text-muted-foreground;
+}
+
+@media (max-width: 639px) {
+    .dashboard-home .page-title {
+        @apply text-lg leading-tight;
+    }
 }

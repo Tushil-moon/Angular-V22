@@ -15,21 +15,24 @@ import { IconComponent } from './icon.component';
             <div class="sheet-overlay animate-fadeIn" (click)="close()" aria-hidden="true"></div>
             <div
                 class="sheet-content animate-slideInLeft"
+                [class.sheet-content-sidebar]="variant() === 'sidebar'"
                 role="dialog"
                 aria-modal="true"
-                [attr.aria-label]="title()"
+                [attr.aria-label]="title() || 'Menu'"
             >
-                <div class="sheet-header">
-                    <h2 class="sheet-title">{{ title() }}</h2>
-                    <button
-                        type="button"
-                        class="btn btn-ghost btn-icon"
-                        (click)="close()"
-                        aria-label="Close"
-                    >
-                        <app-icon name="x" [size]="18" />
-                    </button>
-                </div>
+                @if (showHeader()) {
+                    <div class="sheet-header">
+                        <h2 class="sheet-title">{{ title() }}</h2>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-icon"
+                            (click)="close()"
+                            aria-label="Close"
+                        >
+                            <app-icon name="x" [size]="18" />
+                        </button>
+                    </div>
+                }
                 <div class="sheet-body">
                     <ng-content></ng-content>
                 </div>
@@ -41,6 +44,8 @@ export class SheetComponent {
     private readonly platformId = inject(PLATFORM_ID);
 
     title = input('Menu');
+    variant = input<'default' | 'sidebar'>('default');
+    showHeader = input(true);
     isOpen = input(false);
     isOpenChange = output<boolean>();
 

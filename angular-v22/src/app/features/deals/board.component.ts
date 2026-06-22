@@ -53,7 +53,6 @@ import { runResourceLoader } from '@shared/utils/resource-error';
                 <app-button
                     variant="outline"
                     size="sm"
-                    class="w-full sm:w-auto"
                     routerLink="/dashboard/deals"
                 >
                     <app-icon name="list" [size]="14" />

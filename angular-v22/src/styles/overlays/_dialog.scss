@@ -59,7 +59,7 @@
 }
 
 .dialog-footer {
-    @apply flex shrink-0 flex-col-reverse gap-2 sm:flex-row sm:justify-end;
+    @apply grid shrink-0 grid-cols-1 gap-2 sm:flex sm:flex-row sm:justify-end;
 }
 
 /* Projected footer slot — don't break flex layout */
@@ -68,11 +68,21 @@
 }
 
 .dialog-footer app-button {
-    @apply w-full sm:w-auto;
+    @apply flex w-full min-w-0 sm:w-auto;
+}
 
-    .btn {
-        @apply w-full sm:w-auto;
-    }
+.dialog-footer app-button .btn {
+    @apply w-full justify-center sm:w-auto;
+}
+
+.dialog-footer:has(> app-button:nth-child(2):last-child),
+.dialog-footer:has([dialogFooter] > app-button:nth-child(2):last-child) {
+    @apply grid-cols-2 sm:flex;
+}
+
+.dialog-footer:has(> app-button:nth-child(3)),
+.dialog-footer:has([dialogFooter] > app-button:nth-child(3)) {
+    @apply grid-cols-1 sm:flex;
 }
 
 .dialog-footer:empty {
@@ -97,11 +107,15 @@
 }
 
 .dialog-section-toolbar {
-    @apply flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between;
+    @apply grid w-full gap-2 sm:flex sm:flex-row sm:items-center sm:justify-between;
 }
 
 .dialog-section-toolbar app-button {
-    @apply w-full shrink-0 sm:w-auto;
+    @apply flex w-full min-w-0 sm:w-auto;
+}
+
+.dialog-section-toolbar app-button .btn {
+    @apply w-full justify-center sm:w-auto;
 }
 
 .dialog-roles-section {

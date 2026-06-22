@@ -32,33 +32,32 @@ import { DashboardPanelsComponent } from './dashboard-panels.component';
         DashboardPanelsComponent,
     ],
     template: `
-        <div class="page-shell">
+        <div class="page-shell dashboard-home">
             <div class="page-toolbar">
                 <div class="page-header">
                     <h1 class="page-title">Welcome back, {{ displayName() }}</h1>
                     <p class="page-description">Here's what's happening in your workspace today.</p>
                 </div>
-                <div class="card-toolbar">
+                <div class="toolbar-actions">
                     <app-button
                         variant="outline"
                         size="sm"
-                        class="w-full sm:w-auto"
                         (clicked)="refreshStats()"
                     >
                         Refresh
                     </app-button>
-                    <app-button size="sm" class="w-full sm:w-auto" (clicked)="showWelcomeToast()">
+                    <app-button size="sm" (clicked)="showWelcomeToast()">
                         <app-icon name="plus" [size]="14" />
                         Quick action
                     </app-button>
                 </div>
             </div>
 
-            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div class="dashboard-stats-grid">
                 @if (!dashboardService.isLoading()) {
                     @for (stat of stats(); track stat.label) {
-                        <app-card>
-                            <app-card-header [row]="true">
+                        <app-card class="dashboard-stat-card">
+                            <app-card-header class="stat-card-header">
                                 <app-card-description>{{ stat.label }}</app-card-description>
                                 <div class="stat-icon">
                                     <app-icon
@@ -69,19 +68,19 @@ import { DashboardPanelsComponent } from './dashboard-panels.component';
                                 </div>
                             </app-card-header>
                             <app-card-body>
-                                <div class="text-2xl font-bold tracking-tight">
+                                <div class="dashboard-stat-value">
                                     {{ stat.value }}
                                 </div>
-                                <p class="text-xs text-muted-foreground mt-1">{{ stat.detail }}</p>
+                                <p class="dashboard-stat-detail">{{ stat.detail }}</p>
                             </app-card-body>
                         </app-card>
                     }
                 } @else {
                     @for (_ of statsSkeletonItems; track $index) {
-                        <app-card>
-                            <app-card-header [row]="true">
+                        <app-card class="dashboard-stat-card">
+                            <app-card-header class="stat-card-header">
                                 <app-skeleton className="h-3 w-20" />
-                                <app-skeleton className="h-8 w-8 shrink-0 rounded-md" />
+                                <app-skeleton className="h-9 w-9 shrink-0 rounded-md" />
                             </app-card-header>
                             <app-card-body>
                                 <div class="space-y-2">

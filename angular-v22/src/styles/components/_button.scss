@@ -60,6 +60,11 @@
     @apply w-full;
 }
 
+/* Toolbar / page action buttons — full width on mobile, auto on sm+ */
+.toolbar-btn {
+    @apply w-full justify-center sm:w-auto;
+}
+
 /* Default size (md) */
 .btn:not(.btn-sm):not(.btn-lg):not(.btn-xl):not(.btn-icon):not(.btn-link) {
     @apply h-9 px-4 py-2;

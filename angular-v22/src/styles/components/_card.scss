@@ -12,15 +12,32 @@
 }
 
 .card-toolbar {
-    @apply flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-nowrap sm:items-center sm:justify-end;
+    @apply grid w-full min-w-0 grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end;
 }
 
 .card-toolbar > app-search-input {
     @apply w-full sm:w-64 shrink-0;
 }
 
+.card-toolbar > app-filter-select {
+    @apply w-full shrink-0 sm:w-36;
+}
+
 .card-toolbar > app-button {
-    @apply w-full sm:w-auto shrink-0;
+    @apply flex min-w-0 w-full shrink-0 sm:w-auto;
+}
+
+.card-toolbar:has(> app-button:nth-child(2):last-child) {
+    @apply grid-cols-2 sm:flex;
+}
+
+.card-header-row > app-button,
+.card-header-row > .toolbar-actions {
+    @apply w-full min-w-0 sm:w-auto sm:shrink-0;
+}
+
+.card-header-row > app-button {
+    @apply flex;
 }
 
 .card-title {
@@ -90,4 +107,30 @@
 
 .card-footer {
     @apply flex items-center p-6 pt-0;
+}
+
+@media (max-width: 639px) {
+    .card-header {
+        @apply gap-1.5 p-4;
+    }
+
+    .card-header-row {
+        @apply gap-3;
+    }
+
+    .card-content {
+        @apply p-4 pt-0;
+    }
+
+    .card-footer {
+        @apply p-4 pt-0;
+    }
+
+    .card-title {
+        @apply text-lg leading-tight;
+    }
+
+    .card-toolbar {
+        @apply gap-2;
+    }
 }

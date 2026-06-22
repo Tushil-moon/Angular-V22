@@ -11,23 +11,33 @@ import { SelectComponent, SelectOption } from './select.component';
     imports: [IconComponent, SelectComponent],
     template: `
         @if (memberships().length > 0) {
-            <div
-                [class.org-switcher]="mode() === 'header'"
-                [class.org-switcher-drawer]="mode() === 'drawer'"
-            >
-                <app-icon
-                    name="building-2"
-                    [size]="14"
-                    className="text-muted-foreground shrink-0"
-                />
-                <app-select
-                    [options]="orgOptions()"
-                    [value]="activeOrganizationId() ?? ''"
-                    size="sm"
-                    ariaLabel="Switch organization"
-                    (valueChange)="onSwitch($event)"
-                />
-            </div>
+            @if (mode() === 'drawer') {
+                <div class="org-switcher-drawer sidebar-menu-button">
+                    <app-icon name="building-2" [size]="16" className="shrink-0" />
+                    <app-select
+                        [options]="orgOptions()"
+                        [value]="activeOrganizationId() ?? ''"
+                        size="sm"
+                        ariaLabel="Switch organization"
+                        (valueChange)="onSwitch($event)"
+                    />
+                </div>
+            } @else {
+                <div class="org-switcher">
+                    <app-icon
+                        name="building-2"
+                        [size]="14"
+                        className="text-muted-foreground shrink-0"
+                    />
+                    <app-select
+                        [options]="orgOptions()"
+                        [value]="activeOrganizationId() ?? ''"
+                        size="sm"
+                        ariaLabel="Switch organization"
+                        (valueChange)="onSwitch($event)"
+                    />
+                </div>
+            }
         }
     `,
     styleUrl: './org-switcher.component.scss',

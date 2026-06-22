@@ -60,6 +60,7 @@
     @include meta.load-css('styles/components/textarea');
     @include meta.load-css('styles/components/select');
     @include meta.load-css('styles/components/checkbox');
+    @include meta.load-css('styles/components/tabs');
     @include meta.load-css('styles/components/switch');
     @include meta.load-css('styles/components/badge');
     @include meta.load-css('styles/components/alert');

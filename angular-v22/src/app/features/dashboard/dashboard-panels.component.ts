@@ -39,7 +39,7 @@ import { formatDealValue } from '@shared/config/deals-table.config';
         SeparatorComponent,
     ],
     template: `
-        <div class="grid gap-4 lg:grid-cols-7">
+        <div class="dashboard-panels grid gap-3 sm:gap-4 lg:grid-cols-7">
             <app-card class="lg:col-span-7">
                 <app-card-header>
                     <app-card-title>Sales pipeline</app-card-title>

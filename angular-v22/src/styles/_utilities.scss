@@ -43,33 +43,18 @@
     scrollbar-gutter: stable;
 }
 
-.settings-tabs,
-.tabs-list {
-    @apply flex h-10 w-full max-w-3xl items-center gap-1 rounded-lg bg-muted p-1 text-muted-foreground;
-}
-
-.settings-tab,
-.tabs-trigger {
-    @apply inline-flex h-8 w-full min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-transparent px-3 py-1.5 text-sm font-medium
-       text-foreground transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50
-       disabled:pointer-events-none disabled:opacity-50;
-
-    &:hover {
-        @apply text-foreground;
-    }
-}
-
-.settings-tab-active,
-.tabs-trigger-active {
-    @apply border-border bg-background text-foreground shadow-sm;
-}
-
-.tabs-content {
-    @apply mt-4 max-w-3xl focus-visible:outline-none;
-}
-
 .settings-panel {
     @apply max-w-3xl space-y-4;
+}
+
+.settings-panel form > div:has(> app-button) app-button,
+.settings-profile-header app-button {
+    @apply flex w-full min-w-0 sm:w-auto;
+}
+
+.settings-panel form > div:has(> app-button) app-button .btn,
+.settings-profile-header app-button .btn {
+    @apply w-full justify-center sm:w-auto;
 }
 
 .settings-profile-header {
@@ -83,6 +68,14 @@
 
 .settings-session-row {
     @apply flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between;
+}
+
+.settings-session-row app-button {
+    @apply flex w-full min-w-0 sm:w-auto;
+}
+
+.settings-session-row app-button .btn {
+    @apply w-full justify-center sm:w-auto;
 }
 
 .settings-section {

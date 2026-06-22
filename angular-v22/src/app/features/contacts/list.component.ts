@@ -66,7 +66,7 @@ const EMPTY_PAGE: ContactsPageResult = { contacts: [], total: 0 };
                     <p class="page-description">Manage leads, prospects, and customers</p>
                 </div>
                 @if (canManage()) {
-                    <app-button class="w-full sm:w-auto" size="sm" (clicked)="openCreateDialog()">
+                    <app-button size="sm" (clicked)="openCreateDialog()">
                         <app-icon name="plus" [size]="14" />
                         Add contact
                     </app-button>

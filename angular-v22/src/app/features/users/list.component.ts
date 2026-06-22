@@ -64,7 +64,7 @@ const EMPTY_USERS_PAGE: UsersPageResult = { users: [], total: 0 };
                     <p class="page-description">Manage user accounts and permissions</p>
                 </div>
                 @if (canManage()) {
-                    <app-button class="w-full sm:w-auto" size="sm" (clicked)="openCreateDialog()">
+                    <app-button size="sm" (clicked)="openCreateDialog()">
                         <app-icon name="plus" [size]="14" />
                         Add user
                     </app-button>

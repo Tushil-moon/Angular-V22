@@ -166,7 +166,7 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
                             </button>
                             <button
                                 type="button"
-                                class="sidebar-trigger-btn md:hidden"
+                                class="site-header-icon-btn md:hidden"
                                 (click)="mobileNavOpen.set(true)"
                                 aria-label="Open menu"
                             >
@@ -185,21 +185,22 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
                                 />
                                 <span class="site-header-breadcrumb-current">{{ pageTitle() }}</span>
                             </nav>
-                            <div class="site-header-tools">
+                            <span class="site-header-mobile-title lg:hidden">{{ pageTitle() }}</span>
+                            <div class="site-header-tools hidden sm:flex">
                                 <app-org-switcher mode="header" />
                                 <app-global-search variant="header" />
-                                <button
-                                    type="button"
-                                    class="sidebar-trigger-btn sm:hidden"
-                                    (click)="mobileSearchOpen.set(true)"
-                                    aria-label="Open search"
-                                >
-                                    <app-icon name="search" [size]="16" />
-                                </button>
                             </div>
                         </div>
 
                         <div class="site-header-actions">
+                            <button
+                                type="button"
+                                class="site-header-icon-btn sm:hidden"
+                                (click)="mobileSearchOpen.set(true)"
+                                aria-label="Open search"
+                            >
+                                <app-icon name="search" [size]="16" />
+                            </button>
                             <app-theme-toggle class="hidden sm:inline-flex" />
                             <button
                                 type="button"
@@ -215,7 +216,8 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
                                     <button
                                         dropdownTrigger
                                         type="button"
-                                        class="btn btn-ghost btn-sm gap-2 pl-1 pr-2"
+                                        class="site-header-profile-btn"
+                                        aria-label="Account menu"
                                     >
                                         <app-avatar [fallback]="userInitials()" size="sm" />
                                         <app-icon
@@ -263,36 +265,66 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
         </div>
 
         <app-sheet
-            title="Navigation"
+            variant="sidebar"
+            [showHeader]="false"
             [isOpen]="mobileNavOpen()"
             (isOpenChange)="mobileNavOpen.set($event)"
         >
-            <div class="sidebar-group !px-0">
-                <p class="sidebar-group-label">Platform</p>
-                <app-nav-menu
-                    [items]="navItems()"
-                    labelClass=""
-                    (itemSelected)="mobileNavOpen.set(false)"
-                />
+            <div class="sidebar-mobile-shell">
+                <div class="sidebar-mobile-top">
+                    <div class="sidebar-brand">
+                        <div class="sidebar-brand-icon shrink-0">
+                            <svg
+                                viewBox="0 0 24 24"
+                                class="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                aria-hidden="true"
+                            >
+                                <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" />
+                            </svg>
+                        </div>
+                        <div class="sidebar-brand-text">
+                            <span class="sidebar-brand-title">Angular V22</span>
+                            <span class="sidebar-brand-subtitle">Workspace</span>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        class="sidebar-trigger-btn"
+                        (click)="mobileNavOpen.set(false)"
+                        aria-label="Close menu"
+                    >
+                        <app-icon name="x" [size]="16" />
+                    </button>
+                </div>
+
+                <div class="sidebar-content custom-scrollbar">
+                    <div class="sidebar-group">
+                        <p class="sidebar-group-label">Platform</p>
+                        <app-nav-menu
+                            [items]="navItems()"
+                            labelClass=""
+                            (itemSelected)="mobileNavOpen.set(false)"
+                        />
+                    </div>
+                </div>
+
+                <div class="sidebar-footer sidebar-mobile-footer">
+                    <div class="sidebar-group">
+                        <p class="sidebar-group-label">Organization</p>
+                        <app-org-switcher mode="drawer" />
+                    </div>
+                    <nav class="sidebar-menu" aria-label="Workspace actions">
+                        <app-theme-toggle [sidebar]="true" [showLabel]="true" />
+                        <button type="button" class="sidebar-menu-button" (click)="logout()">
+                            <app-icon name="log-out" [size]="16" />
+                            <span>Log out</span>
+                        </button>
+                    </nav>
+                </div>
             </div>
-
-            <app-separator className="my-4" />
-
-            <div class="mobile-drawer-section">
-                <p class="sidebar-group-label mb-2">Organization</p>
-                <app-org-switcher mode="drawer" />
-            </div>
-
-            <app-separator className="my-4" />
-
-            <div class="mb-4">
-                <app-theme-toggle />
-            </div>
-
-            <button type="button" class="sidebar-menu-button w-full" (click)="logout()">
-                <app-icon name="log-out" [size]="16" />
-                <span>Log out</span>
-            </button>
         </app-sheet>
 
         <app-sheet
