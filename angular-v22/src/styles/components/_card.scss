@@ -118,6 +118,14 @@
         @apply gap-3;
     }
 
+    .card-header-row .card-toolbar {
+        @apply w-full;
+    }
+
+    .card-fill .card-header-row {
+        @apply gap-3;
+    }
+
     .card-content {
         @apply p-4 pt-0;
     }

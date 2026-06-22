@@ -14,7 +14,7 @@ export type DialogSize = 'sm' | 'default' | 'lg';
 @Component({
     selector: 'app-dialog',
     host: {
-        class: 'block',
+        class: 'block w-full min-h-0 max-h-full',
     },
     imports: [A11yModule, IconComponent],
     template: `

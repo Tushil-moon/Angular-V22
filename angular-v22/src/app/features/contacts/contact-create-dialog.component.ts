@@ -36,7 +36,7 @@ const STATUS_OPTIONS = Object.entries(CONTACT_STATUS_LABELS) as [ContactStatus, 
         TextareaComponent,
     ],
     template: `
-        <app-dialog title="Add contact" description="Create a new CRM contact.">
+        <app-dialog title="Add contact" description="Create a new CRM contact." size="lg">
             <form
                 id="contact-create-form"
                 [formGroup]="form"

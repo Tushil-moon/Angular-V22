@@ -263,6 +263,7 @@ export class FlexTableRowComponent {
         role: 'cell',
         '[class]': 'hostClass()',
         '[attr.data-label]': 'columnLabel()',
+        '[attr.data-column]': 'column()',
         '[attr.data-primary]': 'isPrimary() ? "true" : null',
     },
     template: `<ng-content />`,

@@ -260,13 +260,17 @@
 
 /* Site header — inside inset main panel */
 .site-header {
-    @apply sticky top-0 z-[var(--z-sticky)] flex h-16 shrink-0 items-center justify-between gap-2 overflow-hidden bg-background px-4;
+    @apply sticky top-0 z-[var(--z-sticky)] flex h-16 shrink-0 items-center justify-between gap-2 bg-background px-4;
     padding-top: env(safe-area-inset-top);
     min-height: calc(4rem + env(safe-area-inset-top));
 }
 
 .site-header-start {
     @apply flex min-w-0 flex-1 items-center gap-2 overflow-hidden;
+}
+
+.site-header-actions {
+    @apply relative z-[calc(var(--z-sticky)+1)] flex shrink-0 items-center gap-1.5 sm:gap-2;
 }
 
 .site-header-mobile-title {
@@ -320,10 +324,6 @@
 }
 
 .site-header-tools {
-    @apply flex shrink-0 items-center gap-1.5 sm:gap-2;
-}
-
-.site-header-actions {
     @apply flex shrink-0 items-center gap-1.5 sm:gap-2;
 }
 

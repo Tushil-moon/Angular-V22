@@ -1,18 +1,14 @@
 @use 'mixins' as *;
 
 /* ── Dropdown (shadcn) ── */
+.dropdown-overlay-panel {
+    z-index: var(--z-dropdown) !important;
+}
+
 .dropdown-content {
-    @apply absolute z-[var(--z-dropdown)] mt-1 min-w-[12rem] origin-top overflow-hidden rounded-md border
-       border-border bg-popover p-1 text-popover-foreground shadow-lg;
+    @apply z-[var(--z-dropdown)] min-w-[12rem] overflow-hidden rounded-md border border-border
+       bg-popover p-1 text-popover-foreground shadow-lg;
     @include overlay-panel-animation;
-}
-
-.dropdown-content-end {
-    @apply right-0;
-}
-
-.dropdown-content-start {
-    @apply left-0;
 }
 
 .dropdown-label {

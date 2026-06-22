@@ -1,65 +1,85 @@
 /* ── Dialog (shadcn/ui v4 new-york) ── */
 .cdk-overlay-backdrop.dialog-backdrop {
-    background-color: rgb(0 0 0 / 0.5) !important;
+    background-color: var(--overlay-backdrop) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: dialogOverlayIn 200ms ease-out;
     transition: opacity 200ms ease-out !important;
 }
 
 .cdk-overlay-pane.dialog-overlay-pane {
-    @apply pointer-events-none flex h-[100dvh] w-screen items-center justify-center p-4;
-    max-height: none !important;
+    @apply pointer-events-none flex w-screen items-center justify-center;
+    height: 100dvh;
+    max-height: 100dvh;
     max-width: none !important;
     width: 100vw !important;
+    padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+        max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
 }
 
 .dialog-panel {
-    @apply pointer-events-auto relative mx-auto grid w-full max-w-[calc(100vw-2rem)] gap-4 overflow-hidden rounded-lg border border-border
-       bg-background p-6 text-foreground shadow-lg;
+    @apply pointer-events-auto relative mx-auto grid w-full gap-4 overflow-hidden rounded-xl border border-border
+       bg-card text-card-foreground shadow-xl;
     grid-template-rows: auto minmax(0, 1fr) auto;
-    max-height: calc(100vh - 2rem);
+    width: 100%;
+    max-width: min(32rem, 100%);
+    max-height: calc(
+        100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    );
+    padding: 1.5rem;
     flex: 0 1 auto;
 }
 
 .dialog-panel-sm {
-    max-width: 24rem;
+    max-width: min(24rem, 100%);
 }
 
 .dialog-panel-md {
-    max-width: 32rem;
+    max-width: min(32rem, 100%);
 }
 
 .dialog-panel-lg {
-    max-width: 42rem;
+    max-width: min(42rem, 100%);
 }
 
 .dialog-close {
-    @apply absolute right-4 top-4 z-10 inline-flex rounded-sm opacity-70 ring-offset-background
-       transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring
-       focus:ring-offset-2 disabled:pointer-events-none;
+    @apply absolute right-4 top-4 z-10 inline-flex size-8 items-center justify-center rounded-md
+       opacity-70 ring-offset-background transition-opacity hover:bg-accent hover:opacity-100
+       focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none;
     border: 0;
     background: transparent;
     color: inherit;
     cursor: pointer;
-    padding: 0.125rem;
 }
 
 .dialog-header {
-    @apply flex shrink-0 flex-col gap-2 pr-8 text-center sm:text-left;
+    @apply flex shrink-0 flex-col gap-2 border-b border-border pb-4 pr-10 text-left;
 }
 
 .dialog-title {
-    @apply text-lg font-semibold leading-none tracking-tight text-foreground;
+    @apply text-lg font-semibold leading-tight tracking-tight text-card-foreground;
 }
 
 .dialog-description {
-    @apply text-sm text-muted-foreground;
+    @apply text-sm leading-relaxed text-muted-foreground;
 }
 
 .dialog-body {
-    @apply min-h-0 overflow-y-auto text-foreground;
+    @apply min-h-0 overflow-y-auto overscroll-y-contain py-1 text-card-foreground;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
+}
+
+.dialog-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dialog-body::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
 }
 
 .dialog-footer {
-    @apply grid shrink-0 grid-cols-1 gap-2 sm:flex sm:flex-row sm:justify-end;
+    @apply grid shrink-0 grid-cols-1 gap-2 border-t border-border pt-4 sm:flex sm:flex-row sm:flex-wrap sm:justify-end;
 }
 
 /* Projected footer slot — don't break flex layout */
@@ -134,7 +154,7 @@
 }
 
 .dialog-activity-list {
-    @apply divide-y divide-border overflow-hidden rounded-md border border-border;
+    @apply max-h-64 divide-y divide-border overflow-y-auto overscroll-y-contain rounded-md border border-border;
 }
 
 .dialog-activity-item {
@@ -142,10 +162,71 @@
 }
 
 .dialog-loading {
-    @apply flex justify-center py-10;
+    @apply flex min-h-[10rem] items-center justify-center py-10;
 }
 
 .dialog-convert-panel {
     @apply space-y-3 rounded-md border border-border p-4;
     background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+}
+
+/* ── Responsive dialog ── */
+@media (max-width: 639px) {
+    .cdk-overlay-pane.dialog-overlay-pane {
+        padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right))
+            max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+    }
+
+    .dialog-panel {
+        @apply gap-3 rounded-lg;
+        max-height: calc(
+            100dvh - 1.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+        );
+        padding: 1rem;
+    }
+
+    .dialog-close {
+        @apply right-3 top-3;
+    }
+
+    .dialog-header {
+        @apply gap-1.5 pb-3 pr-9;
+    }
+
+    .dialog-title {
+        @apply text-base;
+    }
+
+    .dialog-footer {
+        @apply gap-2 pt-3;
+    }
+
+    .dialog-profile-header {
+        @apply p-3;
+    }
+
+    .dialog-roles-section,
+    .dialog-convert-panel {
+        @apply p-3;
+    }
+
+    .dialog-activity-list {
+        max-height: min(16rem, 40dvh);
+    }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+    .dialog-panel-lg {
+        max-width: min(42rem, calc(100vw - 2rem));
+    }
+
+    .dialog-panel-md {
+        max-width: min(32rem, calc(100vw - 2rem));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cdk-overlay-backdrop.dialog-backdrop {
+        animation: none !important;
+    }
 }

@@ -37,7 +37,7 @@ const STAGE_OPTIONS = Object.entries(DEAL_STAGE_LABELS) as [DealStage, string][]
         TextareaComponent,
     ],
     template: `
-        <app-dialog title="Create deal" description="Add a new opportunity to your pipeline.">
+        <app-dialog title="Create deal" description="Add a new opportunity to your pipeline." size="lg">
             <form
                 id="deal-create-form"
                 [formGroup]="form"

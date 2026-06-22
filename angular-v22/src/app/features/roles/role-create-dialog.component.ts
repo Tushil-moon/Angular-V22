@@ -28,7 +28,7 @@ export type RoleCreateDialogResult = 'created';
         LoaderComponent,
     ],
     template: `
-        <app-dialog title="Create role" description="Add a new role to the system.">
+        <app-dialog title="Create role" description="Add a new role to the system." size="sm">
             <form
                 id="role-create-form"
                 [formGroup]="form"
