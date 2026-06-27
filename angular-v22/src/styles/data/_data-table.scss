@@ -1,0 +1,41 @@
+.table-wrapper {
+    @apply relative w-full overflow-auto;
+}
+
+.data-table {
+    @apply w-full caption-bottom text-sm;
+}
+
+.data-table thead tr {
+    @apply border-b border-border;
+}
+
+.data-table th {
+    @apply h-10 px-4 text-left align-middle font-medium text-muted-foreground;
+}
+
+.data-table td {
+    @apply px-4 py-3 align-middle;
+}
+
+.data-table tbody tr {
+    @apply border-b border-border transition-colors;
+}
+
+.data-table tbody tr:hover {
+    @apply bg-muted/50;
+}
+
+.data-table tbody tr:last-child {
+    @apply border-0;
+}
+
+.card-content-flush .data-table th:first-child,
+.card-content-flush .data-table td:first-child {
+    @apply pl-6;
+}
+
+.card-content-flush .data-table th:last-child,
+.card-content-flush .data-table td:last-child {
+    @apply pr-6;
+}

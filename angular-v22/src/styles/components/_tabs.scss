@@ -1,0 +1,93 @@
+/* ── Tabs (shadcn) ── */
+.tabs-list {
+    @apply w-full max-w-3xl gap-1.5 rounded-lg bg-muted p-1.5 text-muted-foreground;
+    min-height: 2.5rem;
+}
+
+/* Mobile: 2-column grid — fits 4 settings tabs without overflow */
+@media (max-width: 639px) {
+    .tabs-list {
+        @apply grid max-w-none grid-cols-2 gap-1.5;
+        height: auto;
+    }
+
+    .tabs-trigger-host {
+        @apply min-w-0;
+    }
+
+    .tabs-trigger {
+        @apply h-9 px-2 text-xs;
+    }
+}
+
+/* Tablet+: single row, equal-width segments */
+@media (min-width: 640px) {
+    .tabs-list {
+        @apply grid items-center;
+        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    }
+}
+
+/* Desktop: slightly roomier labels */
+@media (min-width: 1024px) {
+    .tabs-trigger {
+        @apply px-3;
+    }
+}
+
+.tabs-trigger-host {
+    @apply flex min-w-0;
+}
+
+.tabs-trigger {
+    @apply inline-flex h-8 w-full min-w-0 items-center justify-center gap-1.5 truncate rounded-md border border-transparent
+       px-2.5 py-1.5 text-sm font-medium text-foreground transition-colors
+       focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50
+       disabled:pointer-events-none disabled:opacity-50;
+
+    &:hover {
+        @apply text-foreground;
+    }
+}
+
+.tabs-trigger-active {
+    @apply border-border bg-background text-foreground shadow-sm;
+}
+
+.tabs-content {
+    @apply mt-4 w-full max-w-3xl focus-visible:outline-none;
+}
+
+/* Legacy aliases */
+.settings-tabs {
+    @apply w-full max-w-3xl gap-1.5 rounded-lg bg-muted p-1.5 text-muted-foreground;
+    min-height: 2.5rem;
+}
+
+@media (max-width: 639px) {
+    .settings-tabs {
+        @apply grid max-w-none grid-cols-2 gap-1.5;
+        height: auto;
+    }
+}
+
+@media (min-width: 640px) {
+    .settings-tabs {
+        @apply grid items-center;
+        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    }
+}
+
+.settings-tab {
+    @apply inline-flex h-8 w-full min-w-0 items-center justify-center truncate rounded-md border border-transparent
+       px-2.5 py-1.5 text-sm font-medium text-foreground transition-colors
+       focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50;
+
+    &:hover {
+        @apply text-foreground;
+    }
+}
+
+.settings-tab-active {
+    @apply border-border bg-background text-foreground shadow-sm;
+}

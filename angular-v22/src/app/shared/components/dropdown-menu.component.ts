@@ -1,132 +1,218 @@
 /**
- * Dropdown Menu — shadcn-style dropdown
+ * Dropdown Menu — shadcn-style dropdown (portaled via CDK overlay)
  */
 
-import {
-  Component,
-  computed,
-  DestroyRef,
-  ElementRef,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { FlexibleConnectedPositionStrategy, Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 import { DOCUMENT } from '@angular/common';
+import {
+    Component,
+    DestroyRef,
+    ElementRef,
+    inject,
+    input,
+    output,
+    signal,
+    TemplateRef,
+    viewChild,
+    ViewContainerRef,
+} from '@angular/core';
+import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-dropdown-menu',
-  template: `
-    <div class="relative inline-block text-left" #container>
-      <div
-        role="button"
-        tabindex="0"
-        (click)="toggle($event)"
-        (keydown.enter)="toggle($event)"
-        (keydown.space)="onTriggerSpace($event)"
-      >
-        <ng-content select="[dropdownTrigger]"></ng-content>
-      </div>
-
-      @if (open()) {
-        <div class="dropdown-content animate-fadeIn" [class]="alignClass()" role="menu">
-          <ng-content select="[dropdownContent]"></ng-content>
+    selector: 'app-dropdown-menu',
+    template: `
+        <div class="dropdown-root inline-block text-left" #triggerHost>
+            <div
+                role="button"
+                tabindex="0"
+                [attr.aria-expanded]="open()"
+                aria-haspopup="menu"
+                (click)="toggle($event)"
+                (keydown.enter)="toggle($event)"
+                (keydown.space)="onTriggerSpace($event)"
+            >
+                <ng-content select="[dropdownTrigger]"></ng-content>
+            </div>
         </div>
-      }
-    </div>
-  `,
+
+        <ng-template #menuTemplate>
+            <div class="dropdown-content" role="menu" (mousedown)="$event.preventDefault()">
+                <ng-content select="[dropdownContent]"></ng-content>
+            </div>
+        </ng-template>
+    `,
 })
 export class DropdownMenuComponent {
-  private readonly host = inject(ElementRef<HTMLElement>);
-  private readonly document = inject(DOCUMENT);
-  private readonly destroyRef = inject(DestroyRef);
+    private readonly overlay = inject(Overlay);
+    private readonly viewContainerRef = inject(ViewContainerRef);
+    private readonly document = inject(DOCUMENT);
+    private readonly destroyRef = inject(DestroyRef);
 
-  align = input<'start' | 'end'>('end');
-  openChange = output<boolean>();
+    private readonly triggerHost = viewChild<ElementRef<HTMLElement>>('triggerHost');
+    private readonly menuTemplate = viewChild.required<TemplateRef<unknown>>('menuTemplate');
 
-  open = signal(false);
+    private overlayRef: OverlayRef | null = null;
+    private outsidePointerHandler: ((event: PointerEvent) => void) | null = null;
+    private outsideListenerTimeout: ReturnType<typeof setTimeout> | null = null;
+    private keydownSubscription: Subscription | null = null;
 
-  alignClass = computed(() =>
-    this.align() === 'end' ? 'dropdown-content-end' : 'dropdown-content-start',
-  );
+    align = input<'start' | 'end'>('end');
+    openChange = output<boolean>();
 
-  constructor() {
-    const onDocumentClick = (event: MouseEvent): void => {
-      if (!this.host.nativeElement.contains(event.target as Node)) {
-        this.close();
-      }
-    };
+    open = signal(false);
 
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') {
-        this.close();
-      }
-    };
+    constructor() {
+        this.destroyRef.onDestroy(() => this.close());
+    }
 
-    this.document.addEventListener('click', onDocumentClick);
-    this.document.addEventListener('keydown', onKeyDown);
+    toggle(event: Event): void {
+        event.stopPropagation();
+        if (this.open()) {
+            this.close();
+            return;
+        }
+        this.openMenu();
+    }
 
-    this.destroyRef.onDestroy(() => {
-      this.document.removeEventListener('click', onDocumentClick);
-      this.document.removeEventListener('keydown', onKeyDown);
-    });
-  }
+    onTriggerSpace(event: Event): void {
+        event.preventDefault();
+        this.toggle(event);
+    }
 
-  toggle(event: Event): void {
-    event.stopPropagation();
-    this.setOpen(!this.open());
-  }
+    close(): void {
+        this.clearOutsideListener();
+        this.keydownSubscription?.unsubscribe();
+        this.keydownSubscription = null;
 
-  onTriggerSpace(event: Event): void {
-    event.preventDefault();
-    this.toggle(event);
-  }
+        if (this.overlayRef) {
+            this.overlayRef.dispose();
+            this.overlayRef = null;
+        }
 
-  close(): void {
-    this.setOpen(false);
-  }
+        this.setOpen(false);
+    }
 
-  private setOpen(value: boolean): void {
-    this.open.set(value);
-    this.openChange.emit(value);
-  }
+    private openMenu(): void {
+        const host = this.triggerHost()?.nativeElement;
+        if (!host || this.open()) return;
+
+        const isEnd = this.align() === 'end';
+        const originX = isEnd ? 'end' : 'start';
+        const overlayX = isEnd ? 'end' : 'start';
+
+        const positionStrategy: FlexibleConnectedPositionStrategy = this.overlay
+            .position()
+            .flexibleConnectedTo(host)
+            .withPositions([
+                {
+                    originX,
+                    originY: 'bottom',
+                    overlayX,
+                    overlayY: 'top',
+                    offsetY: 4,
+                },
+                {
+                    originX,
+                    originY: 'top',
+                    overlayX,
+                    overlayY: 'bottom',
+                    offsetY: -4,
+                },
+            ])
+            .withPush(true)
+            .withViewportMargin(8)
+            .withGrowAfterOpen(true);
+
+        this.overlayRef = this.overlay.create({
+            positionStrategy,
+            scrollStrategy: this.overlay.scrollStrategies.reposition(),
+            panelClass: 'dropdown-overlay-panel',
+        });
+
+        const portal = new TemplatePortal(this.menuTemplate(), this.viewContainerRef);
+        this.overlayRef.attach(portal);
+        this.setOpen(true);
+
+        this.keydownSubscription = this.overlayRef.keydownEvents().subscribe((event) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                this.close();
+            }
+        });
+
+        this.scheduleOutsideListener(host);
+    }
+
+    private scheduleOutsideListener(triggerEl: HTMLElement): void {
+        this.outsideListenerTimeout = globalThis.setTimeout(() => {
+            this.outsideListenerTimeout = null;
+            if (!this.open()) return;
+
+            this.outsidePointerHandler = (event: PointerEvent) => {
+                const target = event.target as Node;
+                if (triggerEl.contains(target)) return;
+                if (this.overlayRef?.overlayElement.contains(target)) return;
+                this.close();
+            };
+
+            this.document.addEventListener('pointerdown', this.outsidePointerHandler, true);
+        });
+    }
+
+    private clearOutsideListener(): void {
+        if (this.outsideListenerTimeout !== null) {
+            globalThis.clearTimeout(this.outsideListenerTimeout);
+            this.outsideListenerTimeout = null;
+        }
+
+        if (this.outsidePointerHandler) {
+            this.document.removeEventListener('pointerdown', this.outsidePointerHandler, true);
+            this.outsidePointerHandler = null;
+        }
+    }
+
+    private setOpen(value: boolean): void {
+        this.open.set(value);
+        this.openChange.emit(value);
+    }
 }
 
 @Component({
-  selector: 'app-dropdown-label',
-  template: `<div class="dropdown-label"><ng-content></ng-content></div>`,
+    selector: 'app-dropdown-label',
+    template: `<div class="dropdown-label"><ng-content></ng-content></div>`,
 })
 export class DropdownLabelComponent {}
 
 @Component({
-  selector: 'app-dropdown-item',
-  template: `
-    <button
-      type="button"
-      role="menuitem"
-      class="dropdown-item"
-      [class.dropdown-item-destructive]="destructive()"
-      [class.dropdown-item-disabled]="disabled()"
-      [disabled]="disabled()"
-      (click)="handleClick($event)"
-    >
-      <ng-content></ng-content>
-    </button>
-  `,
+    selector: 'app-dropdown-item',
+    template: `
+        <button
+            type="button"
+            role="menuitem"
+            class="dropdown-item"
+            [class.dropdown-item-destructive]="destructive()"
+            [class.dropdown-item-disabled]="disabled()"
+            [disabled]="disabled()"
+            (click)="handleClick($event)"
+        >
+            <ng-content></ng-content>
+        </button>
+    `,
 })
 export class DropdownItemComponent {
-  destructive = input(false);
-  disabled = input(false);
-  itemClick = output<MouseEvent>();
+    destructive = input(false);
+    disabled = input(false);
+    itemClick = output<MouseEvent>();
 
-  handleClick(event: MouseEvent): void {
-    if (this.disabled()) return;
-    this.itemClick.emit(event);
-  }
+    handleClick(event: MouseEvent): void {
+        if (this.disabled()) return;
+        this.itemClick.emit(event);
+    }
 }
 
 @Component({
-  selector: 'app-dropdown-separator',
-  template: `<div class="dropdown-separator" role="separator"></div>`,
+    selector: 'app-dropdown-separator',
+    template: `<div class="dropdown-separator" role="separator"></div>`,
 })
 export class DropdownSeparatorComponent {}

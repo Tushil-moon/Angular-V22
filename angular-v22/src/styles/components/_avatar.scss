@@ -1,0 +1,24 @@
+/* Avatar */
+.avatar {
+    @apply relative flex shrink-0 overflow-hidden rounded-full bg-muted;
+}
+
+.avatar-sm {
+    @apply h-8 w-8;
+}
+
+.avatar-md {
+    @apply h-9 w-9;
+}
+
+.avatar-lg {
+    @apply h-10 w-10;
+}
+
+.avatar-image {
+    @apply aspect-square h-full w-full object-cover;
+}
+
+.avatar-fallback {
+    @apply flex h-full w-full items-center justify-center rounded-full bg-secondary text-xs font-medium text-secondary-foreground;
+}

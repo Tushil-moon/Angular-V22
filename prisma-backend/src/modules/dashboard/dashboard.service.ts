@@ -1,5 +1,9 @@
 import { prisma } from "../../config/prisma";
 import { Roles } from "../../shared/constants/roles";
+import type { AuthContext } from "../../shared/types/auth-context";
+import { buildActivityScopeWhere, buildOwnerScopedWhere } from "../../shared/utils/access-control";
+import { hasPermission } from "../../shared/utils/permission";
+import { Permissions } from "../../shared/constants/permissions";
 
 const formatAction = (action: string) =>
   action
@@ -22,34 +26,52 @@ const relativeTime = (date: Date) => {
 const openDealStages = ["LEAD", "QUALIFIED", "PROPOSAL", "NEGOTIATION"] as const;
 
 export const dashboardService = {
-  async getStats(userId: string, roles: string[]) {
-    const isAdmin = roles.includes(Roles.Admin);
+  async getStats(auth: AuthContext) {
+    const canViewAllUsers = hasPermission(auth.permissions, Permissions.ManageUsers);
+    const contactWhere = buildOwnerScopedWhere(auth, { deletedAt: null });
+    const openDealWhere = buildOwnerScopedWhere(auth, {
+      deletedAt: null,
+      stage: { in: [...openDealStages] },
+    });
+    const activityWhere = buildActivityScopeWhere(auth);
 
     const activeSessionsPromise = prisma.session.count({ where: { revokedAt: null } });
-    const totalUsersPromise = isAdmin
+    const totalUsersPromise = canViewAllUsers
       ? prisma.user.count({ where: { deletedAt: null } })
       : Promise.resolve(1);
-    const totalRolesPromise = prisma.role.count();
-    const totalContactsPromise = prisma.contact.count({ where: { deletedAt: null } });
-    const openDealsPromise = prisma.deal.count({
-      where: { deletedAt: null, stage: { in: [...openDealStages] } },
-    });
+    const totalRolesPromise = hasPermission(auth.permissions, Permissions.ReadRoles)
+      ? prisma.role.count()
+      : Promise.resolve(0);
+    const totalContactsPromise = prisma.contact.count({ where: contactWhere });
+    const openDealsPromise = prisma.deal.count({ where: openDealWhere });
     const pipelineValuePromise = prisma.deal.aggregate({
-      where: { deletedAt: null, stage: { in: [...openDealStages] } },
+      where: openDealWhere,
       _sum: { value: true },
     });
-    const recentLogsPromise = prisma.auditLog.findMany({
-      where: isAdmin ? undefined : { userId },
-      orderBy: { createdAt: "desc" },
-      take: 3,
-      select: {
-        id: true,
-        action: true,
-        createdAt: true,
-        user: { select: { email: true } },
-      },
-    });
+    const recentLogsPromise = canViewAllUsers
+      ? prisma.auditLog.findMany({
+          orderBy: { createdAt: "desc" },
+          take: 3,
+          select: {
+            id: true,
+            action: true,
+            createdAt: true,
+            user: { select: { email: true } },
+          },
+        })
+      : prisma.auditLog.findMany({
+          where: { userId: auth.userId },
+          orderBy: { createdAt: "desc" },
+          take: 3,
+          select: {
+            id: true,
+            action: true,
+            createdAt: true,
+            user: { select: { email: true } },
+          },
+        });
     const recentCrmPromise = prisma.activity.findMany({
+      where: activityWhere,
       orderBy: { createdAt: "desc" },
       take: 5,
       select: {
@@ -64,7 +86,7 @@ export const dashboardService = {
     });
     const pipelinePromise = prisma.deal.groupBy({
       by: ["stage"],
-      where: { deletedAt: null, stage: { in: [...openDealStages] } },
+      where: openDealWhere,
       _count: { _all: true },
       _sum: { value: true },
     });
@@ -136,7 +158,7 @@ export const dashboardService = {
     return {
       totalUsers,
       totalRoles,
-      activeSessions,
+      activeSessions: auth.roles.includes(Roles.Admin) ? activeSessions : 1,
       systemHealth: databaseOk ? 100 : 0,
       totalContacts,
       openDeals,

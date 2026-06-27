@@ -1,0 +1,23 @@
+.quick-link {
+    @apply flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-sm font-medium text-foreground
+       transition-colors hover:bg-accent hover:text-accent-foreground;
+}
+
+.dashboard-pipeline-stage {
+    @apply rounded-lg border border-border p-3 sm:p-4;
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+}
+
+@media (max-width: 639px) {
+    .dashboard-panels .card-header {
+        @apply p-4 pb-3;
+    }
+
+    .dashboard-panels .card-content {
+        @apply px-4 pb-4 pt-0;
+    }
+
+    .dashboard-panels .card-footer {
+        @apply px-4 pb-4 pt-0;
+    }
+}

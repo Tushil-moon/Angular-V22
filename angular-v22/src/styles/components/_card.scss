@@ -1,0 +1,144 @@
+/* ── Card (shadcn/ui v4) ── */
+.card {
+    @apply overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-sm;
+}
+
+.card-header {
+    @apply flex flex-col gap-1.5 p-6;
+}
+
+.card-header-row {
+    @apply flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
+}
+
+.card-toolbar {
+    @apply grid w-full min-w-0 grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end;
+}
+
+.card-toolbar > app-search-input {
+    @apply w-full sm:w-64 shrink-0;
+}
+
+.card-toolbar > app-filter-select {
+    @apply w-full shrink-0 sm:w-36;
+}
+
+.card-toolbar > app-button {
+    @apply flex min-w-0 w-full shrink-0 sm:w-auto;
+}
+
+.card-toolbar:has(> app-button:nth-child(2):last-child) {
+    @apply grid-cols-2 sm:flex;
+}
+
+.card-header-row > app-button,
+.card-header-row > .toolbar-actions {
+    @apply w-full min-w-0 sm:w-auto sm:shrink-0;
+}
+
+.card-header-row > app-button {
+    @apply flex;
+}
+
+.card-title {
+    @apply text-2xl font-semibold leading-none tracking-tight;
+}
+
+.card-description {
+    @apply text-sm text-muted-foreground;
+}
+
+.card-content {
+    @apply p-6 pt-0;
+}
+
+.card-content-flush {
+    @apply px-0 pb-0;
+}
+
+.card-fill {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden;
+}
+
+.card-fill > .card-header {
+    @apply shrink-0;
+}
+
+.card-fill > app-card-body,
+.card-fill > app-card-header {
+    @apply min-w-0;
+}
+
+.card-content-fill > app-flex-table {
+    @apply flex min-h-0 flex-1 flex-col;
+}
+
+.card-content-fill {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden rounded-b-lg p-0;
+    width: 100%;
+}
+
+.card-content-fill .flex-table-fill .flex-table-scroll {
+    @apply rounded-b-lg;
+}
+
+.card-content-fill
+    .flex-table:not(.flex-table-cards-mode)
+    .flex-table-row:not(.flex-table-row-empty):last-child
+    .flex-table-cell:first-child {
+    border-bottom-left-radius: var(--radius);
+}
+
+.card-content-fill
+    .flex-table:not(.flex-table-cards-mode)
+    .flex-table-row:not(.flex-table-row-empty):last-child
+    .flex-table-cell:last-child {
+    border-bottom-right-radius: var(--radius);
+}
+
+.card-content-fill .flex-table-empty-state .flex-table-row-empty .flex-table-cell-empty {
+    border-bottom-left-radius: var(--radius);
+    border-bottom-right-radius: var(--radius);
+}
+
+.card-content-fill.card-content-flush {
+    @apply px-0 pb-0 pt-0;
+}
+
+.card-footer {
+    @apply flex items-center p-6 pt-0;
+}
+
+@media (max-width: 639px) {
+    .card-header {
+        @apply gap-1.5 p-4;
+    }
+
+    .card-header-row {
+        @apply gap-3;
+    }
+
+    .card-header-row .card-toolbar {
+        @apply w-full;
+    }
+
+    .card-fill .card-header-row {
+        @apply gap-3;
+    }
+
+    .card-content {
+        @apply p-4 pt-0;
+    }
+
+    .card-footer {
+        @apply p-4 pt-0;
+    }
+
+    .card-title {
+        @apply text-lg leading-tight;
+    }
+
+    .card-toolbar {
+        @apply gap-2;
+    }
+}

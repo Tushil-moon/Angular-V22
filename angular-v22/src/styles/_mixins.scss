@@ -1,0 +1,68 @@
+// Shared Sass mixins for shadcn-style components
+
+@mixin shadcn-focus-ring {
+    @apply outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50;
+}
+
+@mixin shadcn-focus-ring-border {
+    @apply focus-visible:border-ring;
+}
+
+@mixin shadcn-input-focus {
+    @apply focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50;
+}
+
+@mixin focus-ring-offset {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+}
+
+@mixin sidebar-interactive {
+    @apply rounded-md transition-colors;
+
+    &:hover,
+    &:active {
+        @apply bg-sidebar-accent text-sidebar-accent-foreground;
+    }
+
+    &:focus-visible {
+        @apply outline-none ring-2 ring-sidebar-ring;
+    }
+}
+
+@mixin text-stack {
+    @apply flex min-w-0 flex-col gap-0.5 leading-tight;
+}
+
+@mixin text-stack-title {
+    @apply block truncate text-sm font-semibold leading-none text-sidebar-foreground;
+}
+
+@mixin text-stack-subtitle {
+    @apply block truncate text-xs leading-none text-muted-foreground;
+}
+
+@mixin text-stack-name {
+    @apply block truncate text-sm font-medium leading-none text-sidebar-foreground;
+}
+
+@mixin collapsible-sidebar-text-base {
+    @apply min-w-0 overflow-hidden whitespace-nowrap;
+    opacity: 1;
+    visibility: visible;
+    transition:
+        opacity 120ms ease,
+        visibility 0s linear 0s;
+}
+
+@mixin collapsible-sidebar-text-expanded {
+    @apply inline;
+    opacity: 1;
+    visibility: visible;
+    transition:
+        opacity 150ms ease 120ms,
+        visibility 0s linear 120ms;
+}
+
+@mixin overlay-panel-animation {
+    animation: dropdownIn 150ms ease-out;
+}

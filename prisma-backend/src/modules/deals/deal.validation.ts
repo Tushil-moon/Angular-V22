@@ -19,6 +19,8 @@ export const createDealSchema = z.object({
   ownerId: z.string().uuid().optional(),
   expectedCloseDate: z.coerce.date().optional(),
   description: z.string().max(5000).optional(),
+  tagIds: z.array(z.string().uuid()).optional(),
+  tagNames: z.array(z.string().trim().min(1).max(50)).optional(),
 });
 
 export const updateDealSchema = createDealSchema.partial();
@@ -32,6 +34,7 @@ export const listDealsQuerySchema = paginationQuerySchema.extend({
   stage: dealStageSchema.optional(),
   contactId: z.string().uuid().optional(),
   ownerId: z.string().uuid().optional(),
+  tagId: z.string().uuid().optional(),
 });
 
 export type CreateDealInput = z.infer<typeof createDealSchema>;

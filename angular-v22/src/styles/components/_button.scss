@@ -1,0 +1,71 @@
+@use 'mixins' as *;
+
+/* ── Button (shadcn/ui v4 new-york) ── */
+.btn {
+    @apply inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium
+       transition-all disabled:pointer-events-none disabled:opacity-50 cursor-pointer
+       [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-4;
+    @include shadcn-focus-ring-border;
+    @include shadcn-focus-ring;
+}
+
+.btn-primary {
+    @apply btn bg-primary text-primary-foreground hover:bg-primary/90;
+}
+
+.btn-secondary {
+    @apply btn bg-secondary text-secondary-foreground hover:bg-secondary/80;
+}
+
+.btn-danger,
+.btn-destructive {
+    @apply btn bg-destructive text-white hover:bg-destructive/90
+       focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40;
+}
+
+.btn-success {
+    @apply btn bg-secondary text-secondary-foreground hover:bg-secondary/80;
+}
+
+.btn-ghost {
+    @apply btn hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50;
+}
+
+.btn-link {
+    @apply btn text-primary underline-offset-4 hover:underline h-auto px-0;
+}
+
+.btn-icon {
+    @apply size-9 p-0;
+}
+
+.btn-outline {
+    @apply btn border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground
+       dark:border-input dark:bg-input/30 dark:hover:bg-input/50;
+}
+
+.btn-sm {
+    @apply h-8 gap-1.5 rounded-md px-3 text-sm has-[>svg]:px-2.5;
+}
+
+.btn-lg {
+    @apply h-10 rounded-md px-6 has-[>svg]:px-4;
+}
+
+.btn-xl {
+    @apply h-11 rounded-md px-8 text-base;
+}
+
+.btn-full {
+    @apply w-full;
+}
+
+/* Toolbar / page action buttons — full width on mobile, auto on sm+ */
+.toolbar-btn {
+    @apply w-full justify-center sm:w-auto;
+}
+
+/* Default size (md) */
+.btn:not(.btn-sm):not(.btn-lg):not(.btn-xl):not(.btn-icon):not(.btn-link) {
+    @apply h-9 px-4 py-2;
+}

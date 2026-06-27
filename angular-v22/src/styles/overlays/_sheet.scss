@@ -1,0 +1,64 @@
+/* ── Sheet (shadcn) ── */
+.sheet-overlay {
+    @apply fixed inset-0 z-[var(--z-sheet)];
+    background-color: rgb(0 0 0 / 0.5);
+}
+
+.sheet-content {
+    @apply fixed inset-y-0 left-0 z-[var(--z-sheet)] flex w-3/4 max-w-sm flex-col gap-4
+       border-r border-border bg-background p-6 shadow-lg sm:max-w-sm;
+    padding-top: max(1.5rem, env(safe-area-inset-top));
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+.sheet-header {
+    @apply flex flex-col gap-2 text-left sm:flex-row sm:items-center sm:justify-between;
+}
+
+.sheet-title {
+    @apply text-lg font-semibold text-foreground;
+}
+
+.sheet-body {
+    @apply flex-1 overflow-auto;
+}
+
+.sheet-content-sidebar {
+    width: min(100%, var(--sidebar-width));
+    max-width: var(--sidebar-width);
+    @apply gap-0 border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-lg;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.sheet-content-sidebar .sheet-body {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden p-0;
+}
+
+.sidebar-mobile-shell {
+    @apply flex h-full min-h-0 flex-col;
+}
+
+.sidebar-mobile-top {
+    @apply flex shrink-0 items-center gap-2 border-b border-sidebar-border p-2;
+}
+
+.sidebar-mobile-top .sidebar-brand {
+    @apply min-w-0 flex-1 p-2;
+}
+
+.sidebar-mobile-footer {
+    @apply mt-auto shrink-0 gap-0 border-t border-sidebar-border p-0;
+}
+
+.sidebar-mobile-footer .sidebar-group {
+    @apply gap-1 p-2 pb-1;
+}
+
+.sidebar-mobile-footer .sidebar-menu {
+    @apply gap-1 px-2 pb-2;
+}
+
+.sidebar-mobile-footer .sidebar-menu app-theme-toggle {
+    @apply block w-full min-w-0;
+}

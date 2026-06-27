@@ -1,0 +1,232 @@
+/* ── Dialog (shadcn/ui v4 new-york) ── */
+.cdk-overlay-backdrop.dialog-backdrop {
+    background-color: var(--overlay-backdrop) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: dialogOverlayIn 200ms ease-out;
+    transition: opacity 200ms ease-out !important;
+}
+
+.cdk-overlay-pane.dialog-overlay-pane {
+    @apply pointer-events-none flex w-screen items-center justify-center;
+    height: 100dvh;
+    max-height: 100dvh;
+    max-width: none !important;
+    width: 100vw !important;
+    padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+        max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+}
+
+.dialog-panel {
+    @apply pointer-events-auto relative mx-auto grid w-full gap-4 overflow-hidden rounded-xl border border-border
+       bg-card text-card-foreground shadow-xl;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    width: 100%;
+    max-width: min(32rem, 100%);
+    max-height: calc(
+        100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    );
+    padding: 1.5rem;
+    flex: 0 1 auto;
+}
+
+.dialog-panel-sm {
+    max-width: min(24rem, 100%);
+}
+
+.dialog-panel-md {
+    max-width: min(32rem, 100%);
+}
+
+.dialog-panel-lg {
+    max-width: min(42rem, 100%);
+}
+
+.dialog-close {
+    @apply absolute right-4 top-4 z-10 inline-flex size-8 items-center justify-center rounded-md
+       opacity-70 ring-offset-background transition-opacity hover:bg-accent hover:opacity-100
+       focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.dialog-header {
+    @apply flex shrink-0 flex-col gap-2 border-b border-border pb-4 pr-10 text-left;
+}
+
+.dialog-title {
+    @apply text-lg font-semibold leading-tight tracking-tight text-card-foreground;
+}
+
+.dialog-description {
+    @apply text-sm leading-relaxed text-muted-foreground;
+}
+
+.dialog-body {
+    @apply min-h-0 overflow-y-auto overscroll-y-contain py-1 text-card-foreground;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
+}
+
+.dialog-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dialog-body::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+}
+
+.dialog-footer {
+    @apply grid shrink-0 grid-cols-1 gap-2 border-t border-border pt-4 sm:flex sm:flex-row sm:flex-wrap sm:justify-end;
+}
+
+/* Projected footer slot — don't break flex layout */
+.dialog-footer [dialogFooter] {
+    display: contents;
+}
+
+.dialog-footer app-button {
+    @apply flex w-full min-w-0 sm:w-auto;
+}
+
+.dialog-footer app-button .btn {
+    @apply w-full justify-center sm:w-auto;
+}
+
+.dialog-footer:has(> app-button:nth-child(2):last-child),
+.dialog-footer:has([dialogFooter] > app-button:nth-child(2):last-child) {
+    @apply grid-cols-2 sm:flex;
+}
+
+.dialog-footer:has(> app-button:nth-child(3)),
+.dialog-footer:has([dialogFooter] > app-button:nth-child(3)) {
+    @apply grid-cols-1 sm:flex;
+}
+
+.dialog-footer:empty {
+    display: none;
+}
+
+.dialog-detail-header {
+    @apply flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between;
+}
+
+.dialog-detail-header > div:first-child {
+    @apply min-w-0 flex-1;
+}
+
+.dialog-profile-header {
+    @apply flex flex-col gap-3 rounded-lg border border-border p-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between;
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+}
+
+.dialog-profile-identity {
+    @apply flex min-w-0 items-center gap-3 sm:gap-4;
+}
+
+.dialog-section-toolbar {
+    @apply grid w-full gap-2 sm:flex sm:flex-row sm:items-center sm:justify-between;
+}
+
+.dialog-section-toolbar app-button {
+    @apply flex w-full min-w-0 sm:w-auto;
+}
+
+.dialog-section-toolbar app-button .btn {
+    @apply w-full justify-center sm:w-auto;
+}
+
+.dialog-roles-section {
+    @apply space-y-3 rounded-lg border border-border p-4;
+}
+
+.dialog-role-badge {
+    @apply inline-flex items-center gap-1;
+}
+
+.dialog-role-remove {
+    @apply inline-flex rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.dialog-activity-list {
+    @apply max-h-64 divide-y divide-border overflow-y-auto overscroll-y-contain rounded-md border border-border;
+}
+
+.dialog-activity-item {
+    @apply space-y-1 px-3 py-3;
+}
+
+.dialog-loading {
+    @apply flex min-h-[10rem] items-center justify-center py-10;
+}
+
+.dialog-convert-panel {
+    @apply space-y-3 rounded-md border border-border p-4;
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+}
+
+/* ── Responsive dialog ── */
+@media (max-width: 639px) {
+    .cdk-overlay-pane.dialog-overlay-pane {
+        padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right))
+            max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+    }
+
+    .dialog-panel {
+        @apply gap-3 rounded-lg;
+        max-height: calc(
+            100dvh - 1.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+        );
+        padding: 1rem;
+    }
+
+    .dialog-close {
+        @apply right-3 top-3;
+    }
+
+    .dialog-header {
+        @apply gap-1.5 pb-3 pr-9;
+    }
+
+    .dialog-title {
+        @apply text-base;
+    }
+
+    .dialog-footer {
+        @apply gap-2 pt-3;
+    }
+
+    .dialog-profile-header {
+        @apply p-3;
+    }
+
+    .dialog-roles-section,
+    .dialog-convert-panel {
+        @apply p-3;
+    }
+
+    .dialog-activity-list {
+        max-height: min(16rem, 40dvh);
+    }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+    .dialog-panel-lg {
+        max-width: min(42rem, calc(100vw - 2rem));
+    }
+
+    .dialog-panel-md {
+        max-width: min(32rem, calc(100vw - 2rem));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cdk-overlay-backdrop.dialog-backdrop {
+        animation: none !important;
+    }
+}

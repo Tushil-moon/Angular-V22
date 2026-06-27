@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "installCommand": "npm run install:all",
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "angular-v22/dist/angular-v22/browser",
+  "framework": null,
+  "functions": {
+    "api/index.js": {
+      "memory": 1024,
+      "maxDuration": 30,
+      "includeFiles": "prisma-backend/dist/**,prisma-backend/node_modules/.prisma/**,prisma-backend/node_modules/@prisma/**,prisma-backend/prisma/**"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/docs", "destination": "/api" },
+    { "source": "/docs/(.*)", "destination": "/api" },
+    { "source": "/((?!api/|docs).*)", "destination": "/index.html" }
+  ]
+}

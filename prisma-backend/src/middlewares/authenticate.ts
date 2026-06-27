@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { prisma } from "../config/prisma";
 import { AppError } from "../shared/errors/app-error";
 import { verifyAccessToken } from "../shared/utils/jwt";
+import { resolveUserAccess } from "../shared/utils/permission";
 
 export const authenticate = async (req: Request, _res: Response, next: NextFunction) => {
   try {
@@ -29,10 +30,13 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
       data: { lastActiveAt: new Date() },
     });
 
+    const access = await resolveUserAccess(session.userId);
+
     req.user = {
       id: session.userId,
       sessionId: session.id,
-      roles: session.user.roles.map((userRole) => userRole.role.name),
+      roles: access.roles,
+      permissions: access.permissions,
     };
 
     next();

@@ -5,6 +5,26 @@ export const ownerSelect = {
   email: true,
 } satisfies Prisma.UserSelect;
 
+export const tagRelationSelect = {
+  tag: { select: { id: true, name: true, color: true } },
+};
+
+export const companySelect = {
+  id: true,
+  name: true,
+  domain: true,
+  industry: true,
+  size: true,
+  website: true,
+  address: true,
+  ownerId: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+  owner: { select: ownerSelect },
+  _count: { select: { contacts: true } },
+} satisfies Prisma.CompanySelect;
+
 export const contactSelect = {
   id: true,
   firstName: true,
@@ -12,6 +32,7 @@ export const contactSelect = {
   email: true,
   phone: true,
   company: true,
+  companyId: true,
   jobTitle: true,
   status: true,
   notes: true,
@@ -19,6 +40,8 @@ export const contactSelect = {
   createdAt: true,
   updatedAt: true,
   owner: { select: ownerSelect },
+  companyRef: { select: { id: true, name: true, domain: true } },
+  tags: { select: tagRelationSelect },
   _count: { select: { deals: true, activities: true } },
 } satisfies Prisma.ContactSelect;
 
@@ -43,6 +66,7 @@ export const dealSelect = {
     },
   },
   owner: { select: ownerSelect },
+  tags: { select: tagRelationSelect },
 } satisfies Prisma.DealSelect;
 
 export const activitySelect = {
@@ -53,7 +77,10 @@ export const activitySelect = {
   contactId: true,
   dealId: true,
   userId: true,
+  dueAt: true,
+  completedAt: true,
   createdAt: true,
+  updatedAt: true,
   user: { select: ownerSelect },
   contact: {
     select: {
@@ -70,17 +97,33 @@ export const activitySelect = {
   },
 } satisfies Prisma.ActivitySelect;
 
+type CompanyRow = Prisma.CompanyGetPayload<{ select: typeof companySelect }>;
 type ContactRow = Prisma.ContactGetPayload<{ select: typeof contactSelect }>;
 type DealRow = Prisma.DealGetPayload<{ select: typeof dealSelect }>;
 type ActivityRow = Prisma.ActivityGetPayload<{ select: typeof activitySelect }>;
 
 export const mapOwner = (owner: { id: string; email: string | null } | null) =>
-  owner
-    ? {
-        id: owner.id,
-        email: owner.email,
-      }
-    : null;
+  owner ? { id: owner.id, email: owner.email } : null;
+
+export const mapTags = (
+  entries: Array<{ tag: { id: string; name: string; color: string } }>,
+) => entries.map((entry) => ({ id: entry.tag.id, name: entry.tag.name, color: entry.tag.color }));
+
+export const mapCompany = (company: CompanyRow) => ({
+  id: company.id,
+  name: company.name,
+  domain: company.domain,
+  industry: company.industry,
+  size: company.size,
+  website: company.website,
+  address: company.address,
+  ownerId: company.ownerId,
+  notes: company.notes,
+  owner: mapOwner(company.owner),
+  contactCount: company._count.contacts,
+  createdAt: company.createdAt,
+  updatedAt: company.updatedAt,
+});
 
 export const mapContact = (contact: ContactRow) => ({
   id: contact.id,
@@ -89,12 +132,15 @@ export const mapContact = (contact: ContactRow) => ({
   fullName: `${contact.firstName} ${contact.lastName}`.trim(),
   email: contact.email,
   phone: contact.phone,
-  company: contact.company,
+  company: contact.company ?? contact.companyRef?.name ?? null,
+  companyId: contact.companyId,
+  companyRef: contact.companyRef,
   jobTitle: contact.jobTitle,
   status: contact.status,
   notes: contact.notes,
   ownerId: contact.ownerId,
   owner: mapOwner(contact.owner),
+  tags: mapTags(contact.tags),
   dealCount: contact._count.deals,
   activityCount: contact._count.activities,
   createdAt: contact.createdAt,
@@ -119,6 +165,7 @@ export const mapDeal = (deal: DealRow) => ({
       }
     : null,
   owner: mapOwner(deal.owner),
+  tags: mapTags(deal.tags),
   createdAt: deal.createdAt,
   updatedAt: deal.updatedAt,
 });
@@ -131,6 +178,8 @@ export const mapActivity = (activity: ActivityRow) => ({
   contactId: activity.contactId,
   dealId: activity.dealId,
   userId: activity.userId,
+  dueAt: activity.dueAt,
+  completedAt: activity.completedAt,
   user: mapOwner(activity.user),
   contact: activity.contact
     ? {
@@ -140,4 +189,12 @@ export const mapActivity = (activity: ActivityRow) => ({
     : null,
   deal: activity.deal,
   createdAt: activity.createdAt,
+  updatedAt: activity.updatedAt,
+});
+
+export const mapTag = (tag: { id: string; name: string; color: string; createdAt?: Date }) => ({
+  id: tag.id,
+  name: tag.name,
+  color: tag.color,
+  createdAt: tag.createdAt,
 });

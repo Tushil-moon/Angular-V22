@@ -1,84 +1,169 @@
 {
-  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
-  "version": 1,
-  "cli": {
-    "packageManager": "npm",
-    "schematicCollections": ["angular-eslint"]
-  },
-  "newProjectRoot": "projects",
-  "projects": {
-    "angular-v22": {
-      "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
+    "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+    "version": 1,
+    "cli": {
+        "packageManager": "npm",
+        "schematicCollections": ["angular-eslint"],
+        "analytics": false,
+        "cache": {
+            "enabled": true,
+            "environment": "all"
         }
-      },
-      "root": "",
-      "sourceRoot": "src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:application",
-          "options": {
-            "browser": "src/main.ts",
-            "tsConfig": "tsconfig.app.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": ["src/styles.scss"]
-          },
-          "configurations": {
-            "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "600kB",
-                  "maximumError": "1MB"
+    },
+    "newProjectRoot": "projects",
+    "projects": {
+        "angular-v22": {
+            "projectType": "application",
+            "schematics": {
+                "@schematics/angular:component": {
+                    "style": "scss",
+                    "standalone": true,
+                    "changeDetection": "OnPush",
+                    "skipTests": true,
+                    "displayBlock": true,
+                    "flat": false
                 },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                "@schematics/angular:service": {
+                    "skipTests": true
+                },
+                "@schematics/angular:directive": {
+                    "skipTests": true,
+                    "standalone": true
+                },
+                "@schematics/angular:pipe": {
+                    "skipTests": true,
+                    "standalone": true
+                },
+                "@schematics/angular:guard": {
+                    "skipTests": true
+                },
+                "@schematics/angular:resolver": {
+                    "skipTests": true
                 }
-              ],
-              "outputHashing": "all"
             },
-            "development": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
+            "root": "",
+            "sourceRoot": "src",
+            "prefix": "app",
+            "architect": {
+                "build": {
+                    "builder": "@angular/build:application",
+                    "options": {
+                        "outputPath": "dist/angular-v22",
+                        "browser": "src/main.ts",
+                        "index": "src/index.html",
+                        "tsConfig": "tsconfig.app.json",
+                        "inlineStyleLanguage": "scss",
+                        "assets": [
+                            {
+                                "glob": "**/*",
+                                "input": "public",
+                                "ignore": ["**/*.psd", "**/*.ai", "**/*.sketch"]
+                            }
+                        ],
+                        "styles": [
+                            "node_modules/@fontsource/poppins/latin-400.css",
+                            "node_modules/@fontsource/poppins/latin-500.css",
+                            "node_modules/@fontsource/poppins/latin-600.css",
+                            "node_modules/@fontsource/poppins/latin-700.css",
+                            "src/styles.scss"
+                        ],
+                        "scripts": [],
+                        "stylePreprocessorOptions": {
+                            "includePaths": ["src/styles"]
+                        },
+                        "allowedCommonJsDependencies": [],
+                        "crossOrigin": "anonymous",
+                        "security": {
+                            "autoCsp": true
+                        }
+                    },
+                    "configurations": {
+                        "production": {
+                            "subresourceIntegrity": true,
+                            "fileReplacements": [
+                                {
+                                    "replace": "src/environments/environment.ts",
+                                    "with": "src/environments/environment.production.ts"
+                                }
+                            ],
+                            "optimization": {
+                                "scripts": true,
+                                "styles": {
+                                    "minify": true,
+                                    "inlineCritical": true
+                                },
+                                "fonts": {
+                                    "inline": true
+                                }
+                            },
+                            "sourceMap": {
+                                "scripts": false,
+                                "styles": false,
+                                "vendor": false,
+                                "hidden": true
+                            },
+                            "extractLicenses": true,
+                            "outputHashing": "all",
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "500kB",
+                                    "maximumError": "1MB"
+                                },
+                                {
+                                    "type": "bundle",
+                                    "name": "main",
+                                    "maximumWarning": "300kB",
+                                    "maximumError": "600kB"
+                                },
+                                {
+                                    "type": "anyComponentStyle",
+                                    "maximumWarning": "6kB",
+                                    "maximumError": "10kB"
+                                }
+                            ]
+                        },
+                        "development": {
+                            "optimization": false,
+                            "extractLicenses": false,
+                            "subresourceIntegrity": false,
+                            "sourceMap": {
+                                "scripts": true,
+                                "styles": true,
+                                "vendor": true
+                            },
+                            "namedChunks": true
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                },
+                "serve": {
+                    "builder": "@angular/build:dev-server",
+                    "options": {
+                        "host": "0.0.0.0",
+                        "port": 4200
+                    },
+                    "configurations": {
+                        "production": {
+                            "buildTarget": "angular-v22:build:production"
+                        },
+                        "development": {
+                            "buildTarget": "angular-v22:build:development",
+                            "proxyConfig": "proxy.conf.json"
+                        }
+                    },
+                    "defaultConfiguration": "development"
+                },
+                "test": {
+                    "builder": "@angular/build:unit-test"
+                },
+                "lint": {
+                    "builder": "@angular-eslint/builder:lint",
+                    "options": {
+                        "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+                    }
+                }
             }
-          },
-          "defaultConfiguration": "production"
-        },
-        "serve": {
-          "builder": "@angular/build:dev-server",
-          "configurations": {
-            "production": {
-              "buildTarget": "angular-v22:build:production"
-            },
-            "development": {
-              "buildTarget": "angular-v22:build:development",
-              "proxyConfig": "proxy.conf.json"
-            }
-          },
-          "defaultConfiguration": "development"
-        },
-        "test": {
-          "builder": "@angular/build:unit-test"
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
-          }
         }
-      }
     }
-  }
 }

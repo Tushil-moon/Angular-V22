@@ -98,7 +98,11 @@ model User {
   auditLogs          AuditLog[]
   ownedContacts      Contact[]  @relation("ContactOwner")
   ownedDeals         Deal[]     @relation("DealOwner")
+  ownedCompanies     Company[]  @relation("CompanyOwner")
   activities         Activity[]
+  savedViews         SavedView[]
+  organizationMembers OrganizationMember[]
+  organizationInvites OrganizationInvite[] @relation("OrganizationInvites")
 
   @@index([status])
   @@map("users")
@@ -254,13 +258,165 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+enum SavedViewEntity {
+  CONTACTS
+  DEALS
+  COMPANIES
+  ACTIVITIES
+}
+
+enum OrganizationMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  timezone  String   @default("UTC")
+  currency  String   @default("USD") @db.VarChar(3)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members  OrganizationMember[]
+  invites  OrganizationInvite[]
+  contacts Contact[]
+  deals    Deal[]
+  companies Company[]
+  activities Activity[]
+  tags     Tag[]
+  savedViews SavedView[]
+
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  organizationId String
+  userId         String
+  role           OrganizationMemberRole @default(MEMBER)
+  joinedAt       DateTime               @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([organizationId, userId])
+  @@index([userId])
+  @@map("organization_members")
+}
+
+model OrganizationInvite {
+  id             String                 @id @default(uuid())
+  organizationId String
+  email          String
+  role           OrganizationMemberRole @default(MEMBER)
+  tokenHash      String                 @unique
+  invitedById    String
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime               @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("OrganizationInvites", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@map("organization_invites")
+}
+
+model Company {
+  id             String    @id @default(uuid())
+  organizationId String
+  name           String
+  domain    String?
+  industry  String?
+  size      String?
+  website   String?
+  address   String?
+  ownerId   String?   @map("owner_id")
+  notes     String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  owner    User?     @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contacts Contact[]
+
+  @@index([organizationId])
+  @@index([ownerId])
+  @@index([name])
+  @@map("companies")
+}
+
+model Tag {
+  id             String   @id @default(uuid())
+  organizationId String
+  name           String
+  color          String   @default("#6366f1")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contacts ContactTag[]
+  deals    DealTag[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("tags")
+}
+
+model ContactTag {
+  contactId String @map("contact_id")
+  tagId     String @map("tag_id")
+
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([contactId, tagId])
+  @@map("contact_tags")
+}
+
+model DealTag {
+  dealId String @map("deal_id")
+  tagId  String @map("tag_id")
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([dealId, tagId])
+  @@map("deal_tags")
+}
+
+model SavedView {
+  id             String          @id @default(uuid())
+  organizationId String
+  userId         String          @map("user_id")
+  entityType     SavedViewEntity @map("entity_type")
+  name           String
+  filters        Json            @default("{}")
+  sort           Json?
+  columns        Json?
+  isDefault      Boolean         @default(false) @map("is_default")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId, entityType])
+  @@map("saved_views")
+}
+
 model Contact {
-  id        String        @id @default(uuid())
+  id             String        @id @default(uuid())
+  organizationId String
   firstName String
   lastName  String
   email     String?
   phone     String?
   company   String?
+  companyId String? @map("company_id")
   jobTitle  String?
   status    ContactStatus @default(LEAD)
   ownerId   String?
@@ -269,11 +425,16 @@ model Contact {
   updatedAt DateTime      @updatedAt
   deletedAt DateTime?
 
-  owner      User?      @relation("ContactOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  owner      User?        @relation("ContactOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  companyRef Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
   deals      Deal[]
   activities Activity[]
+  tags       ContactTag[]
 
+  @@index([organizationId])
   @@index([ownerId])
+  @@index([companyId])
   @@index([status])
   @@index([email])
   @@map("contacts")
@@ -281,6 +442,7 @@ model Contact {
 
 model Deal {
   id                String    @id @default(uuid())
+  organizationId    String
   title             String
   value             Decimal   @db.Decimal(15, 2)
   currency          String    @default("USD")
@@ -295,8 +457,11 @@ model Deal {
 
   contact    Contact?   @relation(fields: [contactId], references: [id], onDelete: SetNull)
   owner      User?      @relation("DealOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   activities Activity[]
+  tags       DealTag[]
 
+  @@index([organizationId])
   @@index([ownerId])
   @@index([contactId])
   @@index([stage])
@@ -304,21 +469,28 @@ model Deal {
 }
 
 model Activity {
-  id        String       @id @default(uuid())
-  type      ActivityType @default(NOTE)
-  subject   String
-  body      String?
-  contactId String?
-  dealId    String?
-  userId    String
-  createdAt DateTime     @default(now())
+  id             String       @id @default(uuid())
+  organizationId String
+  type        ActivityType @default(NOTE)
+  subject     String
+  body        String?
+  contactId   String?
+  dealId      String?
+  userId      String
+  dueAt       DateTime?    @map("due_at")
+  completedAt DateTime?    @map("completed_at")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt @map("updated_at")
 
   contact Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
   deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: Cascade)
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([contactId])
   @@index([dealId])
   @@index([userId])
+  @@index([dueAt])
   @@map("activities")
 }

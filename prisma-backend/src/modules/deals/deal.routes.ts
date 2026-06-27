@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { authenticate } from "../../middlewares/authenticate";
-import { authorize } from "../../middlewares/authorize";
+import { resolveOrganization } from "../../middlewares/resolve-organization";
+import { requirePermission } from "../../middlewares/authorize";
 import { validate } from "../../middlewares/validate";
-import { Roles } from "../../shared/constants/roles";
+import { Permissions } from "../../shared/constants/permissions";
 import * as controller from "./deal.controller";
 import {
   createDealSchema,
@@ -13,22 +14,24 @@ import {
 
 export const dealRouter = Router();
 
-const canManage = authorize(Roles.Admin, Roles.Manager);
+const canRead = requirePermission(Permissions.ReadDeals);
+const canManage = requirePermission(Permissions.ManageDeals);
 
-dealRouter.get("/pipeline", authenticate, controller.getPipeline);
-dealRouter.get("/", authenticate, validate({ query: listDealsQuerySchema }), controller.listDeals);
-dealRouter.post("/", authenticate, canManage, validate({ body: createDealSchema }), controller.createDeal);
-dealRouter.get("/:id", authenticate, validate({ params: dealIdParamSchema }), controller.getDeal);
+dealRouter.use(authenticate, resolveOrganization);
+
+dealRouter.get("/pipeline", canRead, controller.getPipeline);
+dealRouter.get("/board", canRead, controller.getBoard);
+dealRouter.get("/", canRead, validate({ query: listDealsQuerySchema }), controller.listDeals);
+dealRouter.post("/", canManage, validate({ body: createDealSchema }), controller.createDeal);
+dealRouter.get("/:id", canRead, validate({ params: dealIdParamSchema }), controller.getDeal);
 dealRouter.patch(
   "/:id",
-  authenticate,
   canManage,
   validate({ params: dealIdParamSchema, body: updateDealSchema }),
   controller.updateDeal,
 );
 dealRouter.delete(
   "/:id",
-  authenticate,
   canManage,
   validate({ params: dealIdParamSchema }),
   controller.deleteDeal,

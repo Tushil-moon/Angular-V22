@@ -1,0 +1,105 @@
+/* Auth shell — loaded with lazy auth layout chunk */
+.auth-shell {
+    @apply flex min-h-svh w-full flex-col items-center justify-center gap-6 p-6 md:p-10;
+    background-color: var(--background);
+    padding-top: max(1.5rem, env(safe-area-inset-top));
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+.auth-shell-theme {
+    @apply absolute z-10;
+    top: max(1rem, env(safe-area-inset-top));
+    right: max(1rem, env(safe-area-inset-right));
+}
+
+.auth-shell-content {
+    @apply mx-auto flex w-full max-w-sm flex-col gap-6;
+}
+
+.auth-card-inner {
+    @apply flex w-full flex-col gap-6;
+}
+
+.auth-page-header {
+    @apply flex flex-col gap-2 px-6 pt-6;
+}
+
+.auth-page-title {
+    @apply text-2xl font-semibold leading-none tracking-tight text-card-foreground;
+}
+
+.auth-page-description {
+    @apply text-sm text-muted-foreground;
+}
+
+.auth-card-stack {
+    @apply flex flex-col gap-6 px-6 pb-6;
+}
+
+.auth-social-stack {
+    @apply grid grid-cols-1 gap-3;
+}
+
+.auth-social-btn {
+    @apply h-9 justify-center gap-2 rounded-md px-4 text-sm font-medium;
+}
+
+.auth-social-icon {
+    @apply size-4 shrink-0;
+}
+
+.auth-divider {
+    @apply relative flex items-center text-xs uppercase text-muted-foreground;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    @apply h-px flex-1 bg-border;
+}
+
+.auth-divider span {
+    @apply bg-card px-2 text-muted-foreground;
+}
+
+.auth-form {
+    @apply flex flex-col gap-6;
+}
+
+.auth-form-row {
+    @apply flex items-center justify-between gap-2;
+}
+
+.auth-submit-stack {
+    @apply flex flex-col gap-4;
+}
+
+.auth-card-footer {
+    @apply text-center text-sm text-muted-foreground px-6 pb-6;
+}
+
+.auth-card-footer a {
+    @apply font-medium text-primary underline-offset-4 hover:underline;
+}
+
+.auth-shell .card {
+    @apply w-full gap-6 py-0 shadow-sm;
+}
+
+.auth-shell .auth-card-body {
+    @apply p-0;
+}
+
+.auth-shell .form-group {
+    @apply space-y-2;
+}
+
+.auth-field-row {
+    @apply flex items-center justify-between;
+}
+
+.auth-field-link {
+    @apply text-sm text-primary underline-offset-4 hover:underline;
+}

@@ -10,12 +10,12 @@ import type { IconName } from '@shared/icons';
 export type { IconName } from '@shared/icons';
 
 @Component({
-  selector: 'app-icon',
-  imports: [LucideDynamicIcon],
-  template: ` <svg [lucideIcon]="name()" [size]="size()" [class]="className()" /> `,
+    selector: 'app-icon',
+    imports: [LucideDynamicIcon],
+    template: ` <svg [lucideIcon]="name()" [size]="size()" [class]="className()" /> `,
 })
 export class IconComponent {
-  name = input.required<IconName>();
-  size = input(16);
-  className = input('');
+    name = input.required<IconName>();
+    size = input(16);
+    className = input('');
 }

@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { authenticate } from "../../middlewares/authenticate";
-import { authorize } from "../../middlewares/authorize";
+import { resolveOrganization } from "../../middlewares/resolve-organization";
+import { requirePermission } from "../../middlewares/authorize";
 import { validate } from "../../middlewares/validate";
-import { Roles } from "../../shared/constants/roles";
+import { Permissions } from "../../shared/constants/permissions";
 import * as controller from "./contact.controller";
 import {
   contactIdParamSchema,
+  convertLeadSchema,
   createContactSchema,
   listContactsQuerySchema,
   updateContactSchema,
@@ -13,26 +15,33 @@ import {
 
 export const contactRouter = Router();
 
-const canManage = authorize(Roles.Admin, Roles.Manager);
+const canRead = requirePermission(Permissions.ReadContacts);
+const canManage = requirePermission(Permissions.ManageContacts);
 
-contactRouter.get("/", authenticate, validate({ query: listContactsQuerySchema }), controller.listContacts);
-contactRouter.post("/", authenticate, canManage, validate({ body: createContactSchema }), controller.createContact);
+contactRouter.use(authenticate, resolveOrganization);
+
+contactRouter.get("/", canRead, validate({ query: listContactsQuerySchema }), controller.listContacts);
+contactRouter.post("/", canManage, validate({ body: createContactSchema }), controller.createContact);
+contactRouter.post(
+  "/:id/convert",
+  canManage,
+  validate({ params: contactIdParamSchema, body: convertLeadSchema }),
+  controller.convertLead,
+);
 contactRouter.get(
   "/:id",
-  authenticate,
+  canRead,
   validate({ params: contactIdParamSchema }),
   controller.getContact,
 );
 contactRouter.patch(
   "/:id",
-  authenticate,
   canManage,
   validate({ params: contactIdParamSchema, body: updateContactSchema }),
   controller.updateContact,
 );
 contactRouter.delete(
   "/:id",
-  authenticate,
   canManage,
   validate({ params: contactIdParamSchema }),
   controller.deleteContact,

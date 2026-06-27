@@ -3,117 +3,121 @@
  */
 
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
-import { InputComponent } from '@shared/components/input.component';
-import {
-  CardComponent,
-  CardHeaderComponent,
-  CardTitleComponent,
-  CardDescriptionComponent,
-  CardBodyComponent,
-} from '@shared/components/card.component';
+import { ToastService } from '@services/toast.service';
 import { AlertComponent } from '@shared/components/alert.component';
+import { AuthCardComponent } from '@shared/components/auth-card.component';
+import { InputComponent } from '@shared/components/input.component';
 import { SubmitButtonComponent } from '@shared/components/submit-button.component';
+import {
+    addTouchedField,
+    clearFieldFromErrors,
+    resolveFieldError,
+    shouldShowFieldError,
+} from '@utils/form-display.util';
 import { forgotPasswordSchema, safeValidate } from '@utils/validators';
 
 @Component({
-  selector: 'app-forgot-password',
-  imports: [
-    RouterLink,
-    ReactiveFormsModule,
-    InputComponent,
-    CardComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    CardDescriptionComponent,
-    CardBodyComponent,
-    AlertComponent,
-    SubmitButtonComponent,
-  ],
-  template: `
-    <app-card>
-      <app-card-header>
-        <app-card-title>Forgot password</app-card-title>
-        <app-card-description>Enter your email and we'll send reset instructions.</app-card-description>
-      </app-card-header>
+    selector: 'app-forgot-password',
+    imports: [
+        RouterLink,
+        ReactiveFormsModule,
+        InputComponent,
+        AlertComponent,
+        SubmitButtonComponent,
+        AuthCardComponent,
+    ],
+    template: `
+        <app-auth-card
+            title="Forgot your password"
+            description="Enter your email address and we'll send you a link to reset your password"
+        >
+            @if (success()) {
+                <app-alert
+                    type="success"
+                    title="Check your email"
+                    message="If an account exists for that address, reset instructions have been sent."
+                />
+            } @else {
+                <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+                    <app-input
+                        id="email"
+                        type="email"
+                        label="Email"
+                        placeholder="m@example.com"
+                        formControlName="email"
+                        [required]="true"
+                        [error]="fieldError('email')"
+                        (blurred)="onFieldBlur('email')"
+                        (valueChange)="onFieldInput('email')"
+                    />
 
-      <app-card-body>
-        @if (success()) {
-          <app-alert
-            type="success"
-            title="Check your email"
-            message="If an account exists for that address, reset instructions have been sent."
-          />
-        } @else {
-          @if (error()) {
-            <app-alert type="danger" title="Request failed" [message]="error()!" class="mb-4 block" />
-          }
+                    <app-submit-button
+                        label="Send reset link"
+                        loadingLabel="Sending..."
+                        [loading]="authService.isLoading()"
+                    />
+                </form>
+            }
 
-          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
-            <app-input
-              id="email"
-              type="email"
-              label="Email"
-              placeholder="name@example.com"
-              formControlName="email"
-              [error]="fieldError('email')"
-              [required]="true"
-            />
-
-            <app-submit-button
-              label="Send reset link"
-              loadingLabel="Sending..."
-              [loading]="authService.isLoading()"
-            />
-          </form>
-        }
-      </app-card-body>
-    </app-card>
-
-    <p class="mt-4 text-center text-sm text-muted-foreground">
-      <a routerLink="/auth/signin" class="font-medium text-foreground underline-offset-4 hover:underline">
-        Back to sign in
-      </a>
-    </p>
-  `,
+            <p authCardFooter class="auth-card-footer">
+                <a routerLink="/auth/signin">Back to login</a>
+            </p>
+        </app-auth-card>
+    `,
 })
 export class ForgotPasswordComponent {
-  authService = inject(AuthService);
-  private readonly fb = inject(NonNullableFormBuilder);
+    authService = inject(AuthService);
+    private readonly fb = inject(NonNullableFormBuilder);
+    private readonly toastService = inject(ToastService);
 
-  form = this.fb.group({
-    email: ['', Validators.required],
-  });
+    form = this.fb.group({
+        email: ['', Validators.required],
+    });
 
-  validationErrors = signal<Record<string, string[]>>({});
-  success = signal(false);
-  error = signal<string | null>(null);
+    validationErrors = signal<Record<string, string[]>>({});
+    readonly submitted = signal(false);
+    readonly touchedFields = signal<Set<string>>(new Set());
+    success = signal(false);
 
-  async onSubmit(): Promise<void> {
-    const validation = safeValidate(forgotPasswordSchema, this.form.getRawValue());
-    if (!validation.success) {
-      this.validationErrors.set(validation.errors ?? {});
-      return;
+    onFieldBlur(field: string): void {
+        this.touchedFields.update((set) => addTouchedField(set, field));
     }
 
-    this.validationErrors.set({});
-    this.error.set(null);
-
-    try {
-      await this.authService.requestPasswordReset(validation.data!.email);
-      this.success.set(true);
-    } catch (err: unknown) {
-      this.error.set(
-        err && typeof err === 'object' && 'message' in err
-          ? String((err as { message: string }).message)
-          : 'Unable to send reset email.',
-      );
+    onFieldInput(field: string): void {
+        this.validationErrors.update((errors) => clearFieldFromErrors(errors, field));
     }
-  }
 
-  fieldError(field: string): string | null {
-    return this.validationErrors()[field]?.[0] ?? null;
-  }
+    async onSubmit(): Promise<void> {
+        this.submitted.set(true);
+
+        const validation = safeValidate(forgotPasswordSchema, this.form.getRawValue());
+        if (!validation.success) {
+            this.validationErrors.set(validation.errors ?? {});
+            return;
+        }
+
+        this.validationErrors.set({});
+
+        try {
+            await this.authService.requestPasswordReset(validation.data.email);
+            this.success.set(true);
+        } catch (err: unknown) {
+            const message =
+                err && typeof err === 'object' && 'message' in err
+                    ? String((err as { message: string }).message)
+                    : 'Unable to send reset email.';
+            this.toastService.error('Request failed', message);
+        }
+    }
+
+    fieldError(field: string): string | null {
+        const show = shouldShowFieldError({
+            touched: this.touchedFields().has(field),
+            submitted: this.submitted(),
+        });
+        return resolveFieldError(this.validationErrors()[field]?.[0], show);
+    }
 }

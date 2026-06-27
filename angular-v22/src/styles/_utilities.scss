@@ -1,0 +1,87 @@
+/* Scrollbar + animation utility classes + tabs/settings */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--secondary);
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+}
+
+.animate-slideInLeft {
+    animation: slideInLeft 0.3s ease-out;
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-dialogIn {
+    animation: dialogIn 200ms ease-out;
+}
+
+.animate-slideUp {
+    animation: slideUp 0.3s ease-out;
+}
+
+.animate-slideDown {
+    animation: slideDown 0.3s ease-out;
+}
+
+.custom-scrollbar {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+.settings-panel {
+    @apply max-w-3xl space-y-4;
+}
+
+.settings-panel form > div:has(> app-button) app-button,
+.settings-profile-header app-button {
+    @apply flex w-full min-w-0 sm:w-auto;
+}
+
+.settings-panel form > div:has(> app-button) app-button .btn,
+.settings-profile-header app-button .btn {
+    @apply w-full justify-center sm:w-auto;
+}
+
+.settings-profile-header {
+    @apply flex items-center gap-4 rounded-lg border border-border p-4;
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+}
+
+.settings-session-list {
+    @apply divide-y divide-border;
+}
+
+.settings-session-row {
+    @apply flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between;
+}
+
+.settings-session-row app-button {
+    @apply flex w-full min-w-0 sm:w-auto;
+}
+
+.settings-session-row app-button .btn {
+    @apply w-full justify-center sm:w-auto;
+}
+
+.settings-section {
+    @apply space-y-4 border-t border-border pt-6;
+}
+
+.settings-invite-token {
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+}

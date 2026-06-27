@@ -1,0 +1,43 @@
+.org-switcher {
+    @apply hidden items-center gap-2 md:flex;
+}
+
+.org-switcher app-select {
+    @apply w-auto min-w-[10rem] max-w-[14rem];
+}
+
+/* Drawer — single sidebar row; icon + borderless select share one hit area */
+.org-switcher-drawer {
+    @apply min-w-0 cursor-default gap-2;
+
+    app-select,
+    .select-root,
+    .select-wrap {
+        @apply min-w-0 flex-1;
+    }
+
+    .select-trigger {
+        @apply h-auto min-h-0 w-full border-0 bg-transparent p-0 shadow-none text-sidebar-foreground;
+
+        &:hover {
+            @apply bg-transparent;
+        }
+
+        &:focus-visible {
+            @apply outline-none ring-2 ring-sidebar-ring ring-offset-0;
+        }
+    }
+
+    .select-value {
+        @apply truncate text-left text-sm font-normal;
+    }
+
+    .select-trigger-icon {
+        @apply shrink-0 opacity-70;
+    }
+}
+
+.org-switcher-drawer:hover .select-trigger,
+.org-switcher-drawer:hover .select-value {
+    @apply text-sidebar-accent-foreground;
+}
