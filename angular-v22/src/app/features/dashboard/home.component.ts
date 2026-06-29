@@ -3,7 +3,8 @@
  */
 
 import { Component, computed, inject, injectAsync, onIdle, OnInit, ViewEncapsulation } from '@angular/core';
-import { AuthService, DashboardService } from '@services/index';
+import { Router } from '@angular/router';
+import { AuthService, DashboardService, DialogService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
     ButtonComponent,
@@ -14,7 +15,13 @@ import {
     IconComponent,
     SkeletonComponent,
 } from '@shared/components';
+import {
+    DropdownItemComponent,
+    DropdownMenuComponent,
+    DropdownSeparatorComponent,
+} from '@shared/components/dropdown-menu.component';
 import { mapDashboardStats, STATS_SKELETON_COUNT } from '@shared/config/dashboard.config';
+import { Permissions } from '@shared/constants/permissions';
 import { ignorePromise } from '@utils/form-display.util';
 
 import { DashboardPanelsComponent } from './dashboard-panels.component';
@@ -30,6 +37,9 @@ import { DashboardPanelsComponent } from './dashboard-panels.component';
         ButtonComponent,
         IconComponent,
         DashboardPanelsComponent,
+        DropdownMenuComponent,
+        DropdownItemComponent,
+        DropdownSeparatorComponent,
     ],
     template: `
         <div class="page-shell dashboard-home">
@@ -39,41 +49,90 @@ import { DashboardPanelsComponent } from './dashboard-panels.component';
                     <p class="page-description">Here's what's happening in your workspace today.</p>
                 </div>
                 <div class="toolbar-actions">
-                    <app-button
-                        variant="outline"
-                        size="sm"
-                        (clicked)="refreshStats()"
-                    >
+                    <app-button size="sm" (clicked)="refreshStats()">
                         Refresh
                     </app-button>
-                    <app-button size="sm" (clicked)="showWelcomeToast()">
-                        <app-icon name="plus" [size]="14" />
-                        Quick action
-                    </app-button>
+                    <app-dropdown-menu #quickActionsMenu align="end">
+                        <app-button dropdownTrigger size="sm">
+                            <app-icon name="plus" [size]="14" />
+                            Quick action
+                            <app-icon name="chevron-down" [size]="14" className="opacity-70" />
+                        </app-button>
+                        <div dropdownContent>
+                            @if (canManageContacts()) {
+                                <app-dropdown-item (itemClick)="createContact(quickActionsMenu)">
+                                    <app-icon name="contact-round" [size]="14" />
+                                    New contact
+                                </app-dropdown-item>
+                            }
+                            @if (canManageDeals()) {
+                                <app-dropdown-item (itemClick)="createDeal(quickActionsMenu)">
+                                    <app-icon name="briefcase" [size]="14" />
+                                    New deal
+                                </app-dropdown-item>
+                            }
+                            <app-dropdown-separator />
+                            <app-dropdown-item (itemClick)="goToBoard(quickActionsMenu)">
+                                <app-icon name="list" [size]="14" />
+                                Open deal board
+                            </app-dropdown-item>
+                            <app-dropdown-item (itemClick)="goToTags(quickActionsMenu)">
+                                <app-icon name="tag" [size]="14" />
+                                Manage tags
+                            </app-dropdown-item>
+                        </div>
+                    </app-dropdown-menu>
                 </div>
             </div>
 
             <div class="dashboard-stats-grid">
                 @if (!dashboardService.isLoading()) {
                     @for (stat of stats(); track stat.label) {
-                        <app-card class="dashboard-stat-card">
-                            <app-card-header class="stat-card-header">
-                                <app-card-description>{{ stat.label }}</app-card-description>
-                                <div class="stat-icon">
-                                    <app-icon
-                                        [name]="stat.icon"
-                                        [size]="16"
-                                        className="text-muted-foreground"
-                                    />
-                                </div>
-                            </app-card-header>
-                            <app-card-body>
-                                <div class="dashboard-stat-value">
-                                    {{ stat.value }}
-                                </div>
-                                <p class="dashboard-stat-detail">{{ stat.detail }}</p>
-                            </app-card-body>
-                        </app-card>
+                        @if (stat.route) {
+                            <button
+                                type="button"
+                                class="dashboard-stat-card dashboard-stat-card-link"
+                                (click)="navigateTo(stat.route!)"
+                            >
+                                <app-card class="h-full">
+                                    <app-card-header class="stat-card-header">
+                                        <app-card-description>{{ stat.label }}</app-card-description>
+                                        <div class="stat-icon">
+                                            <app-icon
+                                                [name]="stat.icon"
+                                                [size]="16"
+                                                className="text-muted-foreground"
+                                            />
+                                        </div>
+                                    </app-card-header>
+                                    <app-card-body>
+                                        <div class="dashboard-stat-value">
+                                            {{ stat.value }}
+                                        </div>
+                                        <p class="dashboard-stat-detail">{{ stat.detail }}</p>
+                                    </app-card-body>
+                                </app-card>
+                            </button>
+                        } @else {
+                            <app-card class="dashboard-stat-card">
+                                <app-card-header class="stat-card-header">
+                                    <app-card-description>{{ stat.label }}</app-card-description>
+                                    <div class="stat-icon">
+                                        <app-icon
+                                            [name]="stat.icon"
+                                            [size]="16"
+                                            className="text-muted-foreground"
+                                        />
+                                    </div>
+                                </app-card-header>
+                                <app-card-body>
+                                    <div class="dashboard-stat-value">
+                                        {{ stat.value }}
+                                    </div>
+                                    <p class="dashboard-stat-detail">{{ stat.detail }}</p>
+                                </app-card-body>
+                            </app-card>
+                        }
                     }
                 } @else {
                     @for (_ of statsSkeletonItems; track $index) {
@@ -165,6 +224,9 @@ export class DashboardHomeComponent implements OnInit {
     authService = inject(AuthService);
     dashboardService = inject(DashboardService);
     toastService = inject(ToastService);
+    private readonly router = inject(Router);
+    private readonly dialogService = inject(DialogService);
+    private readonly permissionService = inject(PermissionService);
 
     private readonly reportService = injectAsync(
         () =>
@@ -192,16 +254,58 @@ export class DashboardHomeComponent implements OnInit {
         return data ? mapDashboardStats(data) : [];
     });
 
+    canManageContacts = computed(() =>
+        this.permissionService.hasPermission(Permissions.ManageContacts),
+    );
+    canManageDeals = computed(() =>
+        this.permissionService.hasPermission(Permissions.ManageDeals),
+    );
+
     refreshStats(): void {
         this.dashboardService.reloadStats();
         ignorePromise(this.reportService().then((report) => report.trackRefresh()));
         this.toastService.success('Dashboard refreshed', 'Stats updated successfully.');
     }
 
-    showWelcomeToast(): void {
-        this.toastService.show({
-            title: 'Action completed',
-            description: 'This is a shadcn-style toast notification.',
+    navigateTo(route: string): void {
+        ignorePromise(this.router.navigateByUrl(route));
+    }
+
+    async createContact(menu: import('@shared/components/dropdown-menu.component').DropdownMenuComponent): Promise<void> {
+        menu.close();
+        const ref = await this.dialogService.openLazy<
+            import('@features/contacts/contact-create-dialog.component').ContactCreateDialogComponent,
+            undefined,
+            import('@features/contacts/contact-create-dialog.component').ContactCreateDialogResult
+        >(() =>
+            import('@features/contacts/contact-create-dialog.component').then(
+                (m) => m.ContactCreateDialogComponent,
+            ),
+        );
+        ref.afterClosed().subscribe((result) => {
+            if (result === 'created') this.dashboardService.reloadStats();
         });
+    }
+
+    async createDeal(menu: import('@shared/components/dropdown-menu.component').DropdownMenuComponent): Promise<void> {
+        menu.close();
+        const ref = await this.dialogService.openLazy<
+            import('@features/deals/deal-create-dialog.component').DealCreateDialogComponent,
+            undefined,
+            import('@features/deals/deal-create-dialog.component').DealCreateDialogResult
+        >(() => import('@features/deals/deal-create-dialog.component').then((m) => m.DealCreateDialogComponent));
+        ref.afterClosed().subscribe((result) => {
+            if (result === 'created') this.dashboardService.reloadStats();
+        });
+    }
+
+    goToBoard(menu: import('@shared/components/dropdown-menu.component').DropdownMenuComponent): void {
+        menu.close();
+        ignorePromise(this.router.navigate(['/dashboard/deals/board']));
+    }
+
+    goToTags(menu: import('@shared/components/dropdown-menu.component').DropdownMenuComponent): void {
+        menu.close();
+        ignorePromise(this.router.navigate(['/dashboard/tags']));
     }
 }

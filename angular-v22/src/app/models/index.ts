@@ -4,3 +4,5 @@ export * from './common.model';
 export * from './crm.model';
 export * from './organization.model';
 export * from './rbac.model';
+export * from './saved-view.model';
+export * from './enterprise.model';

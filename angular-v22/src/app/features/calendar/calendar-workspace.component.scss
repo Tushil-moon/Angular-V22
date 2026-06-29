@@ -1,0 +1,56 @@
+.calendar-workspace {
+    @apply grid gap-4 xl:grid-cols-[1fr_20rem];
+}
+
+.calendar-grid-card {
+    @apply min-w-0;
+}
+
+.calendar-weekdays {
+    @apply mb-2 grid grid-cols-7 gap-1 text-center text-xs font-medium text-muted-foreground;
+}
+
+.calendar-month-grid {
+    @apply grid grid-cols-7 gap-1;
+}
+
+.calendar-day-cell {
+    @apply flex min-h-[4.5rem] flex-col items-start rounded-lg border border-transparent p-2 text-left
+        transition-colors hover:bg-muted/50;
+}
+
+.calendar-day-outside {
+    @apply opacity-40;
+}
+
+.calendar-day-today .calendar-day-number {
+    @apply rounded-full bg-primary px-1.5 text-primary-foreground;
+}
+
+.calendar-day-selected {
+    @apply border-primary/40 bg-primary/5;
+}
+
+.calendar-day-number {
+    @apply text-sm font-medium;
+}
+
+.calendar-day-dots {
+    @apply mt-auto flex gap-0.5;
+}
+
+.calendar-event-dot {
+    @apply h-1.5 w-1.5 rounded-full bg-primary;
+}
+
+.calendar-agenda-list {
+    @apply space-y-3;
+}
+
+.calendar-agenda-item {
+    @apply flex gap-3 rounded-lg border border-border p-3;
+}
+
+.calendar-agenda-time {
+    @apply shrink-0 text-xs font-medium text-muted-foreground;
+}

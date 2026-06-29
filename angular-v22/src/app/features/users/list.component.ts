@@ -17,6 +17,7 @@ import {
     FlexTableComponent,
     FlexTableRowComponent,
     IconComponent,
+    PaginationComponent,
     SearchInputComponent,
 } from '@shared/components';
 import { USER_TABLE_COLUMNS } from '@shared/config/users-table.config';
@@ -55,6 +56,7 @@ const EMPTY_USERS_PAGE: UsersPageResult = { users: [], total: 0 };
         FlexTableComponent,
         FlexTableRowComponent,
         FlexTableCellComponent,
+        PaginationComponent,
     ],
     template: `
         <div class="page-shell page-shell-fill">
@@ -157,6 +159,12 @@ const EMPTY_USERS_PAGE: UsersPageResult = { users: [], total: 0 };
                             </app-flex-table-row>
                         }
                     </app-flex-table>
+                    <app-pagination
+                        [page]="currentPage()"
+                        [pageSize]="pageSize()"
+                        [total]="totalUsers()"
+                        (pageChange)="currentPage.set($event)"
+                    />
                 </app-card-body>
             </app-card>
         </div>

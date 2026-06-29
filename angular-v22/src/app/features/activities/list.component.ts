@@ -4,9 +4,10 @@
 
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import { Activity, ActivityType, FilterOptions } from '@models/index';
-import { ActivityService, AuthService } from '@services/index';
+import { ActivityService, AuthService, DialogService, PermissionService } from '@services/index';
 import {
     BadgeComponent,
+    ButtonComponent,
     CardBodyComponent,
     CardDescriptionComponent,
     CardHeaderComponent,
@@ -17,18 +18,28 @@ import {
     FlexTableCellComponent,
     FlexTableComponent,
     FlexTableRowComponent,
+    IconComponent,
+    PaginationComponent,
     SearchInputComponent,
     SelectOption,
 } from '@shared/components';
+import { SavedViewsPickerComponent } from '@shared/components/saved-views-picker.component';
 import {
     ACTIVITY_TABLE_COLUMNS,
     formatActivityDate,
     formatActivityType,
 } from '@shared/config/activities-table.config';
+import { Permissions } from '@shared/constants/permissions';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
 import { asOptionalString } from '@utils/form-display.util';
 import { DateRangeValue, EMPTY_DATE_RANGE, isDateWithinRange } from '@utils/date.util';
+
+import { ActivityCreateDialogResult } from './activity-create-dialog.component';
+import {
+    ActivityDetailDialogData,
+    ActivityDetailDialogResult,
+} from './activity-detail-dialog.component';
 
 interface ActivitiesPageResult {
     activities: Activity[];
@@ -45,6 +56,8 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
         CardTitleComponent,
         CardDescriptionComponent,
         CardBodyComponent,
+        ButtonComponent,
+        IconComponent,
         SearchInputComponent,
         FlexTableComponent,
         FlexTableRowComponent,
@@ -52,6 +65,8 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
         BadgeComponent,
         FilterSelectComponent,
         DateRangePickerComponent,
+        SavedViewsPickerComponent,
+        PaginationComponent,
     ],
     template: `
         <div class="page-shell page-shell-fill">
@@ -60,6 +75,12 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
                     <h1 class="page-title">Activities</h1>
                     <p class="page-description">Calls, emails, meetings, tasks, and notes</p>
                 </div>
+                @if (canManage()) {
+                    <app-button size="sm" (clicked)="openCreateDialog()">
+                        <app-icon name="plus" [size]="14" />
+                        Log activity
+                    </app-button>
+                }
             </div>
 
             @if (loadError()) {
@@ -75,6 +96,11 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
                         >
                     </div>
                     <div class="card-toolbar">
+                        <app-saved-views-picker
+                            entityType="ACTIVITIES"
+                            [filters]="currentFilters()"
+                            (filtersChange)="applySavedFilters($event)"
+                        />
                         <app-filter-select
                             [value]="typeFilter()"
                             [options]="typeFilterOptions"
@@ -108,7 +134,10 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
                         [skeletonRowCount]="5"
                     >
                         @for (activity of filteredActivities(); track activity.id) {
-                            <app-flex-table-row>
+                            <app-flex-table-row
+                                [interactive]="true"
+                                (click)="openDetailDialog(activity)"
+                            >
                                 <app-flex-table-cell column="subject">
                                     <div class="min-w-0">
                                         <p class="truncate font-medium text-foreground">
@@ -146,9 +175,26 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
                                         formatDate(activity.createdAt)
                                     }}</span>
                                 </app-flex-table-cell>
+                                <app-flex-table-cell column="actions">
+                                    <app-button
+                                        variant="ghost"
+                                        size="icon"
+                                        type="button"
+                                        (clicked)="openDetailDialog(activity, $event)"
+                                    >
+                                        <span class="sr-only">View activity</span>
+                                        <app-icon name="eye" [size]="16" />
+                                    </app-button>
+                                </app-flex-table-cell>
                             </app-flex-table-row>
                         }
                     </app-flex-table>
+                    <app-pagination
+                        [page]="currentPage()"
+                        [pageSize]="pageSize()"
+                        [total]="totalActivities()"
+                        (pageChange)="currentPage.set($event)"
+                    />
                 </app-card-body>
             </app-card>
         </div>
@@ -157,6 +203,12 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
 export class ActivitiesListComponent {
     private readonly authService = inject(AuthService);
     private readonly activityService = inject(ActivityService);
+    private readonly dialogService = inject(DialogService);
+    private readonly permissionService = inject(PermissionService);
+
+    readonly canManage = computed(() =>
+        this.permissionService.hasPermission(Permissions.ManageActivities),
+    );
 
     readonly columns = ACTIVITY_TABLE_COLUMNS;
     readonly formatDate = formatActivityDate;
@@ -236,5 +288,59 @@ export class ActivitiesListComponent {
 
     onDueDateRangeChange(range: DateRangeValue): void {
         this.dueDateRange.set(range);
+    }
+
+    currentFilters = computed(() => ({
+        search: this.searchQuery().trim() || undefined,
+        status: this.typeFilter() || undefined,
+        closeDateFrom: this.dueDateRange().from || undefined,
+        closeDateTo: this.dueDateRange().to || undefined,
+    }));
+
+    applySavedFilters(filters: import('@models/index').SavedViewFilters): void {
+        this.searchQuery.set(filters.search ?? '');
+        this.typeFilter.set(filters.status ?? '');
+        this.dueDateRange.set({
+            from: filters.closeDateFrom ?? '',
+            to: filters.closeDateTo ?? '',
+        });
+        this.currentPage.set(1);
+    }
+
+    async openCreateDialog(): Promise<void> {
+        const ref = await this.dialogService.openLazy<
+            import('./activity-create-dialog.component').ActivityCreateDialogComponent,
+            undefined,
+            ActivityCreateDialogResult
+        >(() =>
+            import('./activity-create-dialog.component').then(
+                (m) => m.ActivityCreateDialogComponent,
+            ),
+        );
+
+        ref.afterClosed().subscribe((result) => {
+            if (result === 'created') this.activitiesResource.reload();
+        });
+    }
+
+    async openDetailDialog(activity: Activity, event?: MouseEvent): Promise<void> {
+        event?.stopPropagation();
+
+        const ref = await this.dialogService.openLazy<
+            import('./activity-detail-dialog.component').ActivityDetailDialogComponent,
+            ActivityDetailDialogData,
+            ActivityDetailDialogResult
+        >(
+            () =>
+                import('./activity-detail-dialog.component').then(
+                    (m) => m.ActivityDetailDialogComponent,
+                ),
+            { data: { activityId: activity.id } },
+        );
+
+        ref.afterClosed().subscribe((result) => {
+            if (result === 'deleted' || result === 'updated')
+                this.activitiesResource.reload();
+        });
     }
 }

@@ -19,6 +19,7 @@ export * from './input.component';
 export * from './label.component';
 export * from './loader.component';
 export * from './nav-menu.component';
+export * from './pagination.component';
 export * from './search-input.component';
 export * from './select.component';
 export * from './separator.component';

@@ -162,6 +162,25 @@ export class AuthService {
     if (input.email) await registerAccountProvider(user.id, "EMAIL", input.email.toLowerCase());
     if (input.phone) await registerAccountProvider(user.id, "PHONE", input.phone);
 
+    const orgName = input.email
+      ? `${input.email.split("@")[0]}'s Workspace`
+      : `${input.phone ?? "user"}'s Workspace`;
+    const orgSlug = `user-${user.id.slice(0, 8)}`;
+    await prisma.organization.create({
+      data: {
+        name: orgName,
+        slug: orgSlug,
+        timezone: "UTC",
+        currency: "USD",
+        members: {
+          create: {
+            userId: user.id,
+            role: "OWNER",
+          },
+        },
+      },
+    });
+
     await audit(AuditAction.REGISTER, meta, user.id);
 
     const tokens = await createTokens(user.id, [Roles.User], meta, input.deviceName);

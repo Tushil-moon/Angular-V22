@@ -13,7 +13,7 @@ import {
 import { Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Deal, DealBoardColumn, DealStage } from '@models/index';
-import { AuthService, DealService, PermissionService } from '@services/index';
+import { AuthService, DealService, DialogService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
     BadgeComponent,
@@ -106,6 +106,7 @@ import { runResourceLoader } from '@shared/utils/resource-error';
                                         class="kanban-card"
                                         cdkDrag
                                         [cdkDragDisabled]="!canManage()"
+                                        (click)="openDetailDialog(deal)"
                                     >
                                         <p class="kanban-card-title">{{ deal.title }}</p>
                                         <p class="kanban-card-value">
@@ -131,6 +132,7 @@ import { runResourceLoader } from '@shared/utils/resource-error';
 export class DealsBoardComponent {
     private readonly authService = inject(AuthService);
     private readonly dealService = inject(DealService);
+    private readonly dialogService = inject(DialogService);
     private readonly permissionService = inject(PermissionService);
     private readonly toastService = inject(ToastService);
 
@@ -165,6 +167,20 @@ export class DealsBoardComponent {
     readonly loadError = computed(() => this.boardResource.error()?.message ?? null);
 
     connectedLists = computed(() => OPEN_DEAL_STAGES);
+
+    async openDetailDialog(deal: Deal): Promise<void> {
+        const ref = await this.dialogService.openLazy<
+            import('./deal-detail-dialog.component').DealDetailDialogComponent,
+            import('./deal-detail-dialog.component').DealDetailDialogData,
+            import('./deal-detail-dialog.component').DealDetailDialogResult
+        >(() => import('./deal-detail-dialog.component').then((m) => m.DealDetailDialogComponent), {
+            data: { dealId: deal.id },
+        });
+
+        ref.afterClosed().subscribe((result) => {
+            if (result === 'deleted' || result === 'updated') this.boardResource.reload();
+        });
+    }
 
     async onDrop(event: CdkDragDrop<Deal[]>, targetStage: DealStage): Promise<void> {
         if (!this.canManage()) return;

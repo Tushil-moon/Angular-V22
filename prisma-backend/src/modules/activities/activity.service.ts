@@ -73,9 +73,27 @@ export const activityService = {
     return mapActivity(activity);
   },
 
+  async getActivity(id: string, auth: AuthContext) {
+    const organizationId = requireOrganizationContext(auth);
+    const scopeWhere = buildActivityScopeWhere(auth);
+
+    const activity = await prisma.activity.findFirst({
+      where: {
+        id,
+        organizationId,
+        ...(Object.keys(scopeWhere).length > 0 ? scopeWhere : {}),
+      },
+      select: activitySelect,
+    });
+
+    if (!activity) throw new AppError(404, "Activity not found", "ACTIVITY_NOT_FOUND");
+    return mapActivity(activity);
+  },
+
   async updateActivity(id: string, input: UpdateActivityInput, auth: AuthContext) {
-    const existing = await prisma.activity.findUnique({
-      where: { id },
+    const organizationId = requireOrganizationContext(auth);
+    const existing = await prisma.activity.findFirst({
+      where: { id, organizationId },
       select: { id: true, userId: true, contactId: true, dealId: true },
     });
 
@@ -110,8 +128,9 @@ export const activityService = {
   },
 
   async deleteActivity(id: string, auth: AuthContext) {
-    const existing = await prisma.activity.findUnique({
-      where: { id },
+    const organizationId = requireOrganizationContext(auth);
+    const existing = await prisma.activity.findFirst({
+      where: { id, organizationId },
       select: { id: true, userId: true },
     });
 

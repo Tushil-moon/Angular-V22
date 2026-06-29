@@ -16,9 +16,9 @@ import { PermissionService } from '@services/permission.service';
 import { SidebarService } from '@services/sidebar.service';
 import { ToastService } from '@services/toast.service';
 import {
-    filterNavItemsByPermission,
-    PLATFORM_NAV_ITEMS,
+    filterNavGroupsByPermission,
     PROFILE_MENU_ITEMS,
+    SIDEBAR_NAV_GROUPS,
     type ProfileMenuItem,
     resolvePageTitle,
 } from '@shared/config/navigation.config';
@@ -35,6 +35,7 @@ import {
 import { GlobalSearchComponent } from '../components/global-search.component';
 import { IconComponent } from '../components/icon.component';
 import { NavMenuComponent } from '../components/nav-menu.component';
+import { NotificationsPanelComponent } from '../components/notifications-panel.component';
 import { OrgSwitcherComponent } from '../components/org-switcher.component';
 import { SeparatorComponent } from '../components/separator.component';
 import { SheetComponent } from '../components/sheet.component';
@@ -56,6 +57,7 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
         ThemeToggleComponent,
         GlobalSearchComponent,
         OrgSwitcherComponent,
+        NotificationsPanelComponent,
     ],
     template: `
         <div
@@ -87,13 +89,17 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
                     </div>
 
                     <div class="sidebar-content custom-scrollbar">
-                        <div class="sidebar-group">
-                            <p class="sidebar-group-label sidebar-collapsible-text">Platform</p>
-                            <app-nav-menu
-                                [items]="navItems()"
-                                [collapsed]="sidebarService.collapsed()"
-                            />
-                        </div>
+                        @for (group of navGroups(); track group.label) {
+                            <div class="sidebar-group">
+                                <p class="sidebar-group-label sidebar-collapsible-text">
+                                    {{ group.label }}
+                                </p>
+                                <app-nav-menu
+                                    [items]="group.items"
+                                    [collapsed]="sidebarService.collapsed()"
+                                />
+                            </div>
+                        }
                     </div>
 
                     <div class="sidebar-footer">
@@ -202,14 +208,7 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
                                 <app-icon name="search" [size]="16" />
                             </button>
                             <app-theme-toggle class="hidden sm:inline-flex" />
-                            <button
-                                type="button"
-                                class="btn btn-outline btn-sm hidden sm:inline-flex"
-                                (click)="showDemoToast()"
-                            >
-                                <app-icon name="bell" [size]="14" />
-                                <span class="hidden md:inline">Notifications</span>
-                            </button>
+                            <app-notifications-panel />
 
                             <div class="md:hidden">
                                 <app-dropdown-menu #profileMenu align="end">
@@ -301,14 +300,16 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
                 </div>
 
                 <div class="sidebar-content custom-scrollbar">
-                    <div class="sidebar-group">
-                        <p class="sidebar-group-label">Platform</p>
-                        <app-nav-menu
-                            [items]="navItems()"
-                            labelClass=""
-                            (itemSelected)="mobileNavOpen.set(false)"
-                        />
-                    </div>
+                    @for (group of navGroups(); track group.label) {
+                        <div class="sidebar-group">
+                            <p class="sidebar-group-label">{{ group.label }}</p>
+                            <app-nav-menu
+                                [items]="group.items"
+                                labelClass=""
+                                (itemSelected)="mobileNavOpen.set(false)"
+                            />
+                        </div>
+                    }
                 </div>
 
                 <div class="sidebar-footer sidebar-mobile-footer">
@@ -345,8 +346,8 @@ export class AdminLayoutComponent {
     sidebarService = inject(SidebarService);
     private readonly permissionService = inject(PermissionService);
 
-    readonly navItems = computed(() =>
-        filterNavItemsByPermission(PLATFORM_NAV_ITEMS, (...permissions) =>
+    readonly navGroups = computed(() =>
+        filterNavGroupsByPermission(SIDEBAR_NAV_GROUPS, (...permissions) =>
             this.permissionService.hasAny(...permissions),
         ),
     );
@@ -385,10 +386,6 @@ export class AdminLayoutComponent {
         if (item.route) {
             ignorePromise(this.router.navigateByUrl(item.route));
         }
-    }
-
-    showDemoToast(): void {
-        this.toastService.success('Notification sent', 'Your workspace is up to date.');
     }
 
     async logout(): Promise<void> {

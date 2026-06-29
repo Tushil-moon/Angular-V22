@@ -34,6 +34,16 @@ export const inviteMember = asyncHandler(async (req, res) => {
   return sendCreated(res, invite, "Invite created");
 });
 
+export const listPendingInvites = asyncHandler(async (req, res) => {
+  const invites = await organizationService.listPendingInvites(getAuthContext(req));
+  return sendSuccess(res, invites);
+});
+
+export const revokeInvite = asyncHandler(async (req, res) => {
+  await organizationService.revokeInvite(String(req.params.inviteId), getAuthContext(req));
+  return sendSuccess(res, null, "Invite revoked");
+});
+
 export const acceptInvite = asyncHandler(async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user!.id },

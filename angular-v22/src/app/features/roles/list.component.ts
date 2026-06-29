@@ -131,6 +131,16 @@ import { RoleCreateDialogComponent, RoleCreateDialogResult } from './role-create
                                     <p class="text-xs text-muted-foreground">
                                         {{ role.permissions?.length || 0 }} permissions
                                     </p>
+                                    @if (canManage()) {
+                                        <app-button
+                                            variant="outline"
+                                            size="sm"
+                                            type="button"
+                                            (clicked)="openPermissionsDialog(role)"
+                                        >
+                                            Manage permissions
+                                        </app-button>
+                                    }
                                 </div>
                             }
                         </div>
@@ -177,6 +187,24 @@ export class RolesListComponent {
             if (result === 'created') {
                 this.roleService.reloadRoles();
             }
+        });
+    }
+
+    async openPermissionsDialog(role: import('@models/index').Role): Promise<void> {
+        const ref = await this.dialogService.openLazy<
+            import('./role-permissions-dialog.component').RolePermissionsDialogComponent,
+            import('./role-permissions-dialog.component').RolePermissionsDialogData,
+            import('./role-permissions-dialog.component').RolePermissionsDialogResult
+        >(
+            () =>
+                import('./role-permissions-dialog.component').then(
+                    (m) => m.RolePermissionsDialogComponent,
+                ),
+            { data: { role } },
+        );
+
+        ref.afterClosed().subscribe((result) => {
+            if (result === 'updated') this.roleService.reloadRoles();
         });
     }
 }

@@ -19,4 +19,13 @@ export class TagService {
         const response = await this.httpClient.post<ApiTagPayload>('/tags', { name, color });
         return response.data ? mapApiTag(response.data) : null;
     }
+
+    async updateTag(id: string, name?: string, color?: string): Promise<CrmTag | null> {
+        const response = await this.httpClient.patch<ApiTagPayload>(`/tags/${id}`, { name, color });
+        return response.data ? mapApiTag(response.data) : null;
+    }
+
+    async deleteTag(id: string): Promise<void> {
+        await this.httpClient.delete(`/tags/${id}`);
+    }
 }

@@ -127,7 +127,23 @@ export const createActivitySchema = z.object({
     subject: z.string().trim().min(1, 'Subject is required').max(200),
     body: z.string().max(5000).optional(),
     dueAt: z.string().optional(),
+    contactId: z.string().uuid().optional().or(z.literal('')),
+    dealId: z.string().uuid().optional().or(z.literal('')),
 });
+
+export const updateActivitySchema = createActivitySchema.partial();
+
+export const createCompanySchema = z.object({
+    name: z.string().trim().min(1, 'Name is required').max(200),
+    domain: z.string().max(150).optional(),
+    industry: z.string().max(100).optional(),
+    size: z.string().max(50).optional(),
+    website: z.string().url('Invalid URL').optional().or(z.literal('')),
+    address: z.string().max(500).optional(),
+    notes: z.string().max(5000).optional(),
+});
+
+export const updateCompanySchema = createCompanySchema.partial();
 
 /**
  * Type exports
@@ -145,6 +161,9 @@ export type UpdateContactInput = z.infer<typeof updateContactSchema>;
 export type CreateDealInput = z.infer<typeof createDealSchema>;
 export type UpdateDealInput = z.infer<typeof updateDealSchema>;
 export type CreateActivityInput = z.infer<typeof createActivitySchema>;
+export type UpdateActivityInput = z.infer<typeof updateActivitySchema>;
+export type CreateCompanyInput = z.infer<typeof createCompanySchema>;
+export type UpdateCompanyInput = z.infer<typeof updateCompanySchema>;
 
 /**
  * Validate function helper

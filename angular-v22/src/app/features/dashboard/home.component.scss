@@ -26,6 +26,14 @@
     @apply mt-1.5 text-xs leading-relaxed text-muted-foreground;
 }
 
+.dashboard-stat-card-link {
+    @apply block w-full cursor-pointer rounded-lg text-left transition-colors hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+}
+
+.dashboard-stat-card-link app-card {
+    @apply transition-shadow hover:shadow-sm;
+}
+
 @media (max-width: 639px) {
     .dashboard-home .page-title {
         @apply text-lg leading-tight;

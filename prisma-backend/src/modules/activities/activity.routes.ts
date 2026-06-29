@@ -31,6 +31,12 @@ activityRouter.post(
   validate({ body: createActivitySchema }),
   controller.createActivity,
 );
+activityRouter.get(
+  "/:id",
+  canRead,
+  validate({ params: activityIdParamSchema }),
+  controller.getActivity,
+);
 activityRouter.patch(
   "/:id",
   canManage,

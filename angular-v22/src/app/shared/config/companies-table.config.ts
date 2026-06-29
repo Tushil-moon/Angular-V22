@@ -35,6 +35,13 @@ export const COMPANY_TABLE_COLUMNS: FlexTableColumn[] = [
         hideBelow: 'md',
         skeletonClass: 'h-4 w-24',
     },
+    {
+        key: 'actions',
+        label: '',
+        align: 'right',
+        grid: '3rem',
+        skeletonClass: 'h-8 w-8 ml-auto',
+    },
 ];
 
 export const formatCompanyDate = (date: Date | null | undefined): string =>

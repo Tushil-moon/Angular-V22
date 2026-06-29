@@ -15,3 +15,13 @@ export const createTag = asyncHandler(async (req, res) => {
   const tag = await tagService.createTag(req.body, getAuthContext(req));
   return sendCreated(res, tag, "Tag created");
 });
+
+export const updateTag = asyncHandler(async (req, res) => {
+  const tag = await tagService.updateTag(String(req.params.id), req.body, getAuthContext(req));
+  return sendSuccess(res, tag, "Tag updated");
+});
+
+export const deleteTag = asyncHandler(async (req, res) => {
+  await tagService.deleteTag(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, null, "Tag deleted");
+});

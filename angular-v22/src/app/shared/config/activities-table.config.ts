@@ -43,6 +43,13 @@ export const ACTIVITY_TABLE_COLUMNS: FlexTableColumn[] = [
         hideBelow: 'md',
         skeletonClass: 'h-4 w-20',
     },
+    {
+        key: 'actions',
+        label: '',
+        align: 'right',
+        grid: '3rem',
+        skeletonClass: 'h-8 w-8 ml-auto',
+    },
 ];
 
 export const formatActivityType = (type: ActivityType): string =>

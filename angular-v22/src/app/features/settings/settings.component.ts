@@ -2,11 +2,12 @@
  * Settings Page — profile, security, sessions, organization
  */
 
-import { Component, inject, model, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, model, OnInit, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { getUserDisplayName, getUserInitials } from '@features/users/user.utils';
 import { AuthService, OrganizationService, SessionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
+import { OrganizationInvite, OrganizationMember } from '@models/index';
 import {
     AvatarComponent,
     ButtonComponent,
@@ -26,6 +27,7 @@ import {
 } from '@shared/components';
 import { ignorePromise } from '@utils/form-display.util';
 import { changePasswordSchema, safeValidate } from '@utils/validators';
+import { Router } from '@angular/router';
 
 type SettingsTab = 'profile' | 'security' | 'sessions' | 'organization';
 
@@ -213,6 +215,90 @@ type SettingsTab = 'profile' | 'security' | 'sessions' | 'organization';
                                         </p>
                                     }
                                 </div>
+
+                                <div class="settings-section space-y-3">
+                                    <div class="space-y-1">
+                                        <p class="text-sm font-medium text-foreground">Members</p>
+                                        <p class="text-sm text-muted-foreground">
+                                            People in this workspace
+                                        </p>
+                                    </div>
+                                    @if (membersLoading()) {
+                                        <app-skeleton className="h-12 w-full rounded-lg" />
+                                    } @else if (members().length === 0) {
+                                        <p class="text-sm text-muted-foreground">No members found.</p>
+                                    } @else {
+                                        <div class="settings-session-list">
+                                            @for (member of members(); track member.userId) {
+                                                <div class="settings-session-row">
+                                                    <div class="min-w-0 space-y-1">
+                                                        <p class="text-sm font-medium text-foreground">
+                                                            {{ member.user.email || member.userId }}
+                                                        </p>
+                                                        <p class="text-xs text-muted-foreground">
+                                                            {{ member.role }} · Joined
+                                                            {{ formatDate(member.joinedAt) }}
+                                                        </p>
+                                                    </div>
+                                                    @if (
+                                                        member.role !== 'OWNER' &&
+                                                        canManageOrg()
+                                                    ) {
+                                                        <app-button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            type="button"
+                                                            (clicked)="removeMember(member.userId)"
+                                                        >
+                                                            Remove
+                                                        </app-button>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+
+                                @if (canManageOrg()) {
+                                    <div class="settings-section space-y-3">
+                                        <div class="space-y-1">
+                                            <p class="text-sm font-medium text-foreground">
+                                                Pending invites
+                                            </p>
+                                        </div>
+                                        @if (pendingInvites().length === 0) {
+                                            <p class="text-sm text-muted-foreground">
+                                                No pending invites.
+                                            </p>
+                                        } @else {
+                                            <div class="settings-session-list">
+                                                @for (invite of pendingInvites(); track invite.id) {
+                                                    <div class="settings-session-row">
+                                                        <div class="min-w-0 space-y-1">
+                                                            <p
+                                                                class="text-sm font-medium text-foreground"
+                                                            >
+                                                                {{ invite.email }}
+                                                            </p>
+                                                            <p class="text-xs text-muted-foreground">
+                                                                {{ invite.role }} · Expires
+                                                                {{ formatDate(invite.expiresAt) }}
+                                                            </p>
+                                                        </div>
+                                                        <app-button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            type="button"
+                                                            (clicked)="revokeInvite(invite.id)"
+                                                        >
+                                                            Revoke
+                                                        </app-button>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             </app-card-body>
                         </app-card>
                     </div>
@@ -278,14 +364,22 @@ type SettingsTab = 'profile' | 'security' | 'sessions' | 'organization';
                                         in</app-card-description
                                     >
                                 </div>
-                                <app-button
-                                    variant="outline"
-                                    size="sm"
-                                    type="button"
-                                    (clicked)="sessionService.reload()"
-                                >
-                                    Refresh
-                                </app-button>
+                        <app-button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            (clicked)="sessionService.reload()"
+                        >
+                            Refresh
+                        </app-button>
+                        <app-button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            (clicked)="logoutAll()"
+                        >
+                            Sign out all devices
+                        </app-button>
                             </app-card-header>
                             <app-card-body [flush]="true" contentClass="!p-0">
                                 @if (sessionService.isLoading()) {
@@ -360,6 +454,7 @@ export class SettingsComponent implements OnInit {
     sessionService = inject(SessionService);
     private readonly organizationService = inject(OrganizationService);
     private readonly toastService = inject(ToastService);
+    private readonly router = inject(Router);
     private readonly fb = inject(NonNullableFormBuilder);
 
     readonly tabs: { id: SettingsTab; label: string }[] = [
@@ -395,6 +490,16 @@ export class SettingsComponent implements OnInit {
     orgSaving = signal(false);
     inviteSending = signal(false);
     lastInviteToken = signal<string | null>(null);
+    members = signal<OrganizationMember[]>([]);
+    pendingInvites = signal<OrganizationInvite[]>([]);
+    membersLoading = signal(false);
+    currentOrgId = signal<string | null>(null);
+    currentOrgRole = signal<'OWNER' | 'ADMIN' | 'MEMBER' | null>(null);
+
+    canManageOrg = computed(() => {
+        const role = this.currentOrgRole();
+        return role === 'OWNER' || role === 'ADMIN';
+    });
 
     displayName = () => {
         const user = this.authService.currentUser();
@@ -413,6 +518,28 @@ export class SettingsComponent implements OnInit {
         ignorePromise(this.authService.refreshProfile());
         this.sessionService.reload();
         ignorePromise(this.loadOrganizationSettings());
+        ignorePromise(this.loadMembers());
+    }
+
+    async loadMembers(): Promise<void> {
+        this.membersLoading.set(true);
+        try {
+            const current = await this.organizationService.getCurrentOrganization();
+            this.currentOrgId.set(current?.organizationId ?? null);
+            const [members, invites] = await Promise.all([
+                this.organizationService.listMembers(),
+                this.canManageOrg()
+                    ? this.organizationService.listPendingInvites()
+                    : Promise.resolve([]),
+            ]);
+            this.members.set(members);
+            this.pendingInvites.set(invites);
+        } catch {
+            this.members.set([]);
+            this.pendingInvites.set([]);
+        } finally {
+            this.membersLoading.set(false);
+        }
     }
 
     async loadOrganizationSettings(): Promise<void> {
@@ -423,6 +550,8 @@ export class SettingsComponent implements OnInit {
             timezone: current.organization.timezone,
             currency: current.organization.currency,
         });
+        this.currentOrgId.set(current.organizationId);
+        this.currentOrgRole.set(current.role);
     }
 
     async saveOrganization(): Promise<void> {
@@ -456,6 +585,7 @@ export class SettingsComponent implements OnInit {
             this.lastInviteToken.set(invite?.token ?? null);
             this.inviteForm.reset();
             this.toastService.success('Invite sent', `Invitation created for ${email}.`);
+            ignorePromise(this.loadMembers());
         } catch {
             this.toastService.show({
                 title: 'Invite failed',
@@ -467,8 +597,45 @@ export class SettingsComponent implements OnInit {
         }
     }
 
-    formatDate(value: string): string {
+    formatDate(value: string | Date): string {
         return new Date(value).toLocaleString();
+    }
+
+    async removeMember(userId: string): Promise<void> {
+        const orgId = this.currentOrgId();
+        if (!orgId) return;
+
+        try {
+            await this.organizationService.removeMember(orgId, userId);
+            this.toastService.success('Member removed', 'User removed from workspace.');
+            ignorePromise(this.loadMembers());
+        } catch {
+            this.toastService.show({
+                title: 'Remove failed',
+                description: 'Could not remove member.',
+                variant: 'destructive',
+            });
+        }
+    }
+
+    async revokeInvite(inviteId: string): Promise<void> {
+        try {
+            await this.organizationService.revokeInvite(inviteId);
+            this.toastService.success('Invite revoked', 'Pending invite removed.');
+            ignorePromise(this.loadMembers());
+        } catch {
+            this.toastService.show({
+                title: 'Revoke failed',
+                description: 'Could not revoke invite.',
+                variant: 'destructive',
+            });
+        }
+    }
+
+    async logoutAll(): Promise<void> {
+        await this.authService.signOutAll();
+        this.toastService.success('Signed out', 'All devices have been signed out.');
+        ignorePromise(this.router.navigate(['/auth/signin']));
     }
 
     async resendVerification(): Promise<void> {

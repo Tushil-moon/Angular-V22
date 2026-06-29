@@ -41,11 +41,24 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'verify-email',
+                loadComponent: () =>
+                    import('@features/auth/verify-email.component').then(
+                        (m) => m.VerifyEmailComponent,
+                    ),
+            },
+            {
                 path: '',
                 redirectTo: 'signin',
                 pathMatch: 'full',
             },
         ],
+    },
+    {
+        path: 'auth/accept-invite',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('@features/auth/accept-invite.component').then((m) => m.AcceptInviteComponent),
     },
     {
         path: 'dashboard',
@@ -102,6 +115,13 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'tags',
+                canActivate: [permissionGuard],
+                data: { permission: [Permissions.ReadContacts, Permissions.ReadDeals] },
+                loadComponent: () =>
+                    import('@features/tags/list.component').then((m) => m.TagsListComponent),
+            },
+            {
                 path: 'users',
                 canActivate: [permissionGuard],
                 data: { permission: [Permissions.ReadUsers, Permissions.ManageUsers] },
@@ -120,6 +140,205 @@ export const routes: Routes = [
                 loadComponent: () =>
                     import('@features/settings/settings.component').then(
                         (m) => m.SettingsComponent,
+                    ),
+            },
+            {
+                path: 'sales',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/workspaces/sales-workspace.component').then(
+                        (m) => m.SalesWorkspaceComponent,
+                    ),
+            },
+            {
+                path: 'marketing',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/workspaces/marketing-workspace.component').then(
+                        (m) => m.MarketingWorkspaceComponent,
+                    ),
+            },
+            {
+                path: 'service',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/workspaces/service-workspace.component').then(
+                        (m) => m.ServiceWorkspaceComponent,
+                    ),
+            },
+            {
+                path: 'analytics',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/workspaces/analytics-workspace.component').then(
+                        (m) => m.AnalyticsWorkspaceComponent,
+                    ),
+            },
+            {
+                path: 'automation',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ManageDeals },
+                loadComponent: () =>
+                    import('@features/workspaces/automation-workspace.component').then(
+                        (m) => m.AutomationWorkspaceComponent,
+                    ),
+            },
+            {
+                path: 'apps',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/enterprise/hub.component').then(
+                        (m) => m.EnterpriseHubComponent,
+                    ),
+            },
+            {
+                path: 'enterprise',
+                redirectTo: 'apps',
+                pathMatch: 'full',
+            },
+            {
+                path: 'quotes',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/quotes/list.component').then((m) => m.QuotesListComponent),
+            },
+            {
+                path: 'forecasting',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/forecasting/list.component').then(
+                        (m) => m.ForecastingListComponent,
+                    ),
+            },
+            {
+                path: 'lead-scoring',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/lead-scoring/list.component').then(
+                        (m) => m.LeadScoringListComponent,
+                    ),
+            },
+            {
+                path: 'calendar',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/calendar/list.component').then(
+                        (m) => m.CalendarListComponent,
+                    ),
+            },
+            {
+                path: 'campaigns',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/campaigns/list.component').then(
+                        (m) => m.CampaignsListComponent,
+                    ),
+            },
+            {
+                path: 'cases',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/cases/list.component').then((m) => m.CasesListComponent),
+            },
+            {
+                path: 'knowledge',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/knowledge/list.component').then(
+                        (m) => m.KnowledgeListComponent,
+                    ),
+            },
+            {
+                path: 'reports',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/reports/list.component').then(
+                        (m) => m.ReportsListComponent,
+                    ),
+            },
+            {
+                path: 'report-layouts',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/report-layouts/list.component').then(
+                        (m) => m.ReportLayoutsListComponent,
+                    ),
+            },
+            {
+                path: 'workflows',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ManageDeals },
+                loadComponent: () =>
+                    import('@features/workflows/list.component').then(
+                        (m) => m.WorkflowsListComponent,
+                    ),
+            },
+            {
+                path: 'webhooks',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ManageDeals },
+                loadComponent: () =>
+                    import('@features/webhooks/list.component').then(
+                        (m) => m.WebhooksListComponent,
+                    ),
+            },
+            {
+                path: 'ai-flags',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ManageDeals },
+                loadComponent: () =>
+                    import('@features/ai-flags/list.component').then(
+                        (m) => m.AiFlagsListComponent,
+                    ),
+            },
+            {
+                path: 'ai-insights',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/ai-insights/list.component').then(
+                        (m) => m.AiInsightsListComponent,
+                    ),
+            },
+            {
+                path: 'api-keys',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ManageDeals },
+                loadComponent: () =>
+                    import('@features/api-keys/list.component').then(
+                        (m) => m.ApiKeysListComponent,
+                    ),
+            },
+            {
+                path: 'custom-fields',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ManageDeals },
+                loadComponent: () =>
+                    import('@features/custom-fields/list.component').then(
+                        (m) => m.CustomFieldsListComponent,
+                    ),
+            },
+            {
+                path: 'territories',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ManageDeals },
+                loadComponent: () =>
+                    import('@features/territories/list.component').then(
+                        (m) => m.TerritoriesListComponent,
                     ),
             },
         ],

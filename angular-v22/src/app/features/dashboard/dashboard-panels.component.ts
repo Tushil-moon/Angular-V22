@@ -5,7 +5,6 @@
 import { Component, computed, inject, ViewEncapsulation } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService, DashboardService } from '@services/index';
-import { ToastService } from '@services/toast.service';
 import {
     CardBodyComponent,
     CardComponent,
@@ -41,9 +40,15 @@ import { formatDealValue } from '@shared/config/deals-table.config';
     template: `
         <div class="dashboard-panels grid gap-3 sm:gap-4 lg:grid-cols-7">
             <app-card class="lg:col-span-7">
-                <app-card-header>
-                    <app-card-title>Sales pipeline</app-card-title>
-                    <app-card-description>Open deals by stage</app-card-description>
+                <app-card-header [row]="true">
+                    <div class="min-w-0 space-y-1">
+                        <app-card-title>Sales pipeline</app-card-title>
+                        <app-card-description>Open deals by stage</app-card-description>
+                    </div>
+                    <a routerLink="/dashboard/deals/board" class="btn btn-outline btn-sm">
+                        <app-icon name="list" [size]="14" />
+                        Board view
+                    </a>
                 </app-card-header>
                 <app-card-body>
                     @if (dashboardService.isLoading()) {
@@ -145,31 +150,15 @@ import { formatDealValue } from '@shared/config/deals-table.config';
                 <app-card-body>
                     <div class="space-y-1">
                         @for (link of quickLinks; track link.label; let last = $last) {
-                            @if (link.route) {
-                                <a [routerLink]="link.route" class="quick-link">
-                                    <app-icon [name]="link.icon" [size]="16" />
-                                    <span>{{ link.label }}</span>
-                                    <app-icon
-                                        name="chevron-right"
-                                        [size]="14"
-                                        className="ml-auto text-muted-foreground"
-                                    />
-                                </a>
-                            } @else {
-                                <button
-                                    type="button"
-                                    class="quick-link w-full"
-                                    (click)="showWelcomeToast()"
-                                >
-                                    <app-icon [name]="link.icon" [size]="16" />
-                                    <span>{{ link.label }}</span>
-                                    <app-icon
-                                        name="chevron-right"
-                                        [size]="14"
-                                        className="ml-auto text-muted-foreground"
-                                    />
-                                </button>
-                            }
+                            <a [routerLink]="link.route" class="quick-link">
+                                <app-icon [name]="link.icon" [size]="16" />
+                                <span>{{ link.label }}</span>
+                                <app-icon
+                                    name="chevron-right"
+                                    [size]="14"
+                                    className="ml-auto text-muted-foreground"
+                                />
+                            </a>
                             @if (!last) {
                                 <app-separator />
                             }
@@ -191,7 +180,6 @@ import { formatDealValue } from '@shared/config/deals-table.config';
 export class DashboardPanelsComponent {
     dashboardService = inject(DashboardService);
     private readonly authService = inject(AuthService);
-    private readonly toastService = inject(ToastService);
 
     readonly quickLinks = QUICK_LINKS;
     readonly activitySkeletonItems = Array.from({ length: ACTIVITY_SKELETON_COUNT }, (_, i) => i);
@@ -203,11 +191,4 @@ export class DashboardPanelsComponent {
 
     recentActivities = computed(() => this.dashboardService.stats()?.recentActivity ?? []);
     pipeline = computed(() => this.dashboardService.stats()?.pipeline ?? []);
-
-    showWelcomeToast(): void {
-        this.toastService.show({
-            title: 'Action completed',
-            description: 'This is a shadcn-style toast notification.',
-        });
-    }
 }

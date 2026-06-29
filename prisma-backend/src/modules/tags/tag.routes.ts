@@ -5,7 +5,7 @@ import { requirePermission } from "../../middlewares/authorize";
 import { validate } from "../../middlewares/validate";
 import { Permissions } from "../../shared/constants/permissions";
 import * as controller from "./tag.controller";
-import { createTagSchema, listTagsQuerySchema } from "./tag.validation";
+import { createTagSchema, listTagsQuerySchema, tagIdParamSchema, updateTagSchema } from "./tag.validation";
 
 export const tagRouter = Router();
 
@@ -22,4 +22,16 @@ tagRouter.post(
   requirePermission(Permissions.ManageContacts, Permissions.ManageDeals),
   validate({ body: createTagSchema }),
   controller.createTag,
+);
+tagRouter.patch(
+  "/:id",
+  requirePermission(Permissions.ManageContacts, Permissions.ManageDeals),
+  validate({ params: tagIdParamSchema, body: updateTagSchema }),
+  controller.updateTag,
+);
+tagRouter.delete(
+  "/:id",
+  requirePermission(Permissions.ManageContacts, Permissions.ManageDeals),
+  validate({ params: tagIdParamSchema }),
+  controller.deleteTag,
 );

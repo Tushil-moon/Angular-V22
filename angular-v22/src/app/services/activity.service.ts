@@ -34,6 +34,11 @@ export class ActivityService {
         return mapApiPaginated(response.data, mapApiActivity);
     }
 
+    async getActivityById(id: string): Promise<Activity | null> {
+        const response = await this.httpClient.get<ApiActivityPayload>(`/activities/${id}`);
+        return response.data ? mapApiActivity(response.data) : null;
+    }
+
     async createActivity(payload: Record<string, unknown>): Promise<Activity | null> {
         const response = await this.httpClient.post<ApiActivityPayload>('/activities', payload);
         return response.data ? mapApiActivity(response.data) : null;

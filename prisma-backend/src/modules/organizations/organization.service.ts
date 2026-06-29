@@ -235,6 +235,50 @@ export const organizationService = {
     };
   },
 
+  async listPendingInvites(auth: AuthContext) {
+    const organizationId = requireOrganizationContext(auth);
+
+    if (!auth.organizationRole || !["OWNER", "ADMIN"].includes(auth.organizationRole)) {
+      throw new AppError(403, "Organization admin access required", "FORBIDDEN");
+    }
+
+    const invites = await prisma.organizationInvite.findMany({
+      where: {
+        organizationId,
+        acceptedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        expiresAt: true,
+        createdAt: true,
+      },
+    });
+
+    return invites;
+  },
+
+  async revokeInvite(inviteId: string, auth: AuthContext) {
+    const organizationId = requireOrganizationContext(auth);
+
+    if (!auth.organizationRole || !["OWNER", "ADMIN"].includes(auth.organizationRole)) {
+      throw new AppError(403, "Organization admin access required", "FORBIDDEN");
+    }
+
+    const invite = await prisma.organizationInvite.findFirst({
+      where: { id: inviteId, organizationId, acceptedAt: null },
+    });
+
+    if (!invite) {
+      throw new AppError(404, "Invite not found", "INVITE_NOT_FOUND");
+    }
+
+    await prisma.organizationInvite.delete({ where: { id: inviteId } });
+  },
+
   async acceptInvite(token: string, userId: string, userEmail?: string | null) {
     const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const invite = await prisma.organizationInvite.findFirst({
@@ -291,7 +335,10 @@ export const organizationService = {
   },
 
   async removeMember(organizationId: string, targetUserId: string, auth: AuthContext) {
-    requireOrganizationContext(auth);
+    const resolvedOrgId = requireOrganizationContext(auth);
+    if (organizationId !== resolvedOrgId) {
+      throw new AppError(403, "Organization context mismatch", "FORBIDDEN");
+    }
 
     if (!auth.organizationRole || !["OWNER", "ADMIN"].includes(auth.organizationRole)) {
       throw new AppError(403, "Organization admin access required", "FORBIDDEN");

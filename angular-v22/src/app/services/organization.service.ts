@@ -140,4 +140,33 @@ export class OrganizationService {
         );
         return response.data ? mapOrganization(response.data) : null;
     }
+
+    async listPendingInvites(): Promise<OrganizationInvite[]> {
+        const response = await this.httpClient.get<
+            {
+                id: string;
+                email: string;
+                role: OrganizationInvite['role'];
+                expires_at?: string;
+                created_at?: string;
+            }[]
+        >('/organizations/current/invites');
+        return (
+            response.data?.map((invite) => ({
+                id: invite.id,
+                email: invite.email,
+                role: invite.role,
+                expiresAt: invite.expires_at ? new Date(invite.expires_at) : new Date(),
+                createdAt: invite.created_at ? new Date(invite.created_at) : new Date(),
+            })) ?? []
+        );
+    }
+
+    async revokeInvite(inviteId: string): Promise<void> {
+        await this.httpClient.delete(`/organizations/current/invites/${inviteId}`);
+    }
+
+    async removeMember(organizationId: string, userId: string): Promise<void> {
+        await this.httpClient.delete(`/organizations/${organizationId}/members/${userId}`);
+    }
 }

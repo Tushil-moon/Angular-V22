@@ -8,6 +8,7 @@ export interface StatCard {
     value: string;
     detail: string;
     icon: IconName;
+    route?: string;
 }
 
 export interface QuickLink {
@@ -18,10 +19,12 @@ export interface QuickLink {
 }
 
 export const QUICK_LINKS: QuickLink[] = [
+    { label: 'Sales Cloud', icon: 'circle-dollar-sign', route: '/dashboard/sales' },
+    { label: 'Service desk', icon: 'alert-circle', route: '/dashboard/cases' },
+    { label: 'View pipeline', icon: 'briefcase', route: '/dashboard/deals/board' },
     { label: 'Manage contacts', icon: 'contact-round', route: '/dashboard/contacts' },
-    { label: 'View pipeline', icon: 'briefcase', route: '/dashboard/deals' },
-    { label: 'Manage users', icon: 'users', route: '/dashboard/users' },
-    { label: 'Account settings', icon: 'settings', route: '/dashboard/settings' },
+    { label: 'Calendar', icon: 'calendar', route: '/dashboard/calendar' },
+    { label: 'All apps', icon: 'panel-left', route: '/dashboard/apps' },
 ];
 
 export const STATS_SKELETON_COUNT = 6;
@@ -34,30 +37,35 @@ export function mapDashboardStats(data: DashboardStats): StatCard[] {
             value: data.totalContacts.toLocaleString(),
             detail: 'People in CRM',
             icon: 'contact-round',
+            route: '/dashboard/contacts',
         },
         {
             label: 'Open Deals',
             value: data.openDeals.toLocaleString(),
             detail: 'Active pipeline',
             icon: 'briefcase',
+            route: '/dashboard/deals',
         },
         {
             label: 'Pipeline Value',
             value: formatDealValue(data.pipelineValue),
             detail: 'Open opportunities',
             icon: 'circle-dollar-sign',
+            route: '/dashboard/deals/board',
         },
         {
             label: 'Total Users',
             value: data.totalUsers.toLocaleString(),
             detail: 'Registered accounts',
             icon: 'users',
+            route: '/dashboard/users',
         },
         {
             label: 'Active Sessions',
             value: data.activeSessions.toLocaleString(),
             detail: 'Currently active',
             icon: 'activity',
+            route: '/dashboard/settings',
         },
         {
             label: 'System Health',

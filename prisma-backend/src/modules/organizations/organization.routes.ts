@@ -7,6 +7,7 @@ import * as controller from "./organization.controller";
 import {
   acceptInviteParamSchema,
   createOrganizationSchema,
+  inviteIdParamSchema,
   inviteMemberSchema,
   memberUserIdParamSchema,
   updateOrganizationSchema,
@@ -33,6 +34,21 @@ organizationRouter.post(
   requireOrganizationAdmin,
   validate({ body: inviteMemberSchema }),
   controller.inviteMember,
+);
+organizationRouter.get(
+  "/current/invites",
+  authenticate,
+  resolveOrganization,
+  requireOrganizationAdmin,
+  controller.listPendingInvites,
+);
+organizationRouter.delete(
+  "/current/invites/:inviteId",
+  authenticate,
+  resolveOrganization,
+  requireOrganizationAdmin,
+  validate({ params: inviteIdParamSchema }),
+  controller.revokeInvite,
 );
 organizationRouter.post(
   "/invites/:token/accept",

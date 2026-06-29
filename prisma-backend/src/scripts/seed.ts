@@ -331,11 +331,77 @@ const seedCrmData = async () => {
       ],
     });
 
+    const acmeCompany = await tx.company.create({
+      data: {
+        organizationId: DEFAULT_ORG_ID,
+        name: "Acme Corp",
+        domain: "acme.io",
+        industry: "Technology",
+        size: "201-500",
+        website: "https://acme.io",
+        ownerId: admin.id,
+      },
+    });
+
+    await tx.company.create({
+      data: {
+        organizationId: DEFAULT_ORG_ID,
+        name: "TechStart",
+        domain: "techstart.com",
+        industry: "SaaS",
+        size: "11-50",
+        ownerId: admin.id,
+      },
+    });
+
+    await tx.contact.update({
+      where: { id: alice.id },
+      data: { companyId: acmeCompany.id },
+    });
+
+    const enterpriseTag = await tx.tag.create({
+      data: { organizationId: DEFAULT_ORG_ID, name: "Enterprise", color: "#6366f1" },
+    });
+    const hotLeadTag = await tx.tag.create({
+      data: { organizationId: DEFAULT_ORG_ID, name: "Hot Lead", color: "#ef4444" },
+    });
+
+    await tx.contactTag.createMany({
+      data: [
+        { contactId: alice.id, tagId: enterpriseTag.id },
+        { contactId: bob.id, tagId: hotLeadTag.id },
+      ],
+    });
+    await tx.dealTag.create({
+      data: { dealId: deal1.id, tagId: enterpriseTag.id },
+    });
+
+    await tx.savedView.createMany({
+      data: [
+        {
+          organizationId: DEFAULT_ORG_ID,
+          userId: admin.id,
+          entityType: "CONTACTS",
+          name: "All prospects",
+          filters: { status: "PROSPECT" },
+          isDefault: false,
+        },
+        {
+          organizationId: DEFAULT_ORG_ID,
+          userId: admin.id,
+          entityType: "DEALS",
+          name: "Open pipeline",
+          filters: { stage: "PROPOSAL" },
+          isDefault: true,
+        },
+      ],
+    });
+
     return { alice, bob, carol, deal1, deal2, deal3 };
   });
 
   logger.info(
-    { contacts: 3, deals: 3, activities: 4 },
+    { contacts: 3, deals: 3, activities: 4, companies: 2, tags: 2, savedViews: 2 },
     "CRM sample data seeded",
   );
 };

@@ -204,6 +204,21 @@ export class AuthService {
         }
     }
 
+    async signOutAll(): Promise<void> {
+        this.isLoadingSignal.set(true);
+
+        try {
+            if (this.tokenService.hasAccessToken()) {
+                await this.httpClient.post('/auth/logout-all', {});
+            }
+        } catch (error) {
+            console.error('Sign out all error:', error);
+        } finally {
+            this.clearAuth();
+            this.isLoadingSignal.set(false);
+        }
+    }
+
     /**
      * Refresh access token using stored refresh token
      */

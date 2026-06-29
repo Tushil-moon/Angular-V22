@@ -10,6 +10,8 @@ import {
     Deal,
     PaginatedResponse,
     Role,
+    SavedView,
+    SavedViewFilters,
     SearchResult,
     User,
 } from '@models/index';
@@ -102,6 +104,19 @@ export interface ApiTagPayload {
     name: string;
     color: string;
     created_at?: string | Date;
+}
+
+export interface ApiSavedViewPayload {
+    id: string;
+    user_id: string;
+    entity_type: string;
+    name: string;
+    filters: Record<string, unknown>;
+    sort?: Record<string, unknown> | null;
+    columns?: string[] | null;
+    is_default: boolean;
+    created_at: string | Date;
+    updated_at: string | Date;
 }
 
 export interface ApiCompanyPayload {
@@ -315,6 +330,19 @@ export const mapApiTag = (tag: ApiTagPayload): CrmTag => ({
     id: tag.id,
     name: tag.name,
     color: tag.color,
+});
+
+export const mapApiSavedView = (view: ApiSavedViewPayload): SavedView => ({
+    id: view.id,
+    userId: view.user_id,
+    entityType: view.entity_type as SavedView['entityType'],
+    name: view.name,
+    filters: (view.filters ?? {}) as SavedViewFilters,
+    sort: view.sort ?? null,
+    columns: view.columns ?? null,
+    isDefault: view.is_default,
+    createdAt: String(view.created_at),
+    updatedAt: String(view.updated_at),
 });
 
 export const mapApiCompany = (company: ApiCompanyPayload): Company => ({

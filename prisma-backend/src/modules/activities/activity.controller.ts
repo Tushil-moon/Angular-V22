@@ -16,6 +16,11 @@ export const createActivity = asyncHandler(async (req, res) => {
   return sendCreated(res, activity, "Activity logged");
 });
 
+export const getActivity = asyncHandler(async (req, res) => {
+  const activity = await activityService.getActivity(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, activity);
+});
+
 export const updateActivity = asyncHandler(async (req, res) => {
   const activity = await activityService.updateActivity(String(req.params.id), req.body, getAuthContext(req));
   return sendSuccess(res, activity, "Activity updated");

@@ -39,6 +39,10 @@ export const acceptInviteParamSchema = z.object({
   token: z.string().min(16),
 });
 
+export const inviteIdParamSchema = z.object({
+  inviteId: z.string().uuid(),
+});
+
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>;
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;

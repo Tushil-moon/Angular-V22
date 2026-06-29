@@ -20,10 +20,12 @@ import {
     FlexTableComponent,
     FlexTableRowComponent,
     IconComponent,
+    PaginationComponent,
     SearchInputComponent,
     SelectOption,
 } from '@shared/components';
 import { TagBadgesComponent } from '@shared/components/tag-badges.component';
+import { SavedViewsPickerComponent } from '@shared/components/saved-views-picker.component';
 import {
     DEAL_TABLE_COLUMNS,
     dealStageBadgeVariant,
@@ -66,6 +68,8 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
         FilterSelectComponent,
         DateRangePickerComponent,
         TagBadgesComponent,
+        SavedViewsPickerComponent,
+        PaginationComponent,
     ],
     template: `
         <div class="page-shell page-shell-fill">
@@ -112,6 +116,11 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
                         <app-card-description>{{ totalDeals() }} total deals</app-card-description>
                     </div>
                     <div class="card-toolbar">
+                        <app-saved-views-picker
+                            entityType="DEALS"
+                            [filters]="currentFilters()"
+                            (filtersChange)="applySavedFilters($event)"
+                        />
                         <app-filter-select
                             [value]="stageFilter()"
                             [options]="stageFilterOptions"
@@ -193,6 +202,12 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
                             </app-flex-table-row>
                         }
                     </app-flex-table>
+                    <app-pagination
+                        [page]="currentPage()"
+                        [pageSize]="pageSize()"
+                        [total]="totalDeals()"
+                        (pageChange)="currentPage.set($event)"
+                    />
                 </app-card-body>
             </app-card>
         </div>
@@ -287,6 +302,23 @@ export class DealsListComponent {
 
     onCloseDateRangeChange(range: DateRangeValue): void {
         this.closeDateRange.set(range);
+    }
+
+    currentFilters = computed(() => ({
+        search: this.searchQuery().trim() || undefined,
+        stage: this.stageFilter() || undefined,
+        closeDateFrom: this.closeDateRange().from || undefined,
+        closeDateTo: this.closeDateRange().to || undefined,
+    }));
+
+    applySavedFilters(filters: import('@models/index').SavedViewFilters): void {
+        this.searchQuery.set(filters.search ?? '');
+        this.stageFilter.set(filters.stage ?? '');
+        this.closeDateRange.set({
+            from: filters.closeDateFrom ?? '',
+            to: filters.closeDateTo ?? '',
+        });
+        this.currentPage.set(1);
     }
 
     async openCreateDialog(): Promise<void> {

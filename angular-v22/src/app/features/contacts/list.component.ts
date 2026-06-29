@@ -16,9 +16,11 @@ import {
     FlexTableComponent,
     FlexTableRowComponent,
     IconComponent,
+    PaginationComponent,
     SearchInputComponent,
 } from '@shared/components';
 import { TagBadgesComponent } from '@shared/components/tag-badges.component';
+import { SavedViewsPickerComponent } from '@shared/components/saved-views-picker.component';
 import {
     CONTACT_TABLE_COLUMNS,
     contactStatusBadgeClass,
@@ -57,6 +59,8 @@ const EMPTY_PAGE: ContactsPageResult = { contacts: [], total: 0 };
         FlexTableRowComponent,
         FlexTableCellComponent,
         TagBadgesComponent,
+        SavedViewsPickerComponent,
+        PaginationComponent,
     ],
     template: `
         <div class="page-shell page-shell-fill">
@@ -86,6 +90,11 @@ const EMPTY_PAGE: ContactsPageResult = { contacts: [], total: 0 };
                         >
                     </div>
                     <div class="card-toolbar">
+                        <app-saved-views-picker
+                            entityType="CONTACTS"
+                            [filters]="currentFilters()"
+                            (filtersChange)="applySavedFilters($event)"
+                        />
                         <app-search-input
                             placeholder="Search contacts..."
                             [initialValue]="searchQuery()"
@@ -159,6 +168,12 @@ const EMPTY_PAGE: ContactsPageResult = { contacts: [], total: 0 };
                             </app-flex-table-row>
                         }
                     </app-flex-table>
+                    <app-pagination
+                        [page]="currentPage()"
+                        [pageSize]="pageSize()"
+                        [total]="totalContacts()"
+                        (pageChange)="currentPage.set($event)"
+                    />
                 </app-card-body>
             </app-card>
         </div>
@@ -221,6 +236,15 @@ export class ContactsListComponent {
 
     onSearch(query: string): void {
         this.searchQuery.set(query);
+        this.currentPage.set(1);
+    }
+
+    currentFilters = computed(() => ({
+        search: this.searchQuery().trim() || undefined,
+    }));
+
+    applySavedFilters(filters: import('@models/index').SavedViewFilters): void {
+        this.searchQuery.set(filters.search ?? '');
         this.currentPage.set(1);
     }
 
