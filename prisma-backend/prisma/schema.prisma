@@ -109,6 +109,7 @@ model User {
   dashboardLayouts   DashboardLayout[]
   caseComments       CaseComment[]
   assignedCases      Case[]     @relation("CaseAssignee")
+  stickyNotes        StickyNote[]
 
   @@index([status])
   @@map("users")
@@ -315,6 +316,7 @@ model Organization {
   apiKeys             ApiKey[]
   customFieldDefinitions CustomFieldDefinition[]
   territories         Territory[]
+  stickyNotes         StickyNote[]
 
   @@map("organizations")
 }
@@ -1015,4 +1017,24 @@ model Territory {
 
   @@index([organizationId])
   @@map("territories")
+}
+
+model StickyNote {
+  id             String   @id @default(uuid())
+  organizationId String
+  userId         String
+  title          String?
+  content        String   @default("")
+  color          String   @default("#fef08a")
+  isPinned       Boolean  @default(false)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([isPinned])
+  @@map("sticky_notes")
 }

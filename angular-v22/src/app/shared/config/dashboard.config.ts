@@ -24,6 +24,7 @@ export const QUICK_LINKS: QuickLink[] = [
     { label: 'View pipeline', icon: 'briefcase', route: '/dashboard/deals/board' },
     { label: 'Manage contacts', icon: 'contact-round', route: '/dashboard/contacts' },
     { label: 'Calendar', icon: 'calendar', route: '/dashboard/calendar' },
+    { label: 'Sticky notes', icon: 'sticky-note', route: '/dashboard/notes' },
     { label: 'All apps', icon: 'panel-left', route: '/dashboard/apps' },
 ];
 

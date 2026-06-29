@@ -1,0 +1,60 @@
+.sticky-notes-page {
+    @apply min-h-0;
+}
+
+.sticky-notes-grid {
+    @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+}
+
+.sticky-notes-empty {
+    @apply flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 text-center;
+}
+
+.sticky-notes-empty-icon {
+    @apply mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted;
+}
+
+.sticky-note-card {
+    @apply relative flex min-h-[11rem] cursor-pointer flex-col rounded-xl border border-black/5 p-4 shadow-md
+        transition-all hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2
+        focus-visible:ring-ring;
+    color: oklch(0.22 0.02 80);
+}
+
+.sticky-note-pinned {
+    @apply ring-2 ring-primary/30;
+}
+
+.sticky-note-fold {
+    @apply absolute right-0 top-0 h-6 w-6;
+    background: linear-gradient(
+        135deg,
+        color-mix(in oklch, var(--background) 55%, transparent) 50%,
+        color-mix(in oklch, black 8%, transparent) 50%
+    );
+    border-bottom-left-radius: 0.375rem;
+}
+
+.sticky-note-pin-icon {
+    @apply absolute left-3 top-3 text-foreground opacity-70;
+}
+
+.sticky-note-title {
+    @apply pr-6 text-base font-semibold leading-snug;
+}
+
+.sticky-note-preview {
+    @apply mt-2 flex-1 text-sm leading-relaxed opacity-90;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.sticky-note-meta {
+    @apply mt-3 text-xs opacity-60;
+}
+
+.dark .sticky-note-card {
+    color: oklch(0.2 0.02 80);
+}

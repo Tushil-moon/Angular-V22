@@ -27,6 +27,7 @@ import { aiRouter } from "./modules/ai/ai.routes";
 import { apiKeyRouter } from "./modules/api-keys/api-key.routes";
 import { customFieldRouter } from "./modules/custom-fields/custom-field.routes";
 import { territoryRouter } from "./modules/territories/territory.routes";
+import { stickyNoteRouter } from "./modules/sticky-notes/sticky-note.routes";
 
 export const router = Router();
 
@@ -58,3 +59,4 @@ router.use("/ai", aiRouter);
 router.use("/api-keys", apiKeyRouter);
 router.use("/custom-fields", customFieldRouter);
 router.use("/territories", territoryRouter);
+router.use("/sticky-notes", stickyNoteRouter);

@@ -6,3 +6,4 @@ export * from './organization.model';
 export * from './rbac.model';
 export * from './saved-view.model';
 export * from './enterprise.model';
+export * from './sticky-note.model';

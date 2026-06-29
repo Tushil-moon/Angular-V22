@@ -26,6 +26,7 @@ export * from './saved-view.service';
 export * from './search.service';
 export * from './session.service';
 export * from './sidebar.service';
+export * from './sticky-note.service';
 export * from './tag.service';
 export * from './territory.service';
 export * from './theme.service';

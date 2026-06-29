@@ -53,6 +53,12 @@ export const CRM_NAV_ITEMS: NavItem[] = [
         icon: 'activity',
         permission: Permissions.ReadActivities,
     },
+    {
+        label: 'Sticky notes',
+        route: '/dashboard/notes',
+        icon: 'sticky-note',
+        permission: Permissions.ReadActivities,
+    },
 ];
 
 /** Cloud apps — workspace landing pages */
@@ -119,6 +125,7 @@ export const PAGE_TITLES: Record<string, string> = {
     companies: 'Companies',
     deals: 'Deals',
     activities: 'Activities',
+    notes: 'Sticky notes',
     tags: 'Tags',
     users: 'Users',
     roles: 'Roles & Permissions',

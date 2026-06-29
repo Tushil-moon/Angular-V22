@@ -115,6 +115,15 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'notes',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadActivities },
+                loadComponent: () =>
+                    import('@features/sticky-notes/sticky-notes-board.component').then(
+                        (m) => m.StickyNotesBoardComponent,
+                    ),
+            },
+            {
                 path: 'tags',
                 canActivate: [permissionGuard],
                 data: { permission: [Permissions.ReadContacts, Permissions.ReadDeals] },
