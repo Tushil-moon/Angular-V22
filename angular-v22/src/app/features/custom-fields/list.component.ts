@@ -2,8 +2,8 @@ import { Component, inject } from '@angular/core';
 import type { CustomFieldDefinition } from '@models/enterprise.model';
 import { CustomFieldService } from '@services/index';
 import {
-    EnterpriseListShellComponent,
     type EnterpriseListConfig,
+    EnterpriseListShellComponent,
 } from '@shared/components/enterprise-list-shell.component';
 
 @Component({

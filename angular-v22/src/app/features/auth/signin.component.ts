@@ -53,7 +53,7 @@ import { safeValidate, signInSchema } from '@utils/validators';
                     (valueChange)="onFieldInput('email')"
                 />
 
-                <div class="form-group">
+                <div class="auth-password-field">
                     <div class="auth-field-row">
                         <label for="password" class="form-label">
                             Password

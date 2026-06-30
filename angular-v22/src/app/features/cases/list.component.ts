@@ -16,12 +16,13 @@ import {
 } from '@shared/components/module-workspace-shell.component';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
+
+import { formatEnterpriseDate } from '../enterprise/enterprise-list.util';
 import {
     enterprisePriorityBadge,
     enterpriseStatusBadge,
     formatEnterpriseStatus,
 } from '../enterprise/enterprise-ui.util';
-import { formatEnterpriseDate } from '../enterprise/enterprise-list.util';
 
 const CASE_STATUSES = ['NEW', 'OPEN', 'PENDING', 'RESOLVED', 'CLOSED'] as const;
 
@@ -95,7 +96,15 @@ const SERVICE_NAV: WorkspaceNavItem[] = [
             </div>
 
             @if (selectedCase(); as caseItem) {
-                <div class="case-detail-overlay" (click)="selectedCase.set(null)"></div>
+                <div
+                    class="case-detail-overlay"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Close case details"
+                    (click)="selectedCase.set(null)"
+                    (keydown.enter)="selectedCase.set(null)"
+                    (keydown.escape)="selectedCase.set(null)"
+                ></div>
                 <aside class="case-detail-panel" role="dialog">
                     <div class="case-detail-header">
                         <h2 class="text-lg font-semibold">{{ caseItem.subject }}</h2>

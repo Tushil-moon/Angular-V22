@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { FilterOptions, PaginatedResponse } from '@models/index';
 import type { CalendarEvent } from '@models/enterprise.model';
-import { mapApiCalendarEvent, mapEnterprisePaginated } from '@utils/enterprise-api-mappers';
+import { FilterOptions, PaginatedResponse } from '@models/index';
 import type { ApiPaginatedPayload } from '@utils/api-mappers';
+import { mapApiCalendarEvent, mapEnterprisePaginated } from '@utils/enterprise-api-mappers';
 
 import { HttpClientService } from './http-client.service';
 

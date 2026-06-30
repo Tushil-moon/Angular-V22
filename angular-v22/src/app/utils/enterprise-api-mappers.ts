@@ -20,8 +20,8 @@ import type {
     Webhook,
     Workflow,
 } from '@models/enterprise.model';
-import { mapApiPaginated, type ApiPaginatedPayload } from '@utils/api-mappers';
 import type { PaginatedResponse } from '@models/index';
+import { type ApiPaginatedPayload,mapApiPaginated } from '@utils/api-mappers';
 
 const str = (v: unknown): string => (v == null ? '' : String(v));
 const num = (v: unknown): number => (typeof v === 'number' ? v : Number(v) || 0);

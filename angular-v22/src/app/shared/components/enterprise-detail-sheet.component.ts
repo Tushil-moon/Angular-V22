@@ -3,6 +3,7 @@
  */
 
 import { Component, input, output } from '@angular/core';
+
 import { BadgeComponent, type BadgeVariant } from './badge.component';
 import { ButtonComponent } from './button.component';
 import { IconComponent } from './icon.component';
@@ -21,7 +22,7 @@ export interface DetailSheetField {
         @if (open()) {
             <div
                 class="detail-sheet-overlay"
-                (click)="close.emit()"
+                (click)="closed.emit()"
                 aria-hidden="true"
             ></div>
             <aside class="detail-sheet" role="dialog" aria-modal="true" [attr.aria-label]="title()">
@@ -33,7 +34,7 @@ export interface DetailSheetField {
                             <p class="detail-sheet-subtitle">{{ subtitle() }}</p>
                         }
                     </div>
-                    <app-button variant="ghost" size="icon" type="button" (clicked)="close.emit()">
+                    <app-button variant="ghost" size="icon" type="button" (clicked)="closed.emit()">
                         <span class="sr-only">Close</span>
                         <app-icon name="x" [size]="18" />
                     </app-button>
@@ -127,5 +128,5 @@ export class EnterpriseDetailSheetComponent {
     fields = input<DetailSheetField[]>([]);
     showActions = input(true);
 
-    close = output<void>();
+    closed = output<void>();
 }

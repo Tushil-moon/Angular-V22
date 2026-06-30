@@ -14,7 +14,7 @@ import { CardBodyComponent, CardComponent } from './card.component';
         <div class="auth-card-inner">
             <app-card>
                 <app-auth-page-header [title]="title()" [description]="description()" />
-                <app-card-body contentClass="auth-card-stack">
+                <app-card-body contentClass="auth-card-stack" [flush]="true">
                     <ng-content />
                 </app-card-body>
                 <ng-content select="[authCardFooter]" />

@@ -6,6 +6,10 @@ import { afterNextRender, Component, computed, inject, input, resource, signal }
 import { FilterOptions, PaginatedResponse } from '@models/index';
 import { AuthService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
+import { Permissions } from '@shared/constants/permissions';
+import { throwIfAborted } from '@shared/utils/abort-signal';
+import { runResourceLoader } from '@shared/utils/resource-error';
+
 import {
     BadgeComponent,
     type BadgeVariant,
@@ -18,7 +22,7 @@ import {
     CardHeaderComponent,
     CardTitleComponent,
 } from './card.component';
-import { EnterpriseDetailSheetComponent, type DetailSheetField } from './enterprise-detail-sheet.component';
+import { type DetailSheetField,EnterpriseDetailSheetComponent } from './enterprise-detail-sheet.component';
 import {
     FlexTableCellComponent,
     FlexTableComponent,
@@ -29,9 +33,6 @@ import { IconComponent } from './icon.component';
 import { PaginationComponent } from './pagination.component';
 import { SearchInputComponent } from './search-input.component';
 import type { WorkspaceKpi } from './workspace.types';
-import { Permissions } from '@shared/constants/permissions';
-import { throwIfAborted } from '@shared/utils/abort-signal';
-import { runResourceLoader } from '@shared/utils/resource-error';
 
 export interface EnterpriseListColumn<T> {
     key: string;
@@ -84,7 +85,7 @@ interface PageResult<T> {
         EnterpriseDetailSheetComponent,
     ],
     template: `
-        <div class="page-shell page-shell-fill">
+        <div class="page-shell page-shell-fill enterprise-list-shell">
             <div class="page-toolbar">
                 <div class="page-header">
                     <h1 class="page-title">{{ config().title }}</h1>
@@ -271,7 +272,7 @@ interface PageResult<T> {
             [status]="detailStatusText()"
             [statusVariant]="detailStatusVariant()"
             [fields]="detailFields()"
-            (close)="closeDetail()"
+            (closed)="closeDetail()"
         >
             @if (canManage() && selectedItem()) {
                 <div detailActions>
@@ -289,6 +290,10 @@ interface PageResult<T> {
         </app-enterprise-detail-sheet>
     `,
     styles: `
+        .enterprise-list-shell {
+            @apply min-w-0;
+        }
+
         .view-toggle {
             @apply flex gap-1;
         }

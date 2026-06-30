@@ -19,8 +19,8 @@ import {
     PaginationComponent,
     SearchInputComponent,
 } from '@shared/components';
-import { TagBadgesComponent } from '@shared/components/tag-badges.component';
 import { SavedViewsPickerComponent } from '@shared/components/saved-views-picker.component';
+import { TagBadgesComponent } from '@shared/components/tag-badges.component';
 import {
     CONTACT_TABLE_COLUMNS,
     contactStatusBadgeClass,

@@ -2,17 +2,18 @@ import { Component, inject } from '@angular/core';
 import type { Quote } from '@models/enterprise.model';
 import { QuoteService } from '@services/index';
 import {
-    EnterpriseListShellComponent,
     type EnterpriseListConfig,
+    EnterpriseListShellComponent,
 } from '@shared/components/enterprise-list-shell.component';
-import {
-    enterpriseStatusBadge,
-    formatEnterpriseStatus,
-} from '../enterprise/enterprise-ui.util';
+
 import {
     formatEnterpriseCurrency,
     formatEnterpriseDate,
 } from '../enterprise/enterprise-list.util';
+import {
+    enterpriseStatusBadge,
+    formatEnterpriseStatus,
+} from '../enterprise/enterprise-ui.util';
 
 @Component({
     selector: 'app-quotes-list',

@@ -4,14 +4,7 @@
 
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import {
-    CardBodyComponent,
-    CardComponent,
-    CardDescriptionComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    IconComponent,
-} from '@shared/components';
+import { IconComponent } from '@shared/components';
 import type { IconName } from '@shared/icons';
 
 interface AppTile {

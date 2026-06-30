@@ -4,6 +4,13 @@
 
 import { Component, computed, effect, input, output, signal } from '@angular/core';
 import {
+    DateRangeValue,
+    isDayInRangeSelection,
+    normalizeDateRange,
+    parseIsoDate,
+    toIsoDateString,
+} from '@utils/date.util';
+import {
     addMonths,
     eachDayOfInterval,
     endOfMonth,
@@ -16,14 +23,6 @@ import {
     startOfWeek,
     subMonths,
 } from 'date-fns';
-
-import {
-    DateRangeValue,
-    isDayInRangeSelection,
-    normalizeDateRange,
-    parseIsoDate,
-    toIsoDateString,
-} from '@utils/date.util';
 
 import { IconComponent } from './icon.component';
 

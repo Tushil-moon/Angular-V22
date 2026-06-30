@@ -4,6 +4,7 @@
 
 import { Component, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+
 import {
     CardBodyComponent,
     CardComponent,
@@ -110,6 +111,10 @@ export type { WorkspaceKpi, WorkspaceNavItem } from './workspace.types';
         </div>
     `,
     styles: `
+        .workspace-shell {
+            @apply min-w-0;
+        }
+
         .workspace-eyebrow {
             @apply mb-1 text-xs font-semibold uppercase tracking-wider text-primary;
         }

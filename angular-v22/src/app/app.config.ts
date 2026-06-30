@@ -1,18 +1,21 @@
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
     APP_INITIALIZER,
     ApplicationConfig,
     provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { provideRouter, withInMemoryScrolling, withPreloading, PreloadAllModules } from '@angular/router';
+import { PreloadAllModules, provideRouter, withInMemoryScrolling, withPreloading } from '@angular/router';
+import { apiInterceptor } from '@services/http/api.interceptor';
 import { ThemeService } from '@services/theme.service';
-import { provideQuillConfig } from 'ngx-quill/config';
 import { provideAppIconConfig, provideAppIcons } from '@shared/icons';
+import { provideQuillConfig } from 'ngx-quill/config';
 
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
     providers: [
         provideBrowserGlobalErrorListeners(),
+        provideHttpClient(withInterceptors([apiInterceptor])),
         provideRouter(
             routes,
             withPreloading(PreloadAllModules),

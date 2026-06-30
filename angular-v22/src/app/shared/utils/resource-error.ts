@@ -1,6 +1,6 @@
 /**
  * Normalize thrown values for Angular resource() loaders.
- * Resource requires Error instances when rejecting; axios throws plain ApiError objects.
+ * Resource requires Error instances when rejecting; API layer throws plain ApiError objects.
  */
 
 import type { ApiError } from '@models/index';

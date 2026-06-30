@@ -2,9 +2,10 @@ import { Component, inject } from '@angular/core';
 import type { Webhook } from '@models/enterprise.model';
 import { WebhookService } from '@services/index';
 import {
-    EnterpriseListShellComponent,
     type EnterpriseListConfig,
+    EnterpriseListShellComponent,
 } from '@shared/components/enterprise-list-shell.component';
+
 import { formatEnterpriseBool } from '../enterprise/enterprise-list.util';
 
 @Component({

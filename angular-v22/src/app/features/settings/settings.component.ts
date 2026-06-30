@@ -4,10 +4,11 @@
 
 import { Component, computed, inject, model, OnInit, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { getUserDisplayName, getUserInitials } from '@features/users/user.utils';
+import { OrganizationInvite, OrganizationMember } from '@models/index';
 import { AuthService, OrganizationService, SessionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
-import { OrganizationInvite, OrganizationMember } from '@models/index';
 import {
     AvatarComponent,
     ButtonComponent,
@@ -27,7 +28,6 @@ import {
 } from '@shared/components';
 import { ignorePromise } from '@utils/form-display.util';
 import { changePasswordSchema, safeValidate } from '@utils/validators';
-import { Router } from '@angular/router';
 
 type SettingsTab = 'profile' | 'security' | 'sessions' | 'organization';
 

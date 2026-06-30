@@ -18,9 +18,9 @@ import { ToastService } from '@services/toast.service';
 import {
     filterNavGroupsByPermission,
     PROFILE_MENU_ITEMS,
-    SIDEBAR_NAV_GROUPS,
     type ProfileMenuItem,
     resolvePageTitle,
+    SIDEBAR_NAV_GROUPS,
 } from '@shared/config/navigation.config';
 import { ignorePromise } from '@utils/form-display.util';
 import { filter } from 'rxjs/operators';

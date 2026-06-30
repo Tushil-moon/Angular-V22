@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { FilterOptions, PaginatedResponse } from '@models/index';
 import type { Territory } from '@models/enterprise.model';
-import { mapApiTerritory, mapEnterprisePaginated } from '@utils/enterprise-api-mappers';
+import { FilterOptions, PaginatedResponse } from '@models/index';
 import type { ApiPaginatedPayload } from '@utils/api-mappers';
+import { mapApiTerritory, mapEnterprisePaginated } from '@utils/enterprise-api-mappers';
 
 import { HttpClientService } from './http-client.service';
 

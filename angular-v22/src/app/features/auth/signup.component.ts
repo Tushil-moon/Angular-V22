@@ -42,7 +42,7 @@ import { safeValidate, signUpSchema } from '@utils/validators';
             </div>
 
             <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     @for (field of nameFields; track field.name) {
                         <app-input
                             [id]="field.name"

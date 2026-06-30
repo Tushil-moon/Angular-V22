@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { FilterOptions, PaginatedResponse } from '@models/index';
 import type { CustomFieldDefinition } from '@models/enterprise.model';
-import { mapApiCustomField, mapEnterprisePaginated } from '@utils/enterprise-api-mappers';
+import { FilterOptions, PaginatedResponse } from '@models/index';
 import type { ApiPaginatedPayload } from '@utils/api-mappers';
+import { mapApiCustomField, mapEnterprisePaginated } from '@utils/enterprise-api-mappers';
 
 import { HttpClientService } from './http-client.service';
 

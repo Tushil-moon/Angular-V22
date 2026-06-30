@@ -2,9 +2,10 @@ import { Component, inject } from '@angular/core';
 import type { Workflow } from '@models/enterprise.model';
 import { WorkflowService } from '@services/index';
 import {
-    EnterpriseListShellComponent,
     type EnterpriseListConfig,
+    EnterpriseListShellComponent,
 } from '@shared/components/enterprise-list-shell.component';
+
 import { formatEnterpriseBool } from '../enterprise/enterprise-list.util';
 
 @Component({

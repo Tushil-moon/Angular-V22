@@ -1,12 +1,12 @@
 import { inject, Injectable } from '@angular/core';
-import { FilterOptions, PaginatedResponse } from '@models/index';
 import type { AiFeatureFlag, AiInsight } from '@models/enterprise.model';
+import { FilterOptions, PaginatedResponse } from '@models/index';
+import type { ApiPaginatedPayload } from '@utils/api-mappers';
 import {
     mapApiAiFeatureFlag,
     mapApiAiInsight,
     mapEnterprisePaginated,
 } from '@utils/enterprise-api-mappers';
-import type { ApiPaginatedPayload } from '@utils/api-mappers';
 
 import { HttpClientService } from './http-client.service';
 

@@ -90,6 +90,7 @@ import { IconComponent } from './icon.component';
                                 type="button"
                                 class="date-range-preset-btn"
                                 role="option"
+                                [attr.aria-selected]="isPresetActive(preset.label)"
                                 [class.date-range-preset-btn-active]="isPresetActive(preset.label)"
                                 (click)="applyPreset(preset.label)"
                             >

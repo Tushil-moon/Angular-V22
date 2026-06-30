@@ -6,6 +6,104 @@
         <base href="/" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" type="image/x-icon" href="favicon.ico" />
+        <link
+            rel="preload"
+            href="/fonts/poppins-latin-400-normal.woff2"
+            as="font"
+            type="font/woff2"
+            crossorigin
+        />
+        <link
+            rel="preload"
+            href="/fonts/poppins-latin-500-normal.woff2"
+            as="font"
+            type="font/woff2"
+            crossorigin
+        />
+        <link
+            rel="preload"
+            href="/fonts/poppins-latin-600-normal.woff2"
+            as="font"
+            type="font/woff2"
+            crossorigin
+        />
+        <link
+            rel="preload"
+            href="/fonts/poppins-latin-700-normal.woff2"
+            as="font"
+            type="font/woff2"
+            crossorigin
+        />
+        <style>
+            @font-face {
+                font-family: 'Poppins';
+                font-style: normal;
+                font-display: block;
+                font-weight: 400;
+                src: url('/fonts/poppins-latin-400-normal.woff2') format('woff2');
+            }
+
+            @font-face {
+                font-family: 'Poppins';
+                font-style: normal;
+                font-display: block;
+                font-weight: 500;
+                src: url('/fonts/poppins-latin-500-normal.woff2') format('woff2');
+            }
+
+            @font-face {
+                font-family: 'Poppins';
+                font-style: normal;
+                font-display: block;
+                font-weight: 600;
+                src: url('/fonts/poppins-latin-600-normal.woff2') format('woff2');
+            }
+
+            @font-face {
+                font-family: 'Poppins';
+                font-style: normal;
+                font-display: block;
+                font-weight: 700;
+                src: url('/fonts/poppins-latin-700-normal.woff2') format('woff2');
+            }
+
+            html {
+                font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+            }
+
+            html:not(.fonts-ready) body {
+                visibility: hidden;
+            }
+
+            html.fonts-ready body {
+                visibility: visible;
+            }
+        </style>
+        <script>
+            (function () {
+                var root = document.documentElement;
+
+                function markFontsReady() {
+                    root.classList.add('fonts-ready');
+                }
+
+                if (!('fonts' in document)) {
+                    markFontsReady();
+                    return;
+                }
+
+                Promise.all([
+                    document.fonts.load("400 1rem 'Poppins'"),
+                    document.fonts.load("500 1rem 'Poppins'"),
+                    document.fonts.load("600 1rem 'Poppins'"),
+                    document.fonts.load("700 1rem 'Poppins'"),
+                ])
+                    .then(markFontsReady)
+                    .catch(markFontsReady);
+
+                setTimeout(markFontsReady, 3000);
+            })();
+        </script>
         <script>
             (function () {
                 function applyTheme(mode) {

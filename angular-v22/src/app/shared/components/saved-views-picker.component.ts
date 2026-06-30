@@ -6,14 +6,15 @@ import { Component, inject, input, OnInit, output, signal } from '@angular/core'
 import { SavedView, SavedViewEntityType, SavedViewFilters } from '@models/index';
 import { SavedViewService } from '@services/index';
 import { ToastService } from '@services/toast.service';
-import { ButtonComponent } from './button.component';
-import { IconComponent } from './icon.component';
 import {
     DropdownItemComponent,
     DropdownMenuComponent,
     DropdownSeparatorComponent,
 } from '@shared/components/dropdown-menu.component';
 import { ignorePromise } from '@utils/form-display.util';
+
+import { ButtonComponent } from './button.component';
+import { IconComponent } from './icon.component';
 
 @Component({
     selector: 'app-saved-views-picker',

@@ -2,9 +2,10 @@ import { Component, inject } from '@angular/core';
 import type { Report } from '@models/enterprise.model';
 import { ReportService } from '@services/index';
 import {
-    EnterpriseListShellComponent,
     type EnterpriseListConfig,
+    EnterpriseListShellComponent,
 } from '@shared/components/enterprise-list-shell.component';
+
 import { formatEnterpriseDate } from '../enterprise/enterprise-list.util';
 
 @Component({

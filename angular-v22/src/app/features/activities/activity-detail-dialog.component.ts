@@ -4,7 +4,7 @@
 
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { ACTIVITY_TYPE_LABELS, Activity, ActivityType } from '@models/index';
+import { Activity, ACTIVITY_TYPE_LABELS, ActivityType } from '@models/index';
 import { ActivityService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {

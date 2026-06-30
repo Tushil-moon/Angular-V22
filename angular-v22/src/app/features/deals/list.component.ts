@@ -10,10 +10,10 @@ import {
     BadgeComponent,
     ButtonComponent,
     CardBodyComponent,
+    CardComponent,
     CardDescriptionComponent,
     CardHeaderComponent,
     CardTitleComponent,
-    CardComponent,
     DateRangePickerComponent,
     FilterSelectComponent,
     FlexTableCellComponent,
@@ -24,8 +24,8 @@ import {
     SearchInputComponent,
     SelectOption,
 } from '@shared/components';
-import { TagBadgesComponent } from '@shared/components/tag-badges.component';
 import { SavedViewsPickerComponent } from '@shared/components/saved-views-picker.component';
+import { TagBadgesComponent } from '@shared/components/tag-badges.component';
 import {
     DEAL_TABLE_COLUMNS,
     dealStageBadgeVariant,
@@ -36,8 +36,8 @@ import {
 import { Permissions } from '@shared/constants/permissions';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
-import { asOptionalString } from '@utils/form-display.util';
 import { DateRangeValue, EMPTY_DATE_RANGE, isDateWithinRange } from '@utils/date.util';
+import { asOptionalString } from '@utils/form-display.util';
 
 import { DealCreateDialogResult } from './deal-create-dialog.component';
 import { DealDetailDialogData, DealDetailDialogResult } from './deal-detail-dialog.component';

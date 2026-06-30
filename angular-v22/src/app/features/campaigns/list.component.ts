@@ -2,14 +2,15 @@ import { Component, inject } from '@angular/core';
 import type { Campaign } from '@models/enterprise.model';
 import { CampaignService } from '@services/index';
 import {
-    EnterpriseListShellComponent,
     type EnterpriseListConfig,
+    EnterpriseListShellComponent,
 } from '@shared/components/enterprise-list-shell.component';
+
+import { formatEnterpriseCurrency } from '../enterprise/enterprise-list.util';
 import {
     enterpriseStatusBadge,
     formatEnterpriseStatus,
 } from '../enterprise/enterprise-ui.util';
-import { formatEnterpriseCurrency } from '../enterprise/enterprise-list.util';
 
 @Component({
     selector: 'app-campaigns-list',

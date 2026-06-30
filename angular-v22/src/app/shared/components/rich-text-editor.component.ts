@@ -5,9 +5,9 @@
 import { Component, computed, DestroyRef, forwardRef, inject, input, ViewEncapsulation } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
-import { QuillEditorComponent } from 'ngx-quill';
-import type { QuillModules } from 'ngx-quill';
 import { sanitizeRichHtml } from '@utils/rich-text.util';
+import type { QuillModules } from 'ngx-quill';
+import { QuillEditorComponent } from 'ngx-quill';
 
 @Component({
     selector: 'app-rich-text-editor',

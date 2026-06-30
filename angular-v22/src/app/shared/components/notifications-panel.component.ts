@@ -5,8 +5,6 @@
 import { Component, computed, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { DashboardService } from '@services/index';
-import { IconComponent } from './icon.component';
-import { SkeletonComponent } from './skeleton.component';
 import {
     DropdownItemComponent,
     DropdownLabelComponent,
@@ -14,6 +12,9 @@ import {
     DropdownSeparatorComponent,
 } from '@shared/components/dropdown-menu.component';
 import { ignorePromise } from '@utils/form-display.util';
+
+import { IconComponent } from './icon.component';
+import { SkeletonComponent } from './skeleton.component';
 
 @Component({
     selector: 'app-notifications-panel',

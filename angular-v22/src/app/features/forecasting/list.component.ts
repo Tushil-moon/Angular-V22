@@ -2,9 +2,10 @@ import { Component, inject } from '@angular/core';
 import type { ForecastPeriod } from '@models/enterprise.model';
 import { AuthService, ForecastService } from '@services/index';
 import {
-    EnterpriseListShellComponent,
     type EnterpriseListConfig,
+    EnterpriseListShellComponent,
 } from '@shared/components/enterprise-list-shell.component';
+
 import {
     formatEnterpriseCurrency,
     formatEnterpriseDate,

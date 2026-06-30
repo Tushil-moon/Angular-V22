@@ -1,11 +1,9 @@
 /* Auth shell — loaded with lazy auth layout chunk */
 .auth-shell {
-    @apply flex min-h-svh w-full flex-col items-center justify-center gap-6 p-6 md:p-10;
+    @apply relative flex min-h-svh w-full flex-col items-center justify-center overflow-x-hidden;
     background-color: var(--background);
-    padding-top: max(1.5rem, env(safe-area-inset-top));
-    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
-    padding-left: max(1rem, env(safe-area-inset-left));
-    padding-right: max(1rem, env(safe-area-inset-right));
+    padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+        max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
 }
 
 .auth-shell-theme {
@@ -15,31 +13,31 @@
 }
 
 .auth-shell-content {
-    @apply mx-auto flex w-full max-w-sm flex-col gap-6;
+    @apply mx-auto flex w-full min-w-0 max-w-[26rem] flex-col;
 }
 
 .auth-card-inner {
-    @apply flex w-full flex-col gap-6;
+    @apply flex w-full min-w-0 flex-col;
 }
 
 .auth-page-header {
-    @apply flex flex-col gap-2 px-6 pt-6;
+    @apply flex flex-col gap-1.5 border-b border-border px-6 py-5;
 }
 
 .auth-page-title {
-    @apply text-2xl font-semibold leading-none tracking-tight text-card-foreground;
+    @apply text-2xl font-semibold leading-tight tracking-tight text-card-foreground;
 }
 
 .auth-page-description {
-    @apply text-sm text-muted-foreground;
+    @apply text-sm leading-relaxed text-muted-foreground;
 }
 
 .auth-card-stack {
-    @apply flex flex-col gap-6 px-6 pb-6;
+    @apply flex flex-col gap-4 px-6 py-5;
 }
 
 .auth-social-stack {
-    @apply grid grid-cols-1 gap-3;
+    @apply grid grid-cols-1 gap-2.5;
 }
 
 .auth-social-btn {
@@ -61,11 +59,15 @@
 }
 
 .auth-divider span {
-    @apply bg-card px-2 text-muted-foreground;
+    @apply shrink-0 bg-card px-2 text-muted-foreground;
 }
 
 .auth-form {
-    @apply flex flex-col gap-6;
+    @apply flex flex-col gap-4;
+}
+
+.auth-form .form-group {
+    @apply space-y-2;
 }
 
 .auth-form-row {
@@ -73,11 +75,11 @@
 }
 
 .auth-submit-stack {
-    @apply flex flex-col gap-4;
+    @apply flex flex-col gap-3 pt-1;
 }
 
 .auth-card-footer {
-    @apply text-center text-sm text-muted-foreground px-6 pb-6;
+    @apply border-t border-border px-6 py-4 text-center text-sm text-muted-foreground;
 }
 
 .auth-card-footer a {
@@ -85,21 +87,29 @@
 }
 
 .auth-shell .card {
-    @apply w-full gap-6 py-0 shadow-sm;
+    @apply w-full min-w-0 overflow-hidden py-0 shadow-sm;
 }
 
 .auth-shell .auth-card-body {
     @apply p-0;
 }
 
-.auth-shell .form-group {
-    @apply space-y-2;
-}
-
 .auth-field-row {
-    @apply flex items-center justify-between;
+    @apply mb-2 flex items-center justify-between gap-2;
 }
 
 .auth-field-link {
-    @apply text-sm text-primary underline-offset-4 hover:underline;
+    @apply shrink-0 text-sm text-primary underline-offset-4 hover:underline;
+}
+
+.auth-password-field .form-group {
+    @apply space-y-2;
+}
+
+.auth-status-body {
+    @apply flex flex-col items-center gap-4 py-2 text-center;
+}
+
+.auth-status-actions {
+    @apply flex flex-wrap items-center justify-center gap-2;
 }

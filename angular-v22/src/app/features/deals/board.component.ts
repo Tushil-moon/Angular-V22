@@ -105,8 +105,11 @@ import { runResourceLoader } from '@shared/utils/resource-error';
                                     <div
                                         class="kanban-card"
                                         cdkDrag
+                                        role="button"
+                                        tabindex="0"
                                         [cdkDragDisabled]="!canManage()"
                                         (click)="openDetailDialog(deal)"
+                                        (keydown.enter)="openDetailDialog(deal)"
                                     >
                                         <p class="kanban-card-title">{{ deal.title }}</p>
                                         <p class="kanban-card-value">

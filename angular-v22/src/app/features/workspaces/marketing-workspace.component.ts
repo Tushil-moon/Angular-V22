@@ -21,6 +21,7 @@ import {
 } from '@shared/components/module-workspace-shell.component';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
+
 import { formatEnterpriseCurrency } from '../enterprise/enterprise-list.util';
 
 const MARKETING_NAV: WorkspaceNavItem[] = [

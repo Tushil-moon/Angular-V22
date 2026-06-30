@@ -1,12 +1,12 @@
 import { inject, Injectable } from '@angular/core';
-import { FilterOptions, PaginatedResponse } from '@models/index';
 import type { DashboardLayout, Report } from '@models/enterprise.model';
+import { FilterOptions, PaginatedResponse } from '@models/index';
+import type { ApiPaginatedPayload } from '@utils/api-mappers';
 import {
     mapApiDashboardLayout,
     mapApiReport,
     mapEnterprisePaginated,
 } from '@utils/enterprise-api-mappers';
-import type { ApiPaginatedPayload } from '@utils/api-mappers';
 
 import { HttpClientService } from './http-client.service';
 

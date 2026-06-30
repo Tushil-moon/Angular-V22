@@ -13,8 +13,8 @@ import { DialogComponent } from '@shared/components/dialog.component';
 import { IconComponent } from '@shared/components/icon.component';
 import { InputComponent } from '@shared/components/input.component';
 import { RichTextEditorComponent } from '@shared/components/rich-text-editor.component';
-import { DialogRef, DIALOG_DATA } from '@shared/dialog';
 import { Permissions } from '@shared/constants/permissions';
+import { DIALOG_DATA,DialogRef } from '@shared/dialog';
 import { sanitizeRichHtml } from '@utils/rich-text.util';
 
 export interface StickyNoteEditorDialogData {

@@ -3,19 +3,6 @@
  */
 
 import { Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core';
-import {
-    addMonths,
-    eachDayOfInterval,
-    endOfMonth,
-    endOfWeek,
-    format,
-    isSameDay,
-    isSameMonth,
-    isToday,
-    startOfMonth,
-    startOfWeek,
-    subMonths,
-} from 'date-fns';
 import type { CalendarEvent } from '@models/enterprise.model';
 import { AuthService, CalendarService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -36,10 +23,24 @@ import {
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
 import {
+    addMonths,
+    eachDayOfInterval,
+    endOfMonth,
+    endOfWeek,
+    format,
+    isSameDay,
+    isSameMonth,
+    isToday,
+    startOfMonth,
+    startOfWeek,
+    subMonths,
+} from 'date-fns';
+
+import { formatEnterpriseDate } from '../enterprise/enterprise-list.util';
+import {
     enterpriseStatusBadge,
     formatEnterpriseStatus,
 } from '../enterprise/enterprise-ui.util';
-import { formatEnterpriseDate } from '../enterprise/enterprise-list.util';
 
 const CALENDAR_NAV: WorkspaceNavItem[] = [
     { label: 'Sales', route: '/dashboard/sales', icon: 'briefcase' },

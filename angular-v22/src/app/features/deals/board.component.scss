@@ -21,8 +21,8 @@
 }
 
 .kanban-card {
-    @apply cursor-grab rounded-lg border border-border bg-card p-3 shadow-sm transition-colors
-         hover:shadow active:cursor-grabbing;
+    @apply cursor-grab rounded-lg border border-border bg-card p-3 shadow-sm transition-colors outline-none
+         hover:shadow focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing;
 }
 
 .kanban-card:hover {

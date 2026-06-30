@@ -9,10 +9,10 @@ import {
     BadgeComponent,
     ButtonComponent,
     CardBodyComponent,
+    CardComponent,
     CardDescriptionComponent,
     CardHeaderComponent,
     CardTitleComponent,
-    CardComponent,
     DateRangePickerComponent,
     FilterSelectComponent,
     FlexTableCellComponent,
@@ -32,8 +32,8 @@ import {
 import { Permissions } from '@shared/constants/permissions';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
-import { asOptionalString } from '@utils/form-display.util';
 import { DateRangeValue, EMPTY_DATE_RANGE, isDateWithinRange } from '@utils/date.util';
+import { asOptionalString } from '@utils/form-display.util';
 
 import { ActivityCreateDialogResult } from './activity-create-dialog.component';
 import {

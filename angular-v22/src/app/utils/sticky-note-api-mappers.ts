@@ -1,5 +1,5 @@
-import type { StickyNote } from '@models/sticky-note.model';
 import type { PaginatedResponse } from '@models/index';
+import type { StickyNote } from '@models/sticky-note.model';
 import type { ApiPaginatedPayload } from '@utils/api-mappers';
 import { mapApiPaginated } from '@utils/api-mappers';
 

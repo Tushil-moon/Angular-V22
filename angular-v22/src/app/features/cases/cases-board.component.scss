@@ -17,8 +17,8 @@
 }
 
 .cases-board .kanban-card {
-    @apply cursor-pointer rounded-lg border border-border bg-card p-3 shadow-sm transition-colors
-        hover:shadow;
+    @apply cursor-pointer rounded-lg border border-border bg-card p-3 shadow-sm outline-none transition-colors
+        hover:shadow focus-visible:ring-2 focus-visible:ring-ring;
 }
 
 .cases-board .kanban-card-title {
