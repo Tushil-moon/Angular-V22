@@ -1,9 +1,26 @@
 .org-switcher {
-    @apply hidden items-center gap-2 md:flex;
+    @apply hidden h-8 min-w-0 max-w-full shrink items-center gap-1.5 md:flex;
 }
 
 .org-switcher app-select {
-    @apply w-auto min-w-[10rem] max-w-[14rem];
+    @apply w-auto min-w-0 max-w-[13rem] flex-1;
+}
+
+.org-switcher .select-root,
+.org-switcher .select-wrap {
+    @apply min-w-0;
+}
+
+.org-switcher .select-trigger {
+    @apply box-border h-8 min-h-8 max-h-8 gap-1.5 px-2.5 py-0 text-sm leading-none shadow-sm;
+}
+
+.org-switcher .select-value {
+    @apply block min-w-0 flex-1 truncate text-left;
+}
+
+.org-switcher .select-trigger-icon {
+    @apply size-4 shrink-0 opacity-50;
 }
 
 /* Drawer — single sidebar row; icon + borderless select share one hit area */

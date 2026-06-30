@@ -1,0 +1,36 @@
+/* ── Search field (list toolbars + global header) ── */
+.search-input-host {
+    @apply block w-full min-w-0 max-w-full;
+}
+
+.search-field {
+    @apply relative flex w-full min-w-0 items-center;
+}
+
+.search-field-icon {
+    @apply pointer-events-none absolute left-2.5 top-1/2 z-[1] size-4 -translate-y-1/2 text-muted-foreground;
+}
+
+.search-field-input {
+    @apply input box-border h-8 min-h-8 max-h-8 w-full min-w-0 max-w-full py-0 pl-9 pr-3 text-sm leading-none shadow-sm;
+    text-overflow: ellipsis;
+}
+
+.search-field-input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* List / card toolbars */
+.card-toolbar > app-search-input,
+.card-header-row > app-search-input {
+    @apply w-full min-w-0 sm:w-64 sm:max-w-xs;
+}
+
+.toolbar-actions > app-search-input {
+    @apply w-full min-w-0 sm:w-64 sm:max-w-xs;
+}
+
+.page-toolbar > app-search-input {
+    @apply w-full min-w-0 sm:max-w-xs;
+}

@@ -270,7 +270,7 @@
 }
 
 .site-header-actions {
-    @apply relative z-[calc(var(--z-sticky)+1)] flex shrink-0 items-center gap-1.5 sm:gap-2;
+    @apply relative z-[calc(var(--z-sticky)+1)] flex h-8 shrink-0 items-center gap-1.5 sm:gap-2;
 }
 
 .site-header-mobile-title {
@@ -324,31 +324,37 @@
 }
 
 .site-header-tools {
-    @apply flex shrink-0 items-center gap-1.5 sm:gap-2;
+    @apply flex h-8 min-w-0 flex-1 items-center justify-end gap-2 sm:gap-2.5;
+}
+
+.site-header-tools app-org-switcher,
+.site-header-tools app-global-search {
+    @apply min-w-0;
 }
 
 .site-header-title {
     @apply text-sm font-medium text-foreground;
 }
 
-.site-header-search {
-    @apply relative hidden max-w-sm flex-1 sm:block;
+.global-search {
+    @apply relative min-w-0;
 }
 
-.site-header-search-icon {
-    @apply pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground;
+.global-search-header {
+    @apply hidden h-8 w-full min-w-0 max-w-[11rem] flex-1 sm:block;
 }
 
-.site-header-search-input {
-    @apply input pl-9;
+.global-search-header .search-field {
+    @apply h-8;
 }
 
 .global-search-drawer {
-    @apply w-full;
+    @apply w-full min-w-0 max-w-none;
 }
 
-.global-search-drawer .site-header-search-input {
-    @apply w-full;
+.global-search-results {
+    @apply absolute left-0 right-0 top-[calc(100%+0.25rem)] z-50 max-h-72 overflow-y-auto overflow-x-hidden rounded-md
+        border border-border bg-popover p-1 text-popover-foreground shadow-md;
 }
 
 .mobile-drawer-section {

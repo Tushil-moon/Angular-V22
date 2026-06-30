@@ -333,7 +333,7 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
             [isOpen]="mobileSearchOpen()"
             (isOpenChange)="mobileSearchOpen.set($event)"
         >
-            <app-global-search variant="drawer" />
+            <app-global-search variant="drawer" placeholder="Search contacts, deals, companies..." />
         </app-sheet>
     `,
 })

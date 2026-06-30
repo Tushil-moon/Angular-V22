@@ -1,5 +1,5 @@
 /**
- * Search Input — debounced search field
+ * Search Input — debounced search field with consistent sizing
  */
 
 import { Component, DestroyRef, inject, input, OnInit, output } from '@angular/core';
@@ -7,22 +7,32 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
+import { IconComponent } from './icon.component';
+
 @Component({
     selector: 'app-search-input',
-    imports: [ReactiveFormsModule],
+    host: {
+        class: 'search-input-host',
+    },
+    imports: [ReactiveFormsModule, IconComponent],
     template: `
-        <input
-            type="text"
-            class="input w-full sm:w-64"
-            [placeholder]="placeholder()"
-            [formControl]="control"
-        />
+        <div class="search-field">
+            <app-icon name="search" [size]="16" className="search-field-icon" />
+            <input
+                type="search"
+                class="search-field-input"
+                [placeholder]="placeholder()"
+                [attr.aria-label]="ariaLabel() || placeholder()"
+                [formControl]="control"
+            />
+        </div>
     `,
 })
 export class SearchInputComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
 
     placeholder = input('Search...');
+    ariaLabel = input('');
     debounceMs = input(300);
     initialValue = input('');
 

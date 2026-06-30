@@ -11,27 +11,27 @@ import { IconComponent } from './icon.component';
     imports: [IconComponent],
     template: `
         <div
-            class="relative"
-            [class.site-header-search]="variant() === 'header'"
+            class="global-search"
+            [class.global-search-header]="variant() === 'header'"
             [class.global-search-drawer]="variant() === 'drawer'"
             #container
         >
-            <app-icon name="search" [size]="16" className="site-header-search-icon" />
-            <input
-                type="search"
-                class="site-header-search-input"
-                placeholder="Search contacts, deals, companies..."
-                aria-label="Global search"
-                [value]="query()"
-                (input)="onInput($event)"
-                (focus)="showResults.set(true)"
-                (keydown.escape)="closeResults()"
-            />
+            <div class="search-field">
+                <app-icon name="search" [size]="16" className="search-field-icon" />
+                <input
+                    type="search"
+                    class="search-field-input"
+                    [placeholder]="placeholder()"
+                    aria-label="Global search"
+                    [value]="query()"
+                    (input)="onInput($event)"
+                    (focus)="showResults.set(true)"
+                    (keydown.escape)="closeResults()"
+                />
+            </div>
 
             @if (showResults() && (results().length > 0 || isSearching())) {
-                <div
-                    class="absolute left-0 right-0 top-[calc(100%+0.25rem)] z-50 max-h-72 overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
-                >
+                <div class="global-search-results">
                     @if (isSearching()) {
                         <p class="px-2 py-1.5 text-sm text-muted-foreground">Searching...</p>
                     } @else {
@@ -65,6 +65,8 @@ export class GlobalSearchComponent {
 
     /** `header` — inline in site header (hidden below sm). `drawer` — full width in mobile sheet. */
     variant = input<'header' | 'drawer'>('header');
+
+    placeholder = input('Search…');
 
     query = signal('');
     results = signal<SearchResult[]>([]);

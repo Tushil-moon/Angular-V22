@@ -56,7 +56,8 @@
 @layer components {
     @include meta.load-css('styles/components/button');
     @include meta.load-css('styles/components/card');
-    @include meta.load-css('styles/components/input');
+        @include meta.load-css('styles/components/input');
+        @include meta.load-css('styles/components/search');
     @include meta.load-css('styles/components/textarea');
     @include meta.load-css('styles/components/select');
     @include meta.load-css('styles/components/checkbox');

@@ -35,6 +35,10 @@
     @apply flex min-w-0 w-full sm:w-auto;
 }
 
+.toolbar-actions > app-search-input {
+    @apply w-full min-w-0 sm:w-64 sm:max-w-xs;
+}
+
 /* Single action: full-width row on mobile */
 .page-toolbar > app-button:only-child,
 .toolbar-actions > app-button:only-child {
