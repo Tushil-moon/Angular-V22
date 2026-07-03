@@ -18,7 +18,7 @@
 }
 
 .dialog-panel {
-    @apply pointer-events-auto relative mx-auto grid w-full gap-4 overflow-hidden rounded-xl border border-border
+    @apply pointer-events-auto relative mx-auto grid w-full gap-4 rounded-xl border border-border
        bg-card text-card-foreground shadow-xl;
     grid-template-rows: auto minmax(0, 1fr) auto;
     width: 100%;
@@ -28,6 +28,7 @@
     );
     padding: 1.5rem;
     flex: 0 1 auto;
+    overflow: visible;
 }
 
 .dialog-panel-sm {
@@ -65,17 +66,31 @@
 }
 
 .dialog-body {
-    @apply min-h-0 overflow-y-auto overscroll-y-contain py-1 text-card-foreground;
+    @apply flex min-h-0 min-w-0 flex-col overflow-hidden py-1;
+}
+
+.dialog-body-inner {
+    @apply min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-y-contain text-card-foreground;
+    padding-inline: 0.375rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-gutter: stable;
 }
 
-.dialog-body::-webkit-scrollbar {
+.dialog-body-inner::-webkit-scrollbar {
     width: 6px;
 }
 
-.dialog-body::-webkit-scrollbar-thumb {
+.dialog-body-inner::-webkit-scrollbar-thumb {
     @apply rounded-full bg-border;
+}
+
+/* Prevent field borders, labels, and focus rings from clipping at scroll edges */
+.dialog-body-inner :is(form, .form-group, .select-root) {
+    @apply min-w-0 w-full;
+}
+
+.dialog-body-inner :is(.input, .select-trigger, .textarea, .date-picker-trigger) {
+    @apply max-w-full;
 }
 
 .dialog-footer {

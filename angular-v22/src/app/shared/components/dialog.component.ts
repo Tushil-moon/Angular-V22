@@ -39,7 +39,9 @@ export type DialogSize = 'sm' | 'default' | 'lg';
             </div>
 
             <div class="dialog-body">
-                <ng-content></ng-content>
+                <div class="dialog-body-inner">
+                    <ng-content></ng-content>
+                </div>
             </div>
 
             @if (showFooter()) {
