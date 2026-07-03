@@ -2,73 +2,78 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>AngularV22</title>
+        <title>Angular V22</title>
         <base href="/" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" type="image/x-icon" href="favicon.ico" />
+        <meta name="theme-color" content="#0f172a" />
+        <meta name="application-name" content="Angular V22 Workspace" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
         <link
             rel="preload"
-            href="/fonts/poppins-latin-400-normal.woff2"
+            href="/fonts/inter-latin-400-normal.woff2"
             as="font"
             type="font/woff2"
             crossorigin
         />
         <link
             rel="preload"
-            href="/fonts/poppins-latin-500-normal.woff2"
+            href="/fonts/inter-latin-500-normal.woff2"
             as="font"
             type="font/woff2"
             crossorigin
         />
         <link
             rel="preload"
-            href="/fonts/poppins-latin-600-normal.woff2"
+            href="/fonts/inter-latin-600-normal.woff2"
             as="font"
             type="font/woff2"
             crossorigin
         />
         <link
             rel="preload"
-            href="/fonts/poppins-latin-700-normal.woff2"
+            href="/fonts/inter-latin-700-normal.woff2"
             as="font"
             type="font/woff2"
             crossorigin
         />
         <style>
             @font-face {
-                font-family: 'Poppins';
+                font-family: 'Inter';
                 font-style: normal;
                 font-display: block;
                 font-weight: 400;
-                src: url('/fonts/poppins-latin-400-normal.woff2') format('woff2');
+                src: url('/fonts/inter-latin-400-normal.woff2') format('woff2');
             }
 
             @font-face {
-                font-family: 'Poppins';
+                font-family: 'Inter';
                 font-style: normal;
                 font-display: block;
                 font-weight: 500;
-                src: url('/fonts/poppins-latin-500-normal.woff2') format('woff2');
+                src: url('/fonts/inter-latin-500-normal.woff2') format('woff2');
             }
 
             @font-face {
-                font-family: 'Poppins';
+                font-family: 'Inter';
                 font-style: normal;
                 font-display: block;
                 font-weight: 600;
-                src: url('/fonts/poppins-latin-600-normal.woff2') format('woff2');
+                src: url('/fonts/inter-latin-600-normal.woff2') format('woff2');
             }
 
             @font-face {
-                font-family: 'Poppins';
+                font-family: 'Inter';
                 font-style: normal;
                 font-display: block;
                 font-weight: 700;
-                src: url('/fonts/poppins-latin-700-normal.woff2') format('woff2');
+                src: url('/fonts/inter-latin-700-normal.woff2') format('woff2');
             }
 
             html {
-                font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+                font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
             }
 
             html:not(.fonts-ready) body {
@@ -93,10 +98,10 @@
                 }
 
                 Promise.all([
-                    document.fonts.load("400 1rem 'Poppins'"),
-                    document.fonts.load("500 1rem 'Poppins'"),
-                    document.fonts.load("600 1rem 'Poppins'"),
-                    document.fonts.load("700 1rem 'Poppins'"),
+                    document.fonts.load("400 1rem 'Inter'"),
+                    document.fonts.load("500 1rem 'Inter'"),
+                    document.fonts.load("600 1rem 'Inter'"),
+                    document.fonts.load("700 1rem 'Inter'"),
                 ])
                     .then(markFontsReady)
                     .catch(markFontsReady);

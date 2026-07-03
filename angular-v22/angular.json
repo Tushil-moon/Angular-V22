@@ -60,23 +60,23 @@
                                 "ignore": ["**/*.psd", "**/*.ai", "**/*.sketch"]
                             },
                             {
-                                "glob": "poppins-latin-400-normal.woff2",
-                                "input": "node_modules/@fontsource/poppins/files",
+                                "glob": "inter-latin-400-normal.woff2",
+                                "input": "node_modules/@fontsource/inter/files",
                                 "output": "/fonts"
                             },
                             {
-                                "glob": "poppins-latin-500-normal.woff2",
-                                "input": "node_modules/@fontsource/poppins/files",
+                                "glob": "inter-latin-500-normal.woff2",
+                                "input": "node_modules/@fontsource/inter/files",
                                 "output": "/fonts"
                             },
                             {
-                                "glob": "poppins-latin-600-normal.woff2",
-                                "input": "node_modules/@fontsource/poppins/files",
+                                "glob": "inter-latin-600-normal.woff2",
+                                "input": "node_modules/@fontsource/inter/files",
                                 "output": "/fonts"
                             },
                             {
-                                "glob": "poppins-latin-700-normal.woff2",
-                                "input": "node_modules/@fontsource/poppins/files",
+                                "glob": "inter-latin-700-normal.woff2",
+                                "input": "node_modules/@fontsource/inter/files",
                                 "output": "/fonts"
                             }
                         ],

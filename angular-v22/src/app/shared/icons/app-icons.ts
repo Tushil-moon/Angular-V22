@@ -20,6 +20,7 @@ import {
     LucideHeading2,
     LucideItalic,
     LucideLayoutDashboard,
+    LucideLayoutGrid,
     LucideLink,
     LucideList,
     LucideListOrdered,
@@ -48,6 +49,7 @@ import {
 /** Kebab-case icon names registered for the app. */
 export const APP_ICON_NAMES = [
     'layout-dashboard',
+    'layout-grid',
     'users',
     'shield',
     'settings',
@@ -94,6 +96,7 @@ export type IconName = (typeof APP_ICON_NAMES)[number];
 
 const APP_LUCIDE_ICONS = [
     LucideLayoutDashboard,
+    LucideLayoutGrid,
     LucideUsers,
     LucideShield,
     LucideSettings,

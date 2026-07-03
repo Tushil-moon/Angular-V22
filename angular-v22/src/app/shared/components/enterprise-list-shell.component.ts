@@ -33,6 +33,7 @@ import { IconComponent } from './icon.component';
 import { PaginationComponent } from './pagination.component';
 import { SearchInputComponent } from './search-input.component';
 import type { WorkspaceKpi } from './workspace.types';
+import { LIST_CARDS_VIEW_OPTIONS, ViewSwitcherComponent } from './view-switcher.component';
 
 export interface EnterpriseListColumn<T> {
     key: string;
@@ -83,6 +84,7 @@ interface PageResult<T> {
         BadgeComponent,
         PaginationComponent,
         EnterpriseDetailSheetComponent,
+        ViewSwitcherComponent,
     ],
     template: `
         <div class="page-shell page-shell-fill enterprise-list-shell">
@@ -93,26 +95,12 @@ interface PageResult<T> {
                 </div>
                 <div class="toolbar-actions">
                     @if (hasCardView()) {
-                        <div class="view-toggle">
-                            <app-button
-                                size="sm"
-                                [variant]="viewMode() === 'list' ? 'primary' : 'outline'"
-                                type="button"
-                                (clicked)="viewMode.set('list')"
-                            >
-                                <app-icon name="list" [size]="14" />
-                                List
-                            </app-button>
-                            <app-button
-                                size="sm"
-                                [variant]="viewMode() === 'cards' ? 'primary' : 'outline'"
-                                type="button"
-                                (clicked)="viewMode.set('cards')"
-                            >
-                                <app-icon name="layout-dashboard" [size]="14" />
-                                Cards
-                            </app-button>
-                        </div>
+                        <app-view-switcher
+                            ariaLabel="List view mode"
+                            [options]="listCardsViewOptions"
+                            [value]="viewMode()"
+                            (valueChange)="viewMode.set($event)"
+                        />
                     }
                     @if (canManage()) {
                         <app-button size="sm" [disabled]="creating()" (clicked)="onCreate()">
@@ -294,10 +282,6 @@ interface PageResult<T> {
             @apply min-w-0;
         }
 
-        .view-toggle {
-            @apply flex gap-1;
-        }
-
         .enterprise-kpi-grid {
             @apply mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4;
         }
@@ -374,6 +358,7 @@ export class EnterpriseListShellComponent<T extends { id: string }> {
     selectedItem = signal<T | null>(null);
 
     readonly skeletonItems = Array.from({ length: 6 }, (_, i) => i);
+    readonly listCardsViewOptions = LIST_CARDS_VIEW_OPTIONS;
 
     readonly canManage = computed(() => {
         const permission = this.config().managePermission ?? Permissions.ManageDeals;

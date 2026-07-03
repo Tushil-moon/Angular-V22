@@ -1,0 +1,29 @@
+/* ── Joined icon-only view switcher (list / cards / etc.) ── */
+.view-switcher {
+    @apply inline-flex shrink-0 overflow-hidden rounded-md border border-border bg-background;
+}
+
+.view-switcher-item {
+    @apply inline-flex size-8 items-center justify-center border-0 bg-transparent p-0 text-muted-foreground;
+    cursor: pointer;
+
+    &:not(:last-child) {
+        border-right: 1px solid var(--border);
+    }
+
+    &:hover:not(.view-switcher-item-active) {
+        @apply bg-muted text-foreground;
+    }
+
+    &:focus-visible {
+        @apply outline-none ring-inset ring-[3px] ring-ring/50;
+    }
+}
+
+.view-switcher-item-active {
+    @apply bg-primary text-primary-foreground;
+
+    &:hover {
+        @apply bg-primary text-primary-foreground;
+    }
+}

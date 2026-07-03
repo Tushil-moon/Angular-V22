@@ -30,5 +30,5 @@ export * from './switch.component';
 export * from './table-skeleton.component';
 export * from './tabs.component';
 export * from './textarea.component';
-export * from './theme-toggle.component';
+export * from './view-switcher.component';
 export * from './toaster.component';
