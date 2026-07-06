@@ -2,12 +2,13 @@
  * Pagination — page controls for list views
  */
 
-import { Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core'
 
 import { ButtonComponent } from './button.component';
 import { IconComponent } from './icon.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-pagination',
     imports: [ButtonComponent, IconComponent],
     template: `

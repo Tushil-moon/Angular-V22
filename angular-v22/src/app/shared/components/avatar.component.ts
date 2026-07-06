@@ -2,10 +2,11 @@
  * Avatar Component — shadcn Avatar
  */
 
-import { Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
 import { cn } from '@utils/cn';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-avatar',
     template: `
         <span [class]="avatarClass()" [attr.aria-label]="label() || fallback()">

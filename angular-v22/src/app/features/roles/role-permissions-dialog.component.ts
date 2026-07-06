@@ -2,7 +2,7 @@
  * Role Permissions Dialog — edit role permission matrix
  */
 
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core'
 import { Permission, Role } from '@models/index';
 import { RoleService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -25,6 +25,7 @@ const PERMISSION_GROUPS: { label: string; prefix: string }[] = [
 ];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-role-permissions-dialog',
     host: { class: 'contents' },
     imports: [DialogComponent, ButtonComponent, LoaderComponent],

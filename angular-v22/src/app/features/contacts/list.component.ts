@@ -2,7 +2,7 @@
  * Contacts List Page
  */
 
-import { Component, computed, inject, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core'
 import { Contact, FilterOptions } from '@models/index';
 import { AuthService, ContactService, DialogService, PermissionService } from '@services/index';
 import {
@@ -45,6 +45,7 @@ interface ContactsPageResult {
 const EMPTY_PAGE: ContactsPageResult = { contacts: [], total: 0 };
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-contacts-list',
     imports: [
         CardComponent,

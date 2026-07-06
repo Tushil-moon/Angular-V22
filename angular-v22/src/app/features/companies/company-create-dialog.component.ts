@@ -2,7 +2,7 @@
  * Company Create Dialog
  */
 
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CompanyService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -19,6 +19,7 @@ import { createCompanySchema, safeValidate } from '@utils/validators';
 export type CompanyCreateDialogResult = 'created';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-company-create-dialog',
     host: { class: 'contents' },
     imports: [

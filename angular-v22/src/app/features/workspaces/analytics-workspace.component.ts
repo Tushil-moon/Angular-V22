@@ -2,7 +2,7 @@
  * Analytics workspace — reports and dashboard layouts
  */
 
-import { Component, computed, inject, resource } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core'
 import { RouterLink } from '@angular/router';
 import { AuthService, ReportService } from '@services/index';
 import { ButtonComponent } from '@shared/components/button.component';
@@ -29,6 +29,7 @@ const ANALYTICS_NAV: WorkspaceNavItem[] = [
 ];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-analytics-workspace',
     imports: [
         RouterLink,

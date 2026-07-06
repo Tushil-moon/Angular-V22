@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type { AiInsight } from '@models/enterprise.model';
 import { AiService } from '@services/index';
 import {
@@ -9,6 +9,7 @@ import {
 import { formatEnterpriseDate } from '../enterprise/enterprise-list.util';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-ai-insights-list',
     imports: [EnterpriseListShellComponent],
     template: `

@@ -2,7 +2,7 @@
  * Calendar Range — shadcn-style dual-month range selection
  */
 
-import { Component, computed, effect, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core'
 import {
     DateRangeValue,
     isDayInRangeSelection,
@@ -36,6 +36,7 @@ export interface CalendarRangeDay {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-calendar-range',
     imports: [IconComponent],
     host: {

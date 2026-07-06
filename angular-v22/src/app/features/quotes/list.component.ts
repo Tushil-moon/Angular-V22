@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type { Quote } from '@models/enterprise.model';
 import { QuoteService } from '@services/index';
 import {
@@ -16,6 +16,7 @@ import {
 } from '../enterprise/enterprise-ui.util';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-quotes-list',
     imports: [EnterpriseListShellComponent],
     template: `

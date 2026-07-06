@@ -5,8 +5,7 @@
 import { FlexibleConnectedPositionStrategy, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { DOCUMENT } from '@angular/common';
-import {
-    Component,
+import { ChangeDetectionStrategy, Component,
     computed,
     DestroyRef,
     ElementRef,
@@ -17,8 +16,7 @@ import {
     signal,
     TemplateRef,
     viewChild,
-    ViewContainerRef,
-} from '@angular/core';
+    ViewContainerRef, } from '@angular/core'
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { formatDisplayDate } from '@utils/date.util';
 import { Subscription } from 'rxjs';
@@ -27,6 +25,7 @@ import { CalendarComponent } from './calendar.component';
 import { IconComponent } from './icon.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-date-picker',
     imports: [IconComponent, CalendarComponent],
     providers: [

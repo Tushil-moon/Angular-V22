@@ -2,7 +2,7 @@
  * User Detail Dialog — view, edit, roles, delete
  */
 
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { User } from '@models/index';
 import { RoleService, UserService } from '@services/index';
@@ -35,6 +35,7 @@ export type UserDetailDialogResult = 'deleted' | 'updated';
 type DialogMode = 'view' | 'edit' | 'delete';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-user-detail-dialog',
     host: { class: 'contents' },
     imports: [

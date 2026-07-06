@@ -2,7 +2,7 @@
  * Forgot Password Page
  */
 
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
@@ -20,6 +20,7 @@ import {
 import { forgotPasswordSchema, safeValidate } from '@utils/validators';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-forgot-password',
     imports: [
         RouterLink,

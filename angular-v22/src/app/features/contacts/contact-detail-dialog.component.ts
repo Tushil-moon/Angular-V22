@@ -2,7 +2,7 @@
  * Contact Detail Dialog — view, edit, activities, delete
  */
 
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import {
     Activity,
@@ -49,6 +49,7 @@ const STATUS_OPTIONS = Object.entries(CONTACT_STATUS_LABELS) as [ContactStatus, 
 const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, string][];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-contact-detail-dialog',
     host: { class: 'contents' },
     imports: [

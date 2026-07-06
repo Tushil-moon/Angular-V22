@@ -2,13 +2,14 @@
  * Loader Component — shadcn Loader2 style
  */
 
-import { Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
 
 import { SkeletonComponent } from './skeleton.component';
 
 export type LoaderSize = 'sm' | 'md' | 'lg';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-loader',
     template: `
         @if (inline()) {
@@ -73,6 +74,7 @@ export class LoaderComponent {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-skeleton-loader',
     imports: [SkeletonComponent],
     template: `

@@ -10,7 +10,7 @@ import {
     moveItemInArray,
     transferArrayItem,
 } from '@angular/cdk/drag-drop';
-import { Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core'
 import { RouterLink } from '@angular/router';
 import { Deal, DealBoardColumn, DealStage } from '@models/index';
 import { AuthService, DealService, DialogService, PermissionService } from '@services/index';
@@ -32,6 +32,7 @@ import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-deals-board',
     imports: [
         RouterLink,

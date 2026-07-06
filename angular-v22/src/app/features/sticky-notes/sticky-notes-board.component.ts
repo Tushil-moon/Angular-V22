@@ -2,7 +2,7 @@
  * Sticky notes board — colored cards with rich text previews
  */
 
-import { Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core'
 import type { StickyNote } from '@models/sticky-note.model';
 import { AuthService, DialogService, PermissionService, StickyNoteService } from '@services/index';
 import { ButtonComponent } from '@shared/components/button.component';
@@ -20,6 +20,7 @@ import {
 } from './sticky-note-editor-dialog.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-sticky-notes-board',
     imports: [ButtonComponent, IconComponent, SearchInputComponent, SkeletonComponent],
     template: `

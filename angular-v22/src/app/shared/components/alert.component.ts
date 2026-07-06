@@ -2,7 +2,7 @@
  * Alert Component — shadcn Alert style
  */
 
-import { Component, computed, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core'
 import type { IconName } from '@shared/icons';
 
 import { IconComponent } from './icon.component';
@@ -17,6 +17,7 @@ const ALERT_ICONS: Record<AlertType, IconName> = {
 };
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-alert',
     imports: [IconComponent],
     template: `

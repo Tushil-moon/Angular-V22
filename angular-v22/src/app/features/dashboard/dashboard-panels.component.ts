@@ -2,7 +2,7 @@
  * Dashboard Panels — activity feed and quick links (deferred chunk)
  */
 
-import { Component, computed, inject, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, ViewEncapsulation } from '@angular/core'
 import { RouterLink } from '@angular/router';
 import { AuthService, DashboardService } from '@services/index';
 import {
@@ -24,6 +24,7 @@ import {
 import { formatDealValue } from '@shared/config/deals-table.config';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-dashboard-panels',
     imports: [
         RouterLink,

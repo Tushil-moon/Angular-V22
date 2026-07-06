@@ -2,7 +2,7 @@
  * Activities List Page
  */
 
-import { Component, computed, inject, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core'
 import { Activity, ActivityType, FilterOptions } from '@models/index';
 import { ActivityService, AuthService, DialogService, PermissionService } from '@services/index';
 import {
@@ -49,6 +49,7 @@ interface ActivitiesPageResult {
 const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-activities-list',
     imports: [
         CardComponent,

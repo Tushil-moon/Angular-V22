@@ -2,7 +2,7 @@
  * Companies List Page
  */
 
-import { Component, computed, inject, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core'
 import { Company, FilterOptions } from '@models/index';
 import { AuthService, CompanyService, DialogService, PermissionService } from '@services/index';
 import {
@@ -40,6 +40,7 @@ interface CompaniesPageResult {
 const EMPTY_PAGE: CompaniesPageResult = { companies: [], total: 0 };
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-companies-list',
     imports: [
         CardComponent,

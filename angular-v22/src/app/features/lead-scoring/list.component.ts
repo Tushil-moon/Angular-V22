@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type { LeadScoreRule } from '@models/enterprise.model';
 import { LeadScoringService } from '@services/index';
 import {
@@ -9,6 +9,7 @@ import {
 import { formatEnterpriseBool } from '../enterprise/enterprise-list.util';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-lead-scoring-list',
     imports: [EnterpriseListShellComponent],
     template: `

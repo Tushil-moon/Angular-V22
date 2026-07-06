@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type { KnowledgeArticle } from '@models/enterprise.model';
 import { KnowledgeService } from '@services/index';
 import {
@@ -9,6 +9,7 @@ import {
 import { formatEnterpriseBool, formatEnterpriseDate } from '../enterprise/enterprise-list.util';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-knowledge-list',
     imports: [EnterpriseListShellComponent],
     template: `

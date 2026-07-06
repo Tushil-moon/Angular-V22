@@ -2,7 +2,7 @@
  * Right slide-over detail panel for enterprise records
  */
 
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
 
 import { BadgeComponent, type BadgeVariant } from './badge.component';
 import { ButtonComponent } from './button.component';
@@ -16,6 +16,7 @@ export interface DetailSheetField {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-enterprise-detail-sheet',
     imports: [ButtonComponent, IconComponent, BadgeComponent, SeparatorComponent],
     template: `

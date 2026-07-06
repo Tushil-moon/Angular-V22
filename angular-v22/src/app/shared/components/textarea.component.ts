@@ -2,10 +2,11 @@
  * Textarea — shadcn Textarea
  */
 
-import { Component, computed, forwardRef, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, forwardRef, input, output, signal } from '@angular/core'
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-textarea',
     providers: [
         {

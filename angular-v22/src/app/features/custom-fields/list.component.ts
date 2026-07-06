@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type { CustomFieldDefinition } from '@models/enterprise.model';
 import { CustomFieldService } from '@services/index';
 import {
@@ -7,6 +7,7 @@ import {
 } from '@shared/components/enterprise-list-shell.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-custom-fields-list',
     imports: [EnterpriseListShellComponent],
     template: `

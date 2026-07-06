@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, input, signal, viewChild } from '@angular/core'
 import { Router } from '@angular/router';
 import { SearchResult } from '@models/index';
 import { SearchService } from '@services/index';
@@ -7,6 +7,7 @@ import { ignorePromise } from '@utils/form-display.util';
 import { IconComponent } from './icon.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-global-search',
     imports: [IconComponent],
     template: `

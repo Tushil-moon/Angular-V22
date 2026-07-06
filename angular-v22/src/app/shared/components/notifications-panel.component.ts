@@ -2,7 +2,7 @@
  * Notifications Panel — recent workspace activity in header dropdown
  */
 
-import { Component, computed, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core'
 import { Router } from '@angular/router';
 import { DashboardService } from '@services/index';
 import {
@@ -17,6 +17,7 @@ import { IconComponent } from './icon.component';
 import { SkeletonComponent } from './skeleton.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-notifications-panel',
     imports: [
         IconComponent,

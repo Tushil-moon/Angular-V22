@@ -2,13 +2,11 @@
  * Admin shell layout — lazy-loaded with dashboard routes
  */
 
-import {
-    Component,
+import { ChangeDetectionStrategy, Component,
     computed,
     DestroyRef,
     inject,
-    signal,
-} from '@angular/core';
+    signal, } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { AuthService } from '@services/auth.service';
@@ -42,6 +40,7 @@ import { SheetComponent } from '../components/sheet.component';
 import { ThemeToggleComponent } from '../components/theme-toggle.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-admin-layout',
     imports: [
         RouterOutlet,

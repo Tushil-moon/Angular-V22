@@ -2,7 +2,7 @@
  * SaaS module workspace — KPI strip, sub-nav tabs, and content area
  */
 
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import {
@@ -17,6 +17,7 @@ import type { WorkspaceKpi, WorkspaceNavItem } from './workspace.types';
 export type { WorkspaceKpi, WorkspaceNavItem } from './workspace.types';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-module-workspace-shell',
     imports: [
         RouterLink,

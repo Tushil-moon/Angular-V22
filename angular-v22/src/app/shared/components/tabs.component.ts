@@ -2,9 +2,10 @@
  * Tabs — shadcn Tabs (controlled)
  */
 
-import { Component, computed, inject, input, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, model } from '@angular/core'
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-tabs',
     host: { class: 'block w-full' },
     template: `<ng-content />`,
@@ -14,6 +15,7 @@ export class TabsComponent {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-tabs-list',
     host: {
         class: 'tabs-list',
@@ -24,6 +26,7 @@ export class TabsComponent {
 export class TabsListComponent {}
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-tabs-trigger',
     host: {
         class: 'tabs-trigger-host',
@@ -55,6 +58,7 @@ export class TabsTriggerComponent {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-tabs-content',
     template: `
         @if (active()) {

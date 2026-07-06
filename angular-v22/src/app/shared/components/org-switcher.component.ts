@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, OnInit, signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit, signal, ViewEncapsulation } from '@angular/core'
 import { OrganizationMembership } from '@models/index';
 import { OrganizationContextService, OrganizationService } from '@services/index';
 import { ignorePromise } from '@utils/form-display.util';
@@ -7,6 +7,7 @@ import { IconComponent } from './icon.component';
 import { SelectComponent, SelectOption } from './select.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-org-switcher',
     imports: [IconComponent, SelectComponent],
     template: `

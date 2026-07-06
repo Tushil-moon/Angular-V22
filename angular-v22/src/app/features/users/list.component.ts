@@ -2,7 +2,7 @@
  * Users List Page Component
  */
 
-import { Component, computed, inject, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core'
 import { FilterOptions, User } from '@models/index';
 import { HttpClientService } from '@services/http-client.service';
 import { AuthService, DialogService, PermissionService } from '@services/index';
@@ -43,6 +43,7 @@ interface UsersPageResult {
 const EMPTY_USERS_PAGE: UsersPageResult = { users: [], total: 0 };
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-users-list',
     imports: [
         CardComponent,

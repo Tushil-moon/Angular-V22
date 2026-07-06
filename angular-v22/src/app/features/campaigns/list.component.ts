@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type { Campaign } from '@models/enterprise.model';
 import { CampaignService } from '@services/index';
 import {
@@ -13,6 +13,7 @@ import {
 } from '../enterprise/enterprise-ui.util';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-campaigns-list',
     imports: [EnterpriseListShellComponent],
     template: `

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type { AiFeatureFlag } from '@models/enterprise.model';
 import { AiService } from '@services/index';
 import {
@@ -9,6 +9,7 @@ import {
 import { formatEnterpriseBool } from '../enterprise/enterprise-list.util';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-ai-flags-list',
     imports: [EnterpriseListShellComponent],
     template: `

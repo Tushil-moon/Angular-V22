@@ -2,7 +2,7 @@
  * Rich text editor — ngx-quill wrapper themed for shadcn UI
  */
 
-import { Component, computed, DestroyRef, forwardRef, inject, input, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, forwardRef, inject, input, ViewEncapsulation } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { sanitizeRichHtml } from '@utils/rich-text.util';
@@ -10,6 +10,7 @@ import type { QuillModules } from 'ngx-quill';
 import { QuillEditorComponent } from 'ngx-quill';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-rich-text-editor',
     imports: [QuillEditorComponent, ReactiveFormsModule],
     providers: [

@@ -2,9 +2,10 @@
  * Label — shadcn Label
  */
 
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-label',
     template: `
         <label [for]="htmlFor()" [class]="className()">

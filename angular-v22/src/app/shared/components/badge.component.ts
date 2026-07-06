@@ -2,7 +2,7 @@
  * Badge — shadcn Badge
  */
 
-import { Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
 
 export type BadgeVariant =
     | 'default'
@@ -14,6 +14,7 @@ export type BadgeVariant =
     | 'ghost';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-badge',
     host: { class: 'inline-flex' },
     template: `<span [class]="badgeClass()"><ng-content /></span>`,

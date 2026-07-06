@@ -1,10 +1,11 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
-    APP_INITIALIZER,
     ApplicationConfig,
+    inject,
+    provideAppInitializer,
     provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { PreloadAllModules, provideRouter, withInMemoryScrolling, withPreloading } from '@angular/router';
+import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { apiInterceptor } from '@services/http/api.interceptor';
 import { ThemeService } from '@services/theme.service';
 import { provideAppIconConfig, provideAppIcons } from '@shared/icons';
@@ -16,11 +17,7 @@ export const appConfig: ApplicationConfig = {
     providers: [
         provideBrowserGlobalErrorListeners(),
         provideHttpClient(withInterceptors([apiInterceptor])),
-        provideRouter(
-            routes,
-            withPreloading(PreloadAllModules),
-            withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }),
-        ),
+        provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
         provideAppIconConfig(),
         provideAppIcons(),
         provideQuillConfig({
@@ -28,11 +25,8 @@ export const appConfig: ApplicationConfig = {
             format: 'html',
             sanitize: true,
         }),
-        {
-            provide: APP_INITIALIZER,
-            useFactory: (themeService: ThemeService) => () => themeService.init(),
-            deps: [ThemeService],
-            multi: true,
-        },
+        provideAppInitializer(() => {
+            inject(ThemeService).init();
+        }),
     ],
 };

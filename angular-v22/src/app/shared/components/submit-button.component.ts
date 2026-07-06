@@ -2,11 +2,12 @@
  * Submit Button — form submit with loading state
  */
 
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
 
 import { LoaderComponent } from './loader.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-submit-button',
     host: { class: 'block w-full' },
     imports: [LoaderComponent],

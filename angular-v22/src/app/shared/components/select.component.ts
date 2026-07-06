@@ -5,8 +5,7 @@
 import { FlexibleConnectedPositionStrategy, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { DOCUMENT } from '@angular/common';
-import {
-    Component,
+import { ChangeDetectionStrategy, Component,
     computed,
     DestroyRef,
     effect,
@@ -18,8 +17,7 @@ import {
     signal,
     TemplateRef,
     viewChild,
-    ViewContainerRef,
-} from '@angular/core';
+    ViewContainerRef, } from '@angular/core'
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
@@ -32,6 +30,7 @@ export interface SelectOption {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-select',
     imports: [IconComponent],
     providers: [

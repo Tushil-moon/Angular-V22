@@ -2,7 +2,7 @@
  * Deals List Page
  */
 
-import { Component, computed, inject, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core'
 import { RouterLink } from '@angular/router';
 import { Deal, DealStage, FilterOptions } from '@models/index';
 import { AuthService, DealService, DialogService, PermissionService } from '@services/index';
@@ -50,6 +50,7 @@ interface DealsPageResult {
 const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-deals-list',
     imports: [
         RouterLink,

@@ -2,7 +2,7 @@
  * Dashboard Home Page — shadcn-style overview
  */
 
-import { Component, computed, inject, injectAsync, onIdle, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, injectAsync, onIdle, OnInit, ViewEncapsulation } from '@angular/core'
 import { Router } from '@angular/router';
 import { AuthService, DashboardService, DialogService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -27,6 +27,7 @@ import { ignorePromise } from '@utils/form-display.util';
 import { DashboardPanelsComponent } from './dashboard-panels.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-dashboard-home',
     imports: [
         CardComponent,

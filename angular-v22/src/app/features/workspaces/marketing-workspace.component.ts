@@ -2,7 +2,7 @@
  * Marketing Cloud workspace
  */
 
-import { Component, computed, inject, resource } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core'
 import { RouterLink } from '@angular/router';
 import { AuthService, CampaignService } from '@services/index';
 import { ButtonComponent } from '@shared/components/button.component';
@@ -30,6 +30,7 @@ const MARKETING_NAV: WorkspaceNavItem[] = [
 ];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-marketing-workspace',
     imports: [
         RouterLink,

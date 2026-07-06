@@ -5,8 +5,7 @@
 import { FlexibleConnectedPositionStrategy, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { DOCUMENT } from '@angular/common';
-import {
-    Component,
+import { ChangeDetectionStrategy, Component,
     DestroyRef,
     ElementRef,
     inject,
@@ -15,11 +14,11 @@ import {
     signal,
     TemplateRef,
     viewChild,
-    ViewContainerRef,
-} from '@angular/core';
+    ViewContainerRef, } from '@angular/core'
 import { Subscription } from 'rxjs';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-dropdown-menu',
     template: `
         <div class="dropdown-root inline-block text-left" #triggerHost>
@@ -179,12 +178,14 @@ export class DropdownMenuComponent {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-dropdown-label',
     template: `<div class="dropdown-label"><ng-content></ng-content></div>`,
 })
 export class DropdownLabelComponent {}
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-dropdown-item',
     template: `
         <button
@@ -212,6 +213,7 @@ export class DropdownItemComponent {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-dropdown-separator',
     template: `<div class="dropdown-separator" role="separator"></div>`,
 })

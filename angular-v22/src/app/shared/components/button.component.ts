@@ -2,13 +2,14 @@
  * Button Component — shadcn/ui v4 variants
  */
 
-import { Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core'
 import { cn } from '@utils/cn';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl' | 'icon';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-button',
     host: {
         '[class]': 'hostClass()',

@@ -2,7 +2,7 @@
  * Sign In Page Component — Signal Forms (Angular v22)
  */
 
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
 import { form, FormField, required, schema, submit } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
@@ -20,6 +20,7 @@ import {
 import { safeValidate, signInSchema } from '@utils/validators';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-signin',
     imports: [
         RouterLink,

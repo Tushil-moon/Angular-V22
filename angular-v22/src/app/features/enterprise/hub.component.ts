@@ -2,7 +2,7 @@
  * App launcher — SaaS-style catalog of all cloud modules
  */
 
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core'
 import { RouterLink } from '@angular/router';
 import { IconComponent } from '@shared/components';
 import type { IconName } from '@shared/icons';
@@ -86,6 +86,7 @@ const APP_TILES: AppTile[] = [
 const APP_GROUPS = ['Revenue', 'Customer', 'CRM', 'Insights', 'Platform'] as const;
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-enterprise-hub',
     imports: [RouterLink, IconComponent],
     template: `

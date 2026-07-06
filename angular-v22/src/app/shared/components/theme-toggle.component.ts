@@ -2,12 +2,13 @@
  * Theme Toggle — visible light / dark switch
  */
 
-import { Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core'
 import { ThemeService } from '@services/theme.service';
 
 import { IconComponent } from './icon.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-theme-toggle',
     imports: [IconComponent],
     host: {

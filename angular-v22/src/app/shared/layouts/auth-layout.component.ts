@@ -1,9 +1,10 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core'
 import { RouterOutlet } from '@angular/router';
 
 import { ThemeToggleComponent } from '../components/theme-toggle.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-auth-layout',
     imports: [RouterOutlet, ThemeToggleComponent],
     template: `

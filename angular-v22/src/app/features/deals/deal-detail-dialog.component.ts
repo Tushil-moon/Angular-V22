@@ -2,7 +2,7 @@
  * Deal Detail Dialog
  */
 
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import {
     Activity,
@@ -47,6 +47,7 @@ const STAGE_OPTIONS = Object.entries(DEAL_STAGE_LABELS) as [DealStage, string][]
 const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, string][];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-deal-detail-dialog',
     host: { class: 'contents' },
     imports: [

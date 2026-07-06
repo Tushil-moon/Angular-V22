@@ -5,19 +5,21 @@
 
 import {
     afterNextRender,
+    ChangeDetectionStrategy,
     Component,
     computed,
     DestroyRef,
     effect,
     ElementRef,
-    HostListener,
     inject,
     Injector,
     input,
     signal,
     viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { IconName } from '@shared/icons';
+import { fromEvent } from 'rxjs';
 
 import type { FlexTableBreakpoint, FlexTableColumn } from './flex-table.types';
 import { IconComponent } from './icon.component';
@@ -30,6 +32,7 @@ const HIDE_CLASS: Record<FlexTableBreakpoint, string> = {
 };
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-flex-table',
     host: {
         '[class]': 'fill() ? "flex min-h-0 flex-1 flex-col min-w-0" : "block min-w-0"',
@@ -173,9 +176,12 @@ export class FlexTableComponent {
         });
 
         this.destroyRef.onDestroy(() => this.resizeObserver?.disconnect());
+
+        fromEvent(window, 'resize')
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.onWindowResize());
     }
 
-    @HostListener('window:resize')
     onWindowResize(): void {
         this.updateDynamicSkeletonCount();
     }
@@ -229,6 +235,7 @@ export class FlexTableComponent {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-flex-table-row',
     host: {
         class: 'flex-table-row',
@@ -236,6 +243,7 @@ export class FlexTableComponent {
         '[class.flex-table-row-interactive]': 'interactive()',
         '[class.flex-table-row-selected]': 'selected()',
         '[attr.tabindex]': 'interactive() ? 0 : null',
+        '(keydown)': 'onKeydown($event)',
     },
     template: `<ng-content />`,
 })
@@ -243,7 +251,6 @@ export class FlexTableRowComponent {
     interactive = input(false);
     selected = input(false);
 
-    @HostListener('keydown', ['$event'])
     onKeydown(event: KeyboardEvent): void {
         if (!this.interactive()) {
             return;
@@ -257,6 +264,7 @@ export class FlexTableRowComponent {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-flex-table-cell',
     host: {
         class: 'flex-table-cell',

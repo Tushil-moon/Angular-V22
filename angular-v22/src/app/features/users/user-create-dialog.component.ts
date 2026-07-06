@@ -2,7 +2,7 @@
  * User Create Dialog — popup form to add a new user
  */
 
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -19,6 +19,7 @@ import { safeValidate, userCreateSchema } from '@utils/validators';
 export type UserCreateDialogResult = 'created';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-user-create-dialog',
     host: { class: 'contents' },
     imports: [

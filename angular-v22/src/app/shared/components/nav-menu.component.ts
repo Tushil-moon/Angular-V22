@@ -2,13 +2,14 @@
  * Nav Menu — reusable sidebar navigation links
  */
 
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import type { NavItem } from '@shared/config/navigation.config';
 
 import { IconComponent } from './icon.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-nav-menu',
     host: {
         class: 'block w-full min-w-0',

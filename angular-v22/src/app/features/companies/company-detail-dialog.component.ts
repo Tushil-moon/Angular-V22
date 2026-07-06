@@ -2,7 +2,7 @@
  * Company Detail Dialog — view, edit, delete
  */
 
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Company } from '@models/index';
 import { CompanyService, PermissionService } from '@services/index';
@@ -28,6 +28,7 @@ export type CompanyDetailDialogResult = 'deleted' | 'updated';
 type DialogMode = 'view' | 'edit' | 'delete';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-company-detail-dialog',
     host: { class: 'contents' },
     imports: [

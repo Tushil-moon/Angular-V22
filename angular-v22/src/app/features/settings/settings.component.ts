@@ -2,7 +2,7 @@
  * Settings Page — profile, security, sessions, organization
  */
 
-import { Component, computed, inject, model, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, model, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { getUserDisplayName, getUserInitials } from '@features/users/user.utils';
@@ -32,6 +32,7 @@ import { changePasswordSchema, safeValidate } from '@utils/validators';
 type SettingsTab = 'profile' | 'security' | 'sessions' | 'organization';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-settings',
     imports: [
         ReactiveFormsModule,

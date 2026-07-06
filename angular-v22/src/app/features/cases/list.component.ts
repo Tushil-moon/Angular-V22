@@ -2,7 +2,7 @@
  * Cases — support desk kanban board
  */
 
-import { Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core'
 import { RouterLink } from '@angular/router';
 import type { CaseRecord } from '@models/enterprise.model';
 import { AuthService, CaseService } from '@services/index';
@@ -33,6 +33,7 @@ const SERVICE_NAV: WorkspaceNavItem[] = [
 ];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-cases-list',
     imports: [
         RouterLink,

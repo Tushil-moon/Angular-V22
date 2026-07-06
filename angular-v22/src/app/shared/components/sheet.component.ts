@@ -3,11 +3,12 @@
  */
 
 import { isPlatformBrowser } from '@angular/common';
-import { Component, effect, inject, input, output, PLATFORM_ID, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, output, PLATFORM_ID, signal } from '@angular/core'
 
 import { IconComponent } from './icon.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-sheet',
     imports: [IconComponent],
     template: `

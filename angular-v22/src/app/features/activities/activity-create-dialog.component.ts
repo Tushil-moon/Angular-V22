@@ -2,7 +2,7 @@
  * Activity Create Dialog
  */
 
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ACTIVITY_TYPE_LABELS, ActivityType } from '@models/index';
 import { ActivityService, ContactService, DealService } from '@services/index';
@@ -24,6 +24,7 @@ export type ActivityCreateDialogResult = 'created';
 const TYPE_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, string][];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-activity-create-dialog',
     host: { class: 'contents' },
     imports: [

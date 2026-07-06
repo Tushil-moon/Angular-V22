@@ -2,7 +2,7 @@
  * Reset Password Page
  */
 
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
@@ -20,6 +20,7 @@ import {
 import { passwordResetSchema, safeValidate } from '@utils/validators';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-reset-password',
     imports: [
         RouterLink,

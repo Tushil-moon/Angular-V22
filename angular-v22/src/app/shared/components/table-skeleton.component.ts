@@ -2,12 +2,13 @@
  * Table Skeleton — flex-table loading placeholder
  */
 
-import { Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
 
 import { FlexTableComponent } from './flex-table.component';
 import type { FlexTableColumn } from './flex-table.types';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-table-skeleton',
     imports: [FlexTableComponent],
     template: `

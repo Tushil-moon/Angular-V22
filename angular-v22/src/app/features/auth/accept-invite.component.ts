@@ -2,7 +2,7 @@
  * Accept Invite Page
  */
 
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, OrganizationService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -12,6 +12,7 @@ import { LoaderComponent } from '@shared/components/loader.component';
 import { ignorePromise } from '@utils/form-display.util';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-accept-invite',
     imports: [AuthCardComponent, ButtonComponent, LoaderComponent],
     template: `

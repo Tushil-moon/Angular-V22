@@ -2,7 +2,7 @@
  * Activity Detail Dialog — view, edit, delete
  */
 
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Activity, ACTIVITY_TYPE_LABELS, ActivityType } from '@models/index';
 import { ActivityService, PermissionService } from '@services/index';
@@ -36,6 +36,7 @@ type DialogMode = 'view' | 'edit' | 'delete';
 const TYPE_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, string][];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-activity-detail-dialog',
     host: { class: 'contents' },
     imports: [

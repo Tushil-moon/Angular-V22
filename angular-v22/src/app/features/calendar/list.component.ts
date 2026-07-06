@@ -2,7 +2,7 @@
  * Calendar — month grid with agenda sidebar (SaaS scheduling view)
  */
 
-import { Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core'
 import type { CalendarEvent } from '@models/enterprise.model';
 import { AuthService, CalendarService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -55,6 +55,7 @@ interface CalendarDayCell {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-calendar-list',
     imports: [
         ModuleWorkspaceShellComponent,

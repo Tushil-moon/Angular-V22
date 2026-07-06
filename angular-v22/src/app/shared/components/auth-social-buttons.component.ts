@@ -2,10 +2,11 @@
  * OAuth-style provider buttons — Shadcn Space Login 01 pattern
  */
 
-import { Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core'
 import { ToastService } from '@services/toast.service';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-auth-social-buttons',
     template: `
         <div class="auth-social-stack">

@@ -2,7 +2,7 @@
  * Automation workspace — workflows and webhooks
  */
 
-import { Component, computed, inject, resource } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core'
 import { RouterLink } from '@angular/router';
 import { AuthService, WebhookService, WorkflowService } from '@services/index';
 import { ButtonComponent } from '@shared/components/button.component';
@@ -22,6 +22,7 @@ const AUTOMATION_NAV: WorkspaceNavItem[] = [
 ];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-automation-workspace',
     imports: [RouterLink, ModuleWorkspaceShellComponent, ButtonComponent, IconComponent],
     template: `

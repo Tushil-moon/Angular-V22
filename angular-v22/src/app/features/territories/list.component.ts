@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type { Territory } from '@models/enterprise.model';
 import { TerritoryService } from '@services/index';
 import {
@@ -9,6 +9,7 @@ import {
 import { formatEnterpriseDate } from '../enterprise/enterprise-list.util';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-territories-list',
     imports: [EnterpriseListShellComponent],
     template: `

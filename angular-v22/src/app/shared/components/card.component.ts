@@ -2,9 +2,10 @@
  * Card Component — shadcn Card structure
  */
 
-import { Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-card',
     host: {
         '[class]': 'hostClass()',
@@ -25,6 +26,7 @@ export class CardComponent {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-card-header',
     template: `
         <div class="card-header" [class.card-header-row]="row()">
@@ -37,6 +39,7 @@ export class CardHeaderComponent {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-card-title',
     template: `
         <h3 class="card-title">
@@ -47,6 +50,7 @@ export class CardHeaderComponent {
 export class CardTitleComponent {}
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-card-description',
     template: `
         <p class="card-description">
@@ -57,6 +61,7 @@ export class CardTitleComponent {}
 export class CardDescriptionComponent {}
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-card-body',
     host: {
         class: 'min-w-0',
@@ -88,6 +93,7 @@ export class CardBodyComponent {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-card-footer',
     template: `
         <div class="card-footer">

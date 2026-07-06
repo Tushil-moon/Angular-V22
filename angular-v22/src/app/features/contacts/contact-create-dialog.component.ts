@@ -2,7 +2,7 @@
  * Contact Create Dialog
  */
 
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CONTACT_STATUS_LABELS, ContactStatus } from '@models/index';
 import { ContactService } from '@services/index';
@@ -24,6 +24,7 @@ export type ContactCreateDialogResult = 'created';
 const STATUS_OPTIONS = Object.entries(CONTACT_STATUS_LABELS) as [ContactStatus, string][];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-contact-create-dialog',
     host: { class: 'contents' },
     imports: [

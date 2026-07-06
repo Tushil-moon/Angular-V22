@@ -2,7 +2,7 @@
  * Roles List Page Component
  */
 
-import { Component, computed, inject, signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, ViewEncapsulation } from '@angular/core'
 import { DialogService, PermissionService, RoleService } from '@services/index';
 import {
     ButtonComponent,
@@ -20,6 +20,7 @@ import { Permissions } from '@shared/constants/permissions';
 import { RoleCreateDialogComponent, RoleCreateDialogResult } from './role-create-dialog.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-roles-list',
     imports: [
         CardComponent,

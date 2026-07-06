@@ -2,12 +2,13 @@
  * Toaster Component — shadcn Sonner-style toast host
  */
 
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { ToastService, ToastVariant } from '@services/toast.service';
 
 import { IconComponent } from './icon.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-toaster',
     imports: [IconComponent],
     template: `

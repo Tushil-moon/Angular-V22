@@ -2,12 +2,13 @@
  * Auth card shell — shadcn/ui login-01 block pattern
  */
 
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 
 import { AuthPageHeaderComponent } from './auth-page-header.component';
 import { CardBodyComponent, CardComponent } from './card.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-auth-card',
     imports: [CardComponent, CardBodyComponent, AuthPageHeaderComponent],
     template: `

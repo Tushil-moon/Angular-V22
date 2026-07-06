@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type { DashboardLayout } from '@models/enterprise.model';
 import { ReportService } from '@services/index';
 import {
@@ -9,6 +9,7 @@ import {
 import { formatEnterpriseDate } from '../enterprise/enterprise-list.util';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-report-layouts-list',
     imports: [EnterpriseListShellComponent],
     template: `

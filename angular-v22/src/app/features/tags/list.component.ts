@@ -2,7 +2,7 @@
  * Tags Management Page
  */
 
-import { Component, computed, inject, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { CrmTag } from '@models/index';
 import { AuthService, PermissionService, TagService } from '@services/index';
@@ -37,6 +37,7 @@ const TAG_COLOR_PRESETS = [
 ] as const;
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-tags-list',
     imports: [
         ReactiveFormsModule,

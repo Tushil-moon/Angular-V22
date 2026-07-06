@@ -3,7 +3,7 @@
  */
 
 import { A11yModule } from '@angular/cdk/a11y';
-import { Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core'
 import { DIALOG_CLOSE } from '@shared/dialog/dialog.tokens';
 import { DialogRef } from '@shared/dialog/dialog-ref';
 
@@ -12,6 +12,7 @@ import { IconComponent } from './icon.component';
 export type DialogSize = 'sm' | 'default' | 'lg';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-dialog',
     host: {
         class: 'block w-full min-h-0 max-h-full',

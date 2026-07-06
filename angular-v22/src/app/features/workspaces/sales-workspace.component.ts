@@ -2,7 +2,7 @@
  * Sales Cloud workspace — quotes, forecasting, lead scoring, calendar
  */
 
-import { Component, computed, inject, resource } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core'
 import { RouterLink } from '@angular/router';
 import { AuthService, CalendarService, ForecastService, LeadScoringService, QuoteService } from '@services/index';
 import { ButtonComponent } from '@shared/components/button.component';
@@ -33,6 +33,7 @@ const SALES_NAV: WorkspaceNavItem[] = [
 ];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-sales-workspace',
     imports: [
         RouterLink,

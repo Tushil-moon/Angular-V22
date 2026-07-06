@@ -2,7 +2,7 @@
  * Joined icon-only segmented control for view modes (list, cards, etc.)
  */
 
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
 
 import type { IconName } from '../icons/app-icons';
 import { IconComponent } from './icon.component';
@@ -21,6 +21,7 @@ export const LIST_CARDS_VIEW_OPTIONS: ViewSwitcherOption<'list' | 'cards'>[] = [
 ];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-view-switcher',
     imports: [IconComponent],
     host: {

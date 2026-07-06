@@ -2,7 +2,7 @@
  * Deal Create Dialog
  */
 
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Contact, DEAL_STAGE_LABELS, DealStage } from '@models/index';
 import { ContactService, DealService } from '@services/index';
@@ -26,6 +26,7 @@ export type DealCreateDialogResult = 'created';
 const STAGE_OPTIONS = Object.entries(DEAL_STAGE_LABELS) as [DealStage, string][];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-deal-create-dialog',
     host: { class: 'contents' },
     imports: [

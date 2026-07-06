@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type { ForecastPeriod } from '@models/enterprise.model';
 import { AuthService, ForecastService } from '@services/index';
 import {
@@ -12,6 +12,7 @@ import {
 } from '../enterprise/enterprise-list.util';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-forecasting-list',
     imports: [EnterpriseListShellComponent],
     template: `

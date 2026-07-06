@@ -2,7 +2,7 @@
  * Saved Views Picker — load, apply, and save list filter presets
  */
 
-import { Component, inject, input, OnInit, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnInit, output, signal } from '@angular/core'
 import { SavedView, SavedViewEntityType, SavedViewFilters } from '@models/index';
 import { SavedViewService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -17,6 +17,7 @@ import { ButtonComponent } from './button.component';
 import { IconComponent } from './icon.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-saved-views-picker',
     imports: [
         ButtonComponent,

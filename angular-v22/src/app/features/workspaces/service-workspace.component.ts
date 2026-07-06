@@ -2,7 +2,7 @@
  * Service Cloud workspace — cases and knowledge base
  */
 
-import { Component, computed, inject, resource } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core'
 import { RouterLink } from '@angular/router';
 import { AuthService, CaseService, KnowledgeService } from '@services/index';
 import { ButtonComponent } from '@shared/components/button.component';
@@ -22,6 +22,7 @@ const SERVICE_NAV: WorkspaceNavItem[] = [
 ];
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-service-workspace',
     imports: [RouterLink, ModuleWorkspaceShellComponent, ButtonComponent, IconComponent],
     template: `

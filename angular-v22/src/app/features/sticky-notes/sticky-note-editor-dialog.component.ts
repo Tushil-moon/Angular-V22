@@ -2,7 +2,7 @@
  * Sticky note editor dialog — rich text + color + pin
  */
 
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import type { StickyNote } from '@models/sticky-note.model';
 import { STICKY_NOTE_COLORS } from '@models/sticky-note.model';
@@ -24,6 +24,7 @@ export interface StickyNoteEditorDialogData {
 export type StickyNoteEditorDialogResult = 'saved' | 'deleted';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-sticky-note-editor-dialog',
     host: { class: 'contents' },
     imports: [

@@ -2,7 +2,7 @@
  * Calendar — shadcn-style month grid (used by date picker)
  */
 
-import { Component, computed, effect, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core'
 import {
     addMonths,
     eachDayOfInterval,
@@ -30,6 +30,7 @@ export interface CalendarDay {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-calendar',
     imports: [IconComponent],
     host: {

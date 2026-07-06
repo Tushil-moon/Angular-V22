@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type { Workflow } from '@models/enterprise.model';
 import { WorkflowService } from '@services/index';
 import {
@@ -9,6 +9,7 @@ import {
 import { formatEnterpriseBool } from '../enterprise/enterprise-list.util';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-workflows-list',
     imports: [EnterpriseListShellComponent],
     template: `

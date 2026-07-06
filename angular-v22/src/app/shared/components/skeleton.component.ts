@@ -2,9 +2,10 @@
  * Skeleton Component — shadcn-style shimmer placeholder
  */
 
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-skeleton',
     host: {
         class: 'skeleton block min-w-0',

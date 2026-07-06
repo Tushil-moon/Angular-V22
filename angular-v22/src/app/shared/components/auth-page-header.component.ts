@@ -2,9 +2,10 @@
  * Auth page title block — Shadcn Space / shadcn authentication blocks
  */
 
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-auth-page-header',
     template: `
         <div class="auth-page-header">

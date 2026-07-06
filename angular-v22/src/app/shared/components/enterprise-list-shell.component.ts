@@ -2,7 +2,7 @@
  * Reusable enterprise CRUD list shell — SaaS-style with KPIs, filters, detail sheet
  */
 
-import { afterNextRender, Component, computed, inject, input, resource, signal } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, inject, input, resource, signal } from '@angular/core'
 import { FilterOptions, PaginatedResponse } from '@models/index';
 import { AuthService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -32,8 +32,8 @@ import type { FlexTableBreakpoint, FlexTableColumn } from './flex-table.types';
 import { IconComponent } from './icon.component';
 import { PaginationComponent } from './pagination.component';
 import { SearchInputComponent } from './search-input.component';
-import type { WorkspaceKpi } from './workspace.types';
 import { LIST_CARDS_VIEW_OPTIONS, ViewSwitcherComponent } from './view-switcher.component';
+import type { WorkspaceKpi } from './workspace.types';
 
 export interface EnterpriseListColumn<T> {
     key: string;
@@ -68,6 +68,7 @@ interface PageResult<T> {
 }
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-enterprise-list-shell',
     imports: [
         CardComponent,

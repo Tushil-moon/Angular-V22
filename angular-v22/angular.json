@@ -17,7 +17,6 @@
             "schematics": {
                 "@schematics/angular:component": {
                     "style": "scss",
-                    "standalone": true,
                     "changeDetection": "OnPush",
                     "skipTests": true,
                     "displayBlock": true,
@@ -27,12 +26,10 @@
                     "skipTests": true
                 },
                 "@schematics/angular:directive": {
-                    "skipTests": true,
-                    "standalone": true
+                    "skipTests": true
                 },
                 "@schematics/angular:pipe": {
-                    "skipTests": true,
-                    "standalone": true
+                    "skipTests": true
                 },
                 "@schematics/angular:guard": {
                     "skipTests": true

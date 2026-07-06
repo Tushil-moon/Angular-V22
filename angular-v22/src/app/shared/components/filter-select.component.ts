@@ -2,11 +2,12 @@
  * Filter Select — toolbar select using shadcn Select styling
  */
 
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
 
 import { SelectComponent, SelectOption } from './select.component';
 
 @Component({
+    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-filter-select',
     imports: [SelectComponent],
     host: { class: 'inline-flex min-w-0' },
