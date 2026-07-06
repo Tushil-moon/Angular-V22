@@ -35,6 +35,12 @@ export const CRM_NAV_ITEMS: NavItem[] = [
         permission: Permissions.ReadContacts,
     },
     {
+        label: 'Leads',
+        route: '/dashboard/leads',
+        icon: 'user',
+        permission: Permissions.ReadLeads,
+    },
+    {
         label: 'Companies',
         route: '/dashboard/companies',
         icon: 'building-2',
@@ -101,6 +107,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
         icon: 'shield',
         permission: [Permissions.ReadRoles, Permissions.ManageRoles],
     },
+    {
+        label: 'Organization',
+        route: '/dashboard/organization',
+        icon: 'building-2',
+        permission: [Permissions.ReadOrganizations, Permissions.ReadOrgUnits],
+    },
     { label: 'Settings', route: '/dashboard/settings', icon: 'settings' },
 ];
 
@@ -109,9 +121,6 @@ export const SIDEBAR_NAV_GROUPS: NavGroup[] = [
     { label: 'Apps', items: APPS_NAV_ITEMS },
     { label: 'Admin', items: ADMIN_NAV_ITEMS },
 ];
-
-/** @deprecated Use SIDEBAR_NAV_GROUPS */
-export const PLATFORM_NAV_ITEMS = CRM_NAV_ITEMS;
 
 export const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
     { label: 'Dashboard', route: '/dashboard', icon: 'layout-dashboard' },
@@ -122,6 +131,7 @@ export const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
 
 export const PAGE_TITLES: Record<string, string> = {
     contacts: 'Contacts',
+    leads: 'Leads',
     companies: 'Companies',
     deals: 'Deals',
     activities: 'Activities',
@@ -130,6 +140,7 @@ export const PAGE_TITLES: Record<string, string> = {
     users: 'Users',
     roles: 'Roles & Permissions',
     settings: 'Settings',
+    organization: 'Organization',
     apps: 'App launcher',
     sales: 'Sales Cloud',
     marketing: 'Marketing Cloud',
@@ -137,12 +148,16 @@ export const PAGE_TITLES: Record<string, string> = {
     analytics: 'Analytics',
     automation: 'Automation',
     quotes: 'Quotes',
+    products: 'Products',
     forecasting: 'Forecasting',
     'lead-scoring': 'Lead scoring',
     calendar: 'Calendar',
     campaigns: 'Campaigns',
+    'email-templates': 'Email templates',
+    'email-sequences': 'Email sequences',
     cases: 'Cases',
     knowledge: 'Knowledge base',
+    sla: 'SLA & queues',
     reports: 'Reports',
     'report-layouts': 'Dashboard layouts',
     workflows: 'Workflows',

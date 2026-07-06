@@ -62,7 +62,7 @@ export type CompanyCreateDialogResult = 'created';
                 <app-textarea id="company-notes" label="Notes" formControlName="notes" />
             </form>
 
-            <div dialogFooter>
+            <div dialogFooter class="flex flex-wrap gap-2">
                 <app-button variant="outline" type="button" (clicked)="close()">Cancel</app-button>
                 <app-button type="submit" form="company-create-form" [disabled]="isSubmitting()">
                     @if (isSubmitting()) {

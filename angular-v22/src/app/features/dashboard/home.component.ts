@@ -2,7 +2,7 @@
  * Dashboard Home Page — shadcn-style overview
  */
 
-import { ChangeDetectionStrategy, Component, computed, inject, injectAsync, onIdle, OnInit, ViewEncapsulation } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, ViewEncapsulation } from '@angular/core'
 import { Router } from '@angular/router';
 import { AuthService, DashboardService, DialogService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -229,14 +229,6 @@ export class DashboardHomeComponent implements OnInit {
     private readonly dialogService = inject(DialogService);
     private readonly permissionService = inject(PermissionService);
 
-    private readonly reportService = injectAsync(
-        () =>
-            import('@services/dashboard-report.service').then(
-                (module) => module.DashboardReportService,
-            ),
-        { prefetch: onIdle },
-    );
-
     ngOnInit(): void {
         ignorePromise(this.authService.refreshProfile());
     }
@@ -264,7 +256,6 @@ export class DashboardHomeComponent implements OnInit {
 
     refreshStats(): void {
         this.dashboardService.reloadStats();
-        ignorePromise(this.reportService().then((report) => report.trackRefresh()));
         this.toastService.success('Dashboard refreshed', 'Stats updated successfully.');
     }
 

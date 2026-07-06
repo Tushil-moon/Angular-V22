@@ -4,7 +4,12 @@ export const Permissions = {
     ManageUsers: 'manage:users',
     ReadRoles: 'read:roles',
     ManageRoles: 'manage:roles',
+    ReadSessions: 'read:sessions',
     ManageSessions: 'manage:sessions',
+    ReadOrganizations: 'read:organizations',
+    ManageOrganizations: 'manage:organizations',
+    ReadOrgUnits: 'read:org_units',
+    ManageOrgUnits: 'manage:org_units',
     ReadContacts: 'read:contacts',
     ManageContacts: 'manage:contacts',
     ReadDeals: 'read:deals',
@@ -13,6 +18,8 @@ export const Permissions = {
     ManageActivities: 'manage:activities',
     ReadCompanies: 'read:companies',
     ManageCompanies: 'manage:companies',
+    ReadLeads: 'read:leads',
+    ManageLeads: 'manage:leads',
 } as const;
 
 export type PermissionCode = (typeof Permissions)[keyof typeof Permissions];

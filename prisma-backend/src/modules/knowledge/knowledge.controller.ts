@@ -30,3 +30,18 @@ export const deleteArticle = asyncHandler(async (req, res) => {
   await knowledgeService.deleteArticle(String(req.params.id), getAuthContext(req));
   return sendSuccess(res, null, "Knowledge article deleted");
 });
+
+export const publishArticle = asyncHandler(async (req, res) => {
+  const item = await knowledgeService.publishArticle(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, item, "Article published");
+});
+
+export const unpublishArticle = asyncHandler(async (req, res) => {
+  const item = await knowledgeService.unpublishArticle(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, item, "Article unpublished");
+});
+
+export const recordArticleView = asyncHandler(async (req, res) => {
+  const item = await knowledgeService.recordArticleView(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, item, "View recorded");
+});

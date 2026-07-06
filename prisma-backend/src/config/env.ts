@@ -24,6 +24,22 @@ const envSchema = z.object({
   ARGON2_TIME_COST: z.coerce.number().int().positive().default(2),
   ARGON2_PARALLELISM: z.coerce.number().int().positive().default(1),
   CORS_ORIGIN: z.string().default("http://localhost:4200"),
+  FRONTEND_URL: z.string().url().default("http://localhost:4200"),
+  EMAIL_ENABLED: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_SECURE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().default("CRM <noreply@example.com>"),
+  PASSWORD_HISTORY_COUNT: z.coerce.number().int().positive().default(5),
+  REMEMBER_ME_TTL_DAYS: z.coerce.number().int().positive().default(90),
 });
 
 const vercelOrigin = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined;

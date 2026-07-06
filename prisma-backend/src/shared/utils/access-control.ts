@@ -34,10 +34,12 @@ export const buildOwnerScopedWhere = <T extends Record<string, unknown>>(auth: A
 export const canManageActivityRecord = (
   auth: AuthContext,
   activityUserId: string,
+  assigneeId?: string | null,
 ): boolean => {
   if (hasPermission(auth.permissions, Permissions.ManageAll)) return true;
   if (auth.roles.includes(Roles.Admin) || auth.roles.includes(Roles.Manager)) return true;
-  return activityUserId === auth.userId;
+  if (activityUserId === auth.userId) return true;
+  return assigneeId === auth.userId;
 };
 
 export const assertRecordOwnerAccess = (
@@ -62,10 +64,44 @@ export const buildActivityScopeWhere = (auth: AuthContext) => {
     ...orgFilter,
     OR: [
       { userId: auth.userId },
+      { assigneeId: auth.userId },
       { contact: { ownerId: auth.userId, deletedAt: null, organizationId: auth.organizationId } },
       { deal: { ownerId: auth.userId, deletedAt: null, organizationId: auth.organizationId } },
+      {
+        company: { ownerId: auth.userId, deletedAt: null, organizationId: auth.organizationId },
+      },
     ],
   };
+};
+
+export const assertActivityLinksAccess = async (
+  auth: AuthContext,
+  links: {
+    contactId?: string;
+    dealId?: string;
+    companyId?: string;
+    leadId?: string;
+  },
+) => {
+  await assertLinkedRecordAccess(auth, links.contactId, links.dealId);
+
+  if (links.companyId) {
+    const company = await prisma.company.findFirst({
+      where: buildOrgScopedWhere(auth, { id: links.companyId, deletedAt: null }),
+      select: { ownerId: true },
+    });
+    if (!company) throw new AppError(404, "Company not found", "COMPANY_NOT_FOUND");
+    assertRecordOwnerAccess(auth, company.ownerId, "You do not have access to this company");
+  }
+
+  if (links.leadId) {
+    const lead = await prisma.lead.findFirst({
+      where: buildOrgScopedWhere(auth, { id: links.leadId }),
+      select: { contact: { select: { ownerId: true } } },
+    });
+    if (!lead) throw new AppError(404, "Lead not found", "LEAD_NOT_FOUND");
+    assertRecordOwnerAccess(auth, lead.contact.ownerId, "You do not have access to this lead");
+  }
 };
 
 export const assertLinkedRecordAccess = async (

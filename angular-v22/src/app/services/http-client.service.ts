@@ -28,6 +28,22 @@ export class HttpClientService {
         return this.request<T>('GET', url, undefined, config);
     }
 
+    async getText(url: string, config?: HttpConfig): Promise<string> {
+        const endpoint = `${environment.apiBaseUrl}${url}`;
+        const options = this.buildRequestOptions(config);
+        const requestTimeout = config?.timeout ?? environment.apiTimeout;
+
+        try {
+            return await firstValueFrom(
+                this.http
+                    .get(endpoint, { ...options, responseType: 'text' })
+                    .pipe(timeout(requestTimeout)),
+            );
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    }
+
     async post<T>(url: string, data?: unknown, config?: HttpConfig): Promise<ApiResponse<T>> {
         return this.request<T>('POST', url, data, config);
     }
@@ -40,8 +56,8 @@ export class HttpClientService {
         return this.request<T>('PATCH', url, data, config);
     }
 
-    async delete<T>(url: string, config?: HttpConfig): Promise<ApiResponse<T>> {
-        return this.request<T>('DELETE', url, undefined, config);
+    async delete<T>(url: string, data?: unknown, config?: HttpConfig): Promise<ApiResponse<T>> {
+        return this.request<T>('DELETE', url, data, config);
     }
 
     setAuthToken(token: string): void {
@@ -86,7 +102,12 @@ export class HttpClientService {
                     case 'PATCH':
                         return this.http.patch<ApiResponse<T>>(endpoint, body, options);
                     case 'DELETE':
-                        return this.http.delete<ApiResponse<T>>(endpoint, options);
+                        return body !== undefined
+                            ? this.http.request<ApiResponse<T>>('DELETE', endpoint, {
+                                  ...options,
+                                  body,
+                              })
+                            : this.http.delete<ApiResponse<T>>(endpoint, options);
                 }
             })();
 

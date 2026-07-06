@@ -87,7 +87,7 @@ import { runResourceLoader } from '@shared/utils/resource-error';
                         <div class="kanban-column">
                             <div class="kanban-column-header">
                                 <app-badge [variant]="stageBadgeVariant(column.stage)">{{
-                                    formatStage(column.stage)
+                                    column.name || formatStage(column.stage)
                                 }}</app-badge>
                                 <span class="text-xs text-muted-foreground">{{
                                     column.deals.length
@@ -115,6 +115,10 @@ import { runResourceLoader } from '@shared/utils/resource-error';
                                         <p class="kanban-card-title">{{ deal.title }}</p>
                                         <p class="kanban-card-value">
                                             {{ formatValue(deal.value, deal.currency) }}
+                                        </p>
+                                        <p class="kanban-card-meta text-xs text-muted-foreground">
+                                            {{ deal.probability }}% ·
+                                            {{ formatValue(deal.weightedValue, deal.currency) }} weighted
                                         </p>
                                         @if (deal.contact?.fullName) {
                                             <p class="kanban-card-meta">
@@ -170,7 +174,7 @@ export class DealsBoardComponent {
     readonly isLoading = computed(() => this.boardResource.isLoading());
     readonly loadError = computed(() => this.boardResource.error()?.message ?? null);
 
-    connectedLists = computed(() => OPEN_DEAL_STAGES);
+    readonly connectedLists = computed(() => this.columns().map((column) => column.stage));
 
     async openDetailDialog(deal: Deal): Promise<void> {
         const ref = await this.dialogService.openLazy<

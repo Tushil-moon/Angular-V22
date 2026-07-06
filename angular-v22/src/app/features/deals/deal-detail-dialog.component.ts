@@ -9,10 +9,12 @@ import {
     ACTIVITY_TYPE_LABELS,
     ActivityType,
     Deal,
+    DEAL_HISTORY_ACTION_LABELS,
     DEAL_STAGE_LABELS,
+    DealHistoryEntry,
     DealStage,
 } from '@models/index';
-import { ActivityService, DealService } from '@services/index';
+import { ActivityService, DealService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
     BadgeComponent,
@@ -31,6 +33,7 @@ import {
     formatDealStage,
     formatDealValue,
 } from '@shared/config/deals-table.config';
+import { Permissions } from '@shared/constants/permissions';
 import { DIALOG_DATA, DialogRef } from '@shared/dialog';
 import { ignorePromise } from '@utils/form-display.util';
 import { createActivitySchema, safeValidate, updateDealSchema } from '@utils/validators';
@@ -41,7 +44,7 @@ export interface DealDetailDialogData {
 
 export type DealDetailDialogResult = 'deleted' | 'updated';
 
-type DialogMode = 'view' | 'edit' | 'delete' | 'activity';
+type DialogMode = 'view' | 'edit' | 'delete' | 'activity' | 'win' | 'lose';
 
 const STAGE_OPTIONS = Object.entries(DEAL_STAGE_LABELS) as [DealStage, string][];
 const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, string][];
@@ -134,6 +137,23 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
                             formControlName="dueAt"
                         />
                     </form>
+                } @else if (mode() === 'win') {
+                    <form [formGroup]="winForm" class="space-y-4">
+                        <app-textarea id="win-reason" label="Win reason" formControlName="winReason" />
+                    </form>
+                } @else if (mode() === 'lose') {
+                    <form [formGroup]="loseForm" class="space-y-4">
+                        <app-textarea
+                            id="lose-reason"
+                            label="Loss reason"
+                            formControlName="lossReason"
+                        />
+                        <app-input
+                            id="lose-competitor"
+                            label="Competitor"
+                            formControlName="competitor"
+                        />
+                    </form>
                 } @else {
                     <div class="space-y-6">
                         <div class="dialog-detail-header">
@@ -169,11 +189,18 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
                                 </dd>
                             </div>
                             <div class="space-y-1">
-                                <dt class="text-xs font-medium text-muted-foreground">Owner</dt>
+                                <dt class="text-xs font-medium text-muted-foreground">Probability</dt>
                                 <dd class="text-sm text-foreground">
-                                    {{ item.owner?.email || '—' }}
+                                    {{ item.probability }}% ·
+                                    {{ formatValue(item.weightedValue, item.currency) }} weighted
                                 </dd>
                             </div>
+                            @if (item.company?.name) {
+                                <div class="space-y-1">
+                                    <dt class="text-xs font-medium text-muted-foreground">Company</dt>
+                                    <dd class="text-sm text-foreground">{{ item.company.name }}</dd>
+                                </div>
+                            }
                             <div class="space-y-1">
                                 <dt class="text-xs font-medium text-muted-foreground">Updated</dt>
                                 <dd class="text-sm text-foreground">
@@ -188,6 +215,26 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
                                 <p class="text-sm text-foreground whitespace-pre-wrap">
                                     {{ item.description }}
                                 </p>
+                            </div>
+                        }
+
+                        @if (history().length) {
+                            <div class="space-y-2">
+                                <p class="text-sm font-medium text-foreground">History</p>
+                                <ul class="space-y-2 max-h-40 overflow-y-auto">
+                                    @for (entry of history(); track entry.id) {
+                                        <li class="rounded-md border px-3 py-2 text-sm">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span class="font-medium">{{
+                                                    historyLabel(entry.action)
+                                                }}</span>
+                                                <span class="text-xs text-muted-foreground">{{
+                                                    formatDate(entry.createdAt)
+                                                }}</span>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
                             </div>
                         }
 
@@ -240,15 +287,42 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
                 </p>
             }
 
-            <div dialogFooter>
+            <div dialogFooter class="flex flex-wrap gap-2">
                 @if (mode() === 'view' && deal()) {
-                    <app-button variant="outline" type="button" (clicked)="mode.set('delete')"
-                        >Delete</app-button
-                    >
-                    <app-button variant="outline" type="button" (clicked)="enterEditMode()"
-                        >Edit</app-button
-                    >
-                    <app-button type="button" (clicked)="close()">Close</app-button>
+                    <div class="flex flex-wrap gap-2 w-full justify-between">
+                        <div class="flex flex-wrap gap-2">
+                            @if (canManage() && isOpen(deal()!.stage)) {
+                                <app-button size="sm" variant="outline" (clicked)="mode.set('win')">
+                                    Mark won
+                                </app-button>
+                                <app-button size="sm" variant="outline" (clicked)="mode.set('lose')">
+                                    Mark lost
+                                </app-button>
+                            }
+                            @if (canManage() && !isOpen(deal()!.stage)) {
+                                <app-button size="sm" variant="outline" (clicked)="reopenDeal()">
+                                    Reopen
+                                </app-button>
+                            }
+                            <app-button variant="outline" type="button" (clicked)="enterEditMode()">
+                                Edit
+                            </app-button>
+                        </div>
+                        <app-button variant="outline" type="button" (clicked)="mode.set('delete')">
+                            Delete
+                        </app-button>
+                    </div>
+                } @else if (mode() === 'win' || mode() === 'lose') {
+                    <app-button variant="outline" type="button" (clicked)="mode.set('view')">
+                        Cancel
+                    </app-button>
+                    <app-button type="button" [disabled]="isSubmitting()" (clicked)="submitOutcome()">
+                        @if (isSubmitting()) {
+                            <app-loader size="sm" [inline]="true" />
+                        } @else {
+                            Save
+                        }
+                    </app-button>
                 } @else if (mode() === 'edit') {
                     <app-button variant="outline" type="button" (clicked)="cancelEdit()"
                         >Cancel</app-button
@@ -299,6 +373,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
 export class DealDetailDialogComponent implements OnInit {
     private readonly dealService = inject(DealService);
     private readonly activityService = inject(ActivityService);
+    private readonly permissionService = inject(PermissionService);
     private readonly toastService = inject(ToastService);
     private readonly fb = inject(NonNullableFormBuilder);
     private readonly dialogRef = inject(
@@ -321,9 +396,16 @@ export class DealDetailDialogComponent implements OnInit {
     readonly formatValue = formatDealValue;
     readonly formatDate = formatDealDate;
     readonly formatActivityType = (type: ActivityType) => ACTIVITY_TYPE_LABELS[type];
+    readonly historyLabel = (action: DealHistoryEntry['action']) =>
+        DEAL_HISTORY_ACTION_LABELS[action] ?? action;
+
+    readonly canManage = computed(() =>
+        this.permissionService.hasPermission(Permissions.ManageDeals),
+    );
 
     mode = signal<DialogMode>('view');
     deal = signal<Deal | null>(null);
+    history = signal<DealHistoryEntry[]>([]);
     activities = signal<Activity[]>([]);
     isLoading = signal(true);
     activitiesLoading = signal(true);
@@ -346,6 +428,13 @@ export class DealDetailDialogComponent implements OnInit {
         dueAt: [''],
     });
 
+    winForm = this.fb.group({ winReason: [''] });
+    loseForm = this.fb.group({ lossReason: [''], competitor: [''] });
+
+    isOpen(stage: DealStage): boolean {
+        return !['WON', 'LOST'].includes(stage);
+    }
+
     dialogTitle = computed(() => {
         if (this.mode() === 'edit') return 'Edit deal';
         if (this.mode() === 'delete') return 'Delete deal';
@@ -357,6 +446,8 @@ export class DealDetailDialogComponent implements OnInit {
         if (this.mode() === 'edit') return 'Update deal details and stage.';
         if (this.mode() === 'delete') return 'This action cannot be undone.';
         if (this.mode() === 'activity') return 'Record progress on this deal.';
+        if (this.mode() === 'win') return 'Record why this deal was won.';
+        if (this.mode() === 'lose') return 'Record why this deal was lost.';
         return 'Pipeline opportunity overview.';
     });
 
@@ -399,7 +490,10 @@ export class DealDetailDialogComponent implements OnInit {
         try {
             const deal = await this.dealService.getDealById(this.data.dealId);
             this.deal.set(deal);
-            if (deal) ignorePromise(this.loadActivities(deal.id));
+            if (deal) {
+                ignorePromise(this.loadActivities(deal.id));
+                ignorePromise(this.loadHistory(deal.id));
+            }
         } finally {
             this.isLoading.set(false);
         }
@@ -412,6 +506,63 @@ export class DealDetailDialogComponent implements OnInit {
             this.activities.set(result.data);
         } finally {
             this.activitiesLoading.set(false);
+        }
+    }
+
+    async loadHistory(dealId: string): Promise<void> {
+        this.history.set(await this.dealService.getDealHistory(dealId));
+    }
+
+    async submitOutcome(): Promise<void> {
+        const item = this.deal();
+        if (!item || this.isSubmitting()) return;
+
+        this.isSubmitting.set(true);
+        try {
+            if (this.mode() === 'win') {
+                const updated = await this.dealService.winDeal(
+                    item.id,
+                    this.winForm.controls.winReason.value || undefined,
+                );
+                if (updated) this.deal.set(updated);
+            } else if (this.mode() === 'lose') {
+                const reason = this.loseForm.controls.lossReason.value.trim();
+                if (!reason) return;
+                const updated = await this.dealService.loseDeal(
+                    item.id,
+                    reason,
+                    this.loseForm.controls.competitor.value || undefined,
+                );
+                if (updated) this.deal.set(updated);
+            }
+            await this.loadHistory(item.id);
+            this.wasUpdated.set(true);
+            this.mode.set('view');
+            this.toastService.success('Deal updated', 'Outcome saved.');
+        } catch {
+            this.toastService.error('Update failed', 'Could not update deal.');
+        } finally {
+            this.isSubmitting.set(false);
+        }
+    }
+
+    async reopenDeal(): Promise<void> {
+        const item = this.deal();
+        if (!item || this.isSubmitting()) return;
+
+        this.isSubmitting.set(true);
+        try {
+            const updated = await this.dealService.reopenDeal(item.id, 'QUALIFIED');
+            if (updated) {
+                this.deal.set(updated);
+                await this.loadHistory(item.id);
+                this.wasUpdated.set(true);
+                this.toastService.success('Deal reopened', item.title);
+            }
+        } catch {
+            this.toastService.error('Reopen failed', 'Could not reopen deal.');
+        } finally {
+            this.isSubmitting.set(false);
         }
     }
 

@@ -26,6 +26,14 @@ export const DEAL_TABLE_COLUMNS: FlexTableColumn[] = [
         skeletonClass: 'h-4 w-16 ml-auto',
     },
     {
+        key: 'probability',
+        label: 'Probability',
+        align: 'right',
+        grid: 'minmax(4.5rem, 0.6fr)',
+        hideBelow: 'md',
+        skeletonClass: 'h-4 w-10 ml-auto',
+    },
+    {
         key: 'stage',
         label: 'Stage',
         grid: 'minmax(6rem, 0.85fr)',
@@ -59,22 +67,6 @@ export const dealStageBadgeVariant = (stage: DealStage): BadgeVariant => {
             return 'warning';
         default:
             return 'secondary';
-    }
-};
-
-/** @deprecated Prefer `dealStageBadgeVariant` with `app-badge` */
-export const dealStageBadgeClass = (stage: DealStage): string => {
-    switch (dealStageBadgeVariant(stage)) {
-        case 'success':
-            return 'badge badge-success';
-        case 'destructive':
-            return 'badge badge-danger';
-        case 'warning':
-            return 'badge badge-warning';
-        case 'secondary':
-            return 'badge badge-secondary';
-        default:
-            return 'badge';
     }
 };
 

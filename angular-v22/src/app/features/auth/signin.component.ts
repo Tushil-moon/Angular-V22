@@ -9,7 +9,6 @@ import { AuthService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import { AuthCardComponent } from '@shared/components/auth-card.component';
 import { AuthSocialButtonsComponent } from '@shared/components/auth-social-buttons.component';
-import { CheckboxComponent } from '@shared/components/checkbox.component';
 import { InputComponent } from '@shared/components/input.component';
 import { SubmitButtonComponent } from '@shared/components/submit-button.component';
 import {
@@ -27,7 +26,6 @@ import { safeValidate, signInSchema } from '@utils/validators';
         FormField,
         InputComponent,
         SubmitButtonComponent,
-        CheckboxComponent,
         AuthCardComponent,
         AuthSocialButtonsComponent,
     ],
@@ -75,7 +73,16 @@ import { safeValidate, signInSchema } from '@utils/validators';
                     />
                 </div>
 
-                <app-checkbox id="remember-device" label="Remember this device" />
+                <label class="checkbox-label" for="remember-device">
+                    <input
+                        id="remember-device"
+                        type="checkbox"
+                        class="checkbox"
+                        [checked]="rememberMe()"
+                        (change)="onRememberChange($event)"
+                    />
+                    <span>Remember this device</span>
+                </label>
 
                 <app-submit-button
                     label="Login"
@@ -99,7 +106,10 @@ export class SignInComponent {
     private readonly signInModel = signal({
         email: '',
         password: '',
+        rememberMe: false,
     });
+
+    readonly rememberMe = signal(false);
 
     readonly form = form(
         this.signInModel,
@@ -127,6 +137,11 @@ export class SignInComponent {
         this.zodErrors.update((errors) => clearFieldFromErrors(errors, name));
     }
 
+    onRememberChange(event: Event): void {
+        const target = event.target as HTMLInputElement;
+        this.rememberMe.set(target.checked);
+    }
+
     async onSubmit(event: Event): Promise<void> {
         event.preventDefault();
         this.submitted.set(true);
@@ -141,9 +156,19 @@ export class SignInComponent {
         await submit(this.form, {
             action: async (f) => {
                 try {
-                    const credentials = f().value();
+                    const credentials = {
+                        ...f().value(),
+                        rememberMe: this.rememberMe(),
+                    };
                     await this.authService.signIn(credentials);
-                    await this.router.navigate(['/dashboard']);
+                    const destination = this.authService.mustChangePassword()
+                        ? ['/dashboard/settings']
+                        : ['/dashboard'];
+                    await this.router.navigate(destination, {
+                        queryParams: this.authService.mustChangePassword()
+                            ? { tab: 'security', forcePassword: '1' }
+                            : undefined,
+                    });
                 } catch {
                     this.showAuthErrorToast('Sign in failed');
                 }

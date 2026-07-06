@@ -4,7 +4,8 @@
 
 import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core'
 import { RouterLink } from '@angular/router';
-import { AuthService, ReportService } from '@services/index';
+import { DealStage } from '@models/index';
+import { AuthService, DashboardService, ReportService } from '@services/index';
 import { ButtonComponent } from '@shared/components/button.component';
 import {
     CardBodyComponent,
@@ -19,6 +20,7 @@ import {
     type WorkspaceKpi,
     type WorkspaceNavItem,
 } from '@shared/components/module-workspace-shell.component';
+import { formatDealStage } from '@shared/config/deals-table.config';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
 
@@ -64,17 +66,23 @@ const ANALYTICS_NAV: WorkspaceNavItem[] = [
                         <app-card-description>Weighted open opportunities</app-card-description>
                     </app-card-header>
                     <app-card-body>
-                        <div class="analytics-bars">
-                            @for (bar of pipelineBars(); track bar.label) {
-                                <div class="analytics-bar-row">
-                                    <span class="analytics-bar-label">{{ bar.label }}</span>
-                                    <div class="analytics-bar-track">
-                                        <div class="analytics-bar-fill" [style.width.%]="bar.percent"></div>
+                        @if (pipelineBars().length === 0) {
+                            <p class="text-sm text-muted-foreground">
+                                No open deals in the pipeline yet.
+                            </p>
+                        } @else {
+                            <div class="analytics-bars">
+                                @for (bar of pipelineBars(); track bar.label) {
+                                    <div class="analytics-bar-row">
+                                        <span class="analytics-bar-label">{{ bar.label }}</span>
+                                        <div class="analytics-bar-track">
+                                            <div class="analytics-bar-fill" [style.width.%]="bar.percent"></div>
+                                        </div>
+                                        <span class="analytics-bar-value">{{ bar.value }}</span>
                                     </div>
-                                    <span class="analytics-bar-value">{{ bar.value }}</span>
-                                </div>
-                            }
-                        </div>
+                                }
+                            </div>
+                        }
                     </app-card-body>
                 </app-card>
 
@@ -138,55 +146,59 @@ const ANALYTICS_NAV: WorkspaceNavItem[] = [
 })
 export class AnalyticsWorkspaceComponent {
     private readonly authService = inject(AuthService);
+    private readonly dashboardService = inject(DashboardService);
     private readonly reportService = inject(ReportService);
 
     readonly navItems = ANALYTICS_NAV;
 
-    readonly summaryResource = resource({
+    readonly overviewResource = resource({
         params: () => (this.authService.isAuthenticated() ? true : undefined),
         loader: async ({ abortSignal }) =>
             runResourceLoader(
                 async () => {
                     throwIfAborted(abortSignal);
-                    const [reports, layouts] = await Promise.all([
-                        this.reportService.listReports({ pageSize: 100 }),
-                        this.reportService.listLayouts({ pageSize: 100 }),
-                    ]);
-                    return { reports: reports.total, layouts: layouts.total };
+                    return this.reportService.getOverview();
                 },
-                { fallback: { reports: 0, layouts: 0 }, logMessage: 'Failed to load analytics:' },
+                { fallback: null, logMessage: 'Failed to load analytics overview:' },
             ),
     });
 
     readonly kpis = computed((): WorkspaceKpi[] => {
-        const data = this.summaryResource.value();
-        if (!data) return [];
+        const overview = this.overviewResource.value();
+        if (!overview) return [];
         return [
             {
                 label: 'Reports',
-                value: String(data.reports),
-                detail: 'Saved definitions',
+                value: String(overview.reportCount),
+                detail: `${overview.sharedReports} shared`,
                 icon: 'layout-dashboard',
                 route: '/dashboard/reports',
             },
             {
                 label: 'Dashboards',
-                value: String(data.layouts),
+                value: String(overview.layoutCount),
                 detail: 'Custom layouts',
                 icon: 'panel-left',
                 route: '/dashboard/report-layouts',
+            },
+            {
+                label: 'Recent runs',
+                value: String(overview.recentRuns.length),
+                detail: 'Latest executions',
+                icon: 'activity',
             },
         ];
     });
 
     readonly pipelineBars = computed(() => {
-        const data = this.summaryResource.value();
-        const base = data?.reports ?? 0;
-        return [
-            { label: 'Leads', value: base + 12, percent: 72 },
-            { label: 'Qualified', value: base + 8, percent: 58 },
-            { label: 'Proposal', value: base + 5, percent: 42 },
-            { label: 'Won', value: base + 2, percent: 28 },
-        ];
+        const pipeline = this.dashboardService.stats()?.pipeline ?? [];
+        if (pipeline.length === 0) return [];
+
+        const maxCount = Math.max(...pipeline.map((stage) => stage.count), 1);
+        return pipeline.map((stage) => ({
+            label: formatDealStage(stage.stage as DealStage),
+            value: stage.count,
+            percent: Math.round((stage.count / maxCount) * 100),
+        }));
     });
 }

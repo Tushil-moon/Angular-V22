@@ -1,4 +1,6 @@
-import type { Prisma } from "@prisma/client";
+import type { DealStage, Prisma } from "@prisma/client";
+
+import { computeWeightedValue, resolveDealProbability } from "../../modules/deals/deal.utils";
 
 export const ownerSelect = {
   id: true,
@@ -17,12 +19,33 @@ export const companySelect = {
   size: true,
   website: true,
   address: true,
+  parentCompanyId: true,
+  employeeCount: true,
+  annualRevenue: true,
+  revenueCurrency: true,
+  ownershipPercent: true,
   ownerId: true,
   notes: true,
   createdAt: true,
   updatedAt: true,
   owner: { select: ownerSelect },
-  _count: { select: { contacts: true } },
+  parentCompany: { select: { id: true, name: true, domain: true } },
+  locations: {
+    select: {
+      id: true,
+      label: true,
+      line1: true,
+      line2: true,
+      city: true,
+      state: true,
+      postalCode: true,
+      country: true,
+      isPrimary: true,
+      isHeadquarters: true,
+    },
+    orderBy: [{ isPrimary: "desc" as const }, { createdAt: "asc" as const }],
+  },
+  _count: { select: { contacts: true, subsidiaries: true } },
 } satisfies Prisma.CompanySelect;
 
 export const contactSelect = {
@@ -35,6 +58,8 @@ export const contactSelect = {
   companyId: true,
   jobTitle: true,
   status: true,
+  leadSource: true,
+  sourceDetail: true,
   notes: true,
   ownerId: true,
   createdAt: true,
@@ -42,6 +67,33 @@ export const contactSelect = {
   owner: { select: ownerSelect },
   companyRef: { select: { id: true, name: true, domain: true } },
   tags: { select: tagRelationSelect },
+  emails: {
+    select: { id: true, email: true, type: true, isPrimary: true },
+    orderBy: [{ isPrimary: "desc" as const }, { createdAt: "asc" as const }],
+  },
+  phones: {
+    select: { id: true, phone: true, type: true, isPrimary: true },
+    orderBy: [{ isPrimary: "desc" as const }, { createdAt: "asc" as const }],
+  },
+  addresses: {
+    select: {
+      id: true,
+      label: true,
+      line1: true,
+      line2: true,
+      city: true,
+      state: true,
+      postalCode: true,
+      country: true,
+      type: true,
+      isPrimary: true,
+    },
+    orderBy: [{ isPrimary: "desc" as const }, { createdAt: "asc" as const }],
+  },
+  socialLinks: {
+    select: { id: true, platform: true, url: true },
+    orderBy: { createdAt: "asc" as const },
+  },
   _count: { select: { deals: true, activities: true } },
 } satisfies Prisma.ContactSelect;
 
@@ -51,10 +103,20 @@ export const dealSelect = {
   value: true,
   currency: true,
   stage: true,
+  pipelineId: true,
+  pipelineStageId: true,
   contactId: true,
+  companyId: true,
+  leadId: true,
   ownerId: true,
+  probability: true,
   expectedCloseDate: true,
   description: true,
+  winReason: true,
+  lossReason: true,
+  competitor: true,
+  closedAt: true,
+  sortOrder: true,
   createdAt: true,
   updatedAt: true,
   contact: {
@@ -63,44 +125,33 @@ export const dealSelect = {
       firstName: true,
       lastName: true,
       company: true,
+      email: true,
+    },
+  },
+  company: {
+    select: {
+      id: true,
+      name: true,
+      domain: true,
+    },
+  },
+  pipelineStage: {
+    select: {
+      id: true,
+      name: true,
+      stageKey: true,
+      probability: true,
+      isClosed: true,
+      isWon: true,
     },
   },
   owner: { select: ownerSelect },
   tags: { select: tagRelationSelect },
 } satisfies Prisma.DealSelect;
 
-export const activitySelect = {
-  id: true,
-  type: true,
-  subject: true,
-  body: true,
-  contactId: true,
-  dealId: true,
-  userId: true,
-  dueAt: true,
-  completedAt: true,
-  createdAt: true,
-  updatedAt: true,
-  user: { select: ownerSelect },
-  contact: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-    },
-  },
-  deal: {
-    select: {
-      id: true,
-      title: true,
-    },
-  },
-} satisfies Prisma.ActivitySelect;
-
 type CompanyRow = Prisma.CompanyGetPayload<{ select: typeof companySelect }>;
 type ContactRow = Prisma.ContactGetPayload<{ select: typeof contactSelect }>;
 type DealRow = Prisma.DealGetPayload<{ select: typeof dealSelect }>;
-type ActivityRow = Prisma.ActivityGetPayload<{ select: typeof activitySelect }>;
 
 export const mapOwner = (owner: { id: string; email: string | null } | null) =>
   owner ? { id: owner.id, email: owner.email } : null;
@@ -117,10 +168,30 @@ export const mapCompany = (company: CompanyRow) => ({
   size: company.size,
   website: company.website,
   address: company.address,
+  parentCompanyId: company.parentCompanyId,
+  parentCompany: company.parentCompany,
+  employeeCount: company.employeeCount,
+  annualRevenue: company.annualRevenue !== null ? Number(company.annualRevenue) : null,
+  revenueCurrency: company.revenueCurrency,
+  ownershipPercent:
+    company.ownershipPercent !== null ? Number(company.ownershipPercent) : null,
   ownerId: company.ownerId,
   notes: company.notes,
   owner: mapOwner(company.owner),
+  locations: company.locations.map((entry) => ({
+    id: entry.id,
+    label: entry.label,
+    line1: entry.line1,
+    line2: entry.line2,
+    city: entry.city,
+    state: entry.state,
+    postalCode: entry.postalCode,
+    country: entry.country,
+    isPrimary: entry.isPrimary,
+    isHeadquarters: entry.isHeadquarters,
+  })),
   contactCount: company._count.contacts,
+  subsidiaryCount: company._count.subsidiaries,
   createdAt: company.createdAt,
   updatedAt: company.updatedAt,
 });
@@ -137,60 +208,104 @@ export const mapContact = (contact: ContactRow) => ({
   companyRef: contact.companyRef,
   jobTitle: contact.jobTitle,
   status: contact.status,
+  leadSource: contact.leadSource,
+  sourceDetail: contact.sourceDetail,
   notes: contact.notes,
   ownerId: contact.ownerId,
   owner: mapOwner(contact.owner),
   tags: mapTags(contact.tags),
+  emails: contact.emails.map((entry) => ({
+    id: entry.id,
+    email: entry.email,
+    type: entry.type,
+    isPrimary: entry.isPrimary,
+  })),
+  phones: contact.phones.map((entry) => ({
+    id: entry.id,
+    phone: entry.phone,
+    type: entry.type,
+    isPrimary: entry.isPrimary,
+  })),
+  addresses: contact.addresses.map((entry) => ({
+    id: entry.id,
+    label: entry.label,
+    line1: entry.line1,
+    line2: entry.line2,
+    city: entry.city,
+    state: entry.state,
+    postalCode: entry.postalCode,
+    country: entry.country,
+    type: entry.type,
+    isPrimary: entry.isPrimary,
+  })),
+  socialLinks: contact.socialLinks.map((entry) => ({
+    id: entry.id,
+    platform: entry.platform,
+    url: entry.url,
+  })),
   dealCount: contact._count.deals,
   activityCount: contact._count.activities,
   createdAt: contact.createdAt,
   updatedAt: contact.updatedAt,
 });
 
-export const mapDeal = (deal: DealRow) => ({
-  id: deal.id,
-  title: deal.title,
-  value: Number(deal.value),
-  currency: deal.currency,
-  stage: deal.stage,
-  contactId: deal.contactId,
-  ownerId: deal.ownerId,
-  expectedCloseDate: deal.expectedCloseDate,
-  description: deal.description,
-  contact: deal.contact
-    ? {
-        id: deal.contact.id,
-        fullName: `${deal.contact.firstName} ${deal.contact.lastName}`.trim(),
-        company: deal.contact.company,
-      }
-    : null,
-  owner: mapOwner(deal.owner),
-  tags: mapTags(deal.tags),
-  createdAt: deal.createdAt,
-  updatedAt: deal.updatedAt,
-});
+export const mapDeal = (deal: DealRow) => {
+  const stageProbability = deal.pipelineStage?.probability ?? 0;
+  const probability = resolveDealProbability(deal.probability, stageProbability);
+  const value = Number(deal.value);
 
-export const mapActivity = (activity: ActivityRow) => ({
-  id: activity.id,
-  type: activity.type,
-  subject: activity.subject,
-  body: activity.body,
-  contactId: activity.contactId,
-  dealId: activity.dealId,
-  userId: activity.userId,
-  dueAt: activity.dueAt,
-  completedAt: activity.completedAt,
-  user: mapOwner(activity.user),
-  contact: activity.contact
-    ? {
-        id: activity.contact.id,
-        fullName: `${activity.contact.firstName} ${activity.contact.lastName}`.trim(),
-      }
-    : null,
-  deal: activity.deal,
-  createdAt: activity.createdAt,
-  updatedAt: activity.updatedAt,
-});
+  return {
+    id: deal.id,
+    title: deal.title,
+    value,
+    currency: deal.currency,
+    stage: deal.stage,
+    pipelineId: deal.pipelineId,
+    pipelineStageId: deal.pipelineStageId,
+    contactId: deal.contactId,
+    companyId: deal.companyId,
+    leadId: deal.leadId,
+    ownerId: deal.ownerId,
+    probability,
+    weightedValue: computeWeightedValue(value, probability),
+    expectedCloseDate: deal.expectedCloseDate,
+    description: deal.description,
+    winReason: deal.winReason,
+    lossReason: deal.lossReason,
+    competitor: deal.competitor,
+    closedAt: deal.closedAt,
+    sortOrder: deal.sortOrder,
+    contact: deal.contact
+      ? {
+          id: deal.contact.id,
+          fullName: `${deal.contact.firstName} ${deal.contact.lastName}`.trim(),
+          company: deal.contact.company,
+          email: deal.contact.email,
+        }
+      : null,
+    company: deal.company
+      ? {
+          id: deal.company.id,
+          name: deal.company.name,
+          domain: deal.company.domain,
+        }
+      : null,
+    pipelineStage: deal.pipelineStage
+      ? {
+          id: deal.pipelineStage.id,
+          name: deal.pipelineStage.name,
+          stageKey: deal.pipelineStage.stageKey,
+          probability: deal.pipelineStage.probability,
+          isClosed: deal.pipelineStage.isClosed,
+          isWon: deal.pipelineStage.isWon,
+        }
+      : null,
+    owner: mapOwner(deal.owner),
+    tags: mapTags(deal.tags),
+    createdAt: deal.createdAt,
+    updatedAt: deal.updatedAt,
+  };
+};
 
 export const mapTag = (tag: { id: string; name: string; color: string; createdAt?: Date }) => ({
   id: tag.id,

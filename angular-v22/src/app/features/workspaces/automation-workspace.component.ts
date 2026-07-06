@@ -18,7 +18,7 @@ import { runResourceLoader } from '@shared/utils/resource-error';
 const AUTOMATION_NAV: WorkspaceNavItem[] = [
     { label: 'Overview', route: '/dashboard/automation', icon: 'layout-dashboard' },
     { label: 'Workflows', route: '/dashboard/workflows', icon: 'activity' },
-    { label: 'Webhooks', route: '/dashboard/webhooks', icon: 'settings' },
+    { label: 'Webhooks', route: '/dashboard/webhooks', icon: 'link' },
 ];
 
 @Component({
@@ -88,15 +88,23 @@ export class AutomationWorkspaceComponent {
                     ]);
                     const activeWorkflows = workflows.data.filter((w) => w.active).length;
                     const activeWebhooks = webhooks.data.filter((w) => w.active).length;
+                    const totalRuns = workflows.data.reduce((sum, w) => sum + (w.runCount ?? 0), 0);
                     return {
                         workflows: workflows.total,
                         webhooks: webhooks.total,
                         activeWorkflows,
                         activeWebhooks,
+                        totalRuns,
                     };
                 },
                 {
-                    fallback: { workflows: 0, webhooks: 0, activeWorkflows: 0, activeWebhooks: 0 },
+                    fallback: {
+                        workflows: 0,
+                        webhooks: 0,
+                        activeWorkflows: 0,
+                        activeWebhooks: 0,
+                        totalRuns: 0,
+                    },
                     logMessage: 'Failed to load automation:',
                 },
             ),
@@ -107,9 +115,9 @@ export class AutomationWorkspaceComponent {
         if (!data) return [];
         return [
             {
-                label: 'Workflows',
+                label: 'Active workflows',
                 value: String(data.activeWorkflows),
-                detail: `${data.workflows} total`,
+                detail: `${data.totalRuns} total runs`,
                 icon: 'activity',
                 route: '/dashboard/workflows',
             },
@@ -117,7 +125,7 @@ export class AutomationWorkspaceComponent {
                 label: 'Webhooks',
                 value: String(data.activeWebhooks),
                 detail: `${data.webhooks} endpoints`,
-                icon: 'settings',
+                icon: 'link',
                 route: '/dashboard/webhooks',
             },
         ];

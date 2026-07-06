@@ -23,6 +23,11 @@ export const listWebhooksQuerySchema = paginationQuerySchema.extend({
 
 export const listWebhookDeliveriesQuerySchema = paginationQuerySchema;
 
+export const webhookDeliveryParamSchema = z.object({
+  id: z.string().uuid(),
+  deliveryId: z.string().uuid(),
+});
+
 export type CreateWebhookInput = z.infer<typeof createWebhookSchema>;
 export type UpdateWebhookInput = z.infer<typeof updateWebhookSchema>;
 export type ListWebhooksQuery = z.infer<typeof listWebhooksQuerySchema>;

@@ -23,6 +23,8 @@ const canManage = requirePermission(Permissions.ManageDeals);
 
 reportRouter.use(authenticate, resolveOrganization);
 
+reportRouter.get("/overview", canRead, controller.getAnalyticsOverview);
+
 reportRouter.get("/layouts", canRead, validate({ query: listDashboardLayoutsQuerySchema }), controller.listDashboardLayouts);
 reportRouter.post("/layouts", canManage, validate({ body: createDashboardLayoutSchema }), controller.createDashboardLayout);
 reportRouter.get("/layouts/:id", canRead, validate({ params: dashboardLayoutIdParamSchema }), controller.getDashboardLayout);
@@ -36,6 +38,9 @@ reportRouter.delete("/layouts/:id", canManage, validate({ params: dashboardLayou
 
 reportRouter.get("/", canRead, validate({ query: listReportsQuerySchema }), controller.listReports);
 reportRouter.post("/", canManage, validate({ body: createReportSchema }), controller.createReport);
+reportRouter.get("/:id/runs", canRead, validate({ params: reportIdParamSchema, query: listReportsQuerySchema }), controller.listReportRuns);
+reportRouter.get("/:id/export/csv", canRead, validate({ params: reportIdParamSchema }), controller.exportReportCsv);
+reportRouter.post("/:id/run", canManage, validate({ params: reportIdParamSchema }), controller.runReport);
 reportRouter.get("/:id", canRead, validate({ params: reportIdParamSchema }), controller.getReport);
 reportRouter.patch(
   "/:id",

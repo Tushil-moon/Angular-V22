@@ -206,7 +206,7 @@ type DialogMode = 'view' | 'edit' | 'delete';
                 </p>
             }
 
-            <div dialogFooter>
+            <div dialogFooter class="flex flex-wrap gap-2">
                 @if (mode() === 'view' && selectedUser()) {
                     <app-button variant="outline" type="button" (clicked)="mode.set('delete')"
                         >Delete</app-button

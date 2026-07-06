@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, inject, viewChild } from '@angular/core';
 import type { Campaign } from '@models/enterprise.model';
-import { CampaignService } from '@services/index';
+import { CampaignService, DialogService } from '@services/index';
 import {
     type EnterpriseListConfig,
     EnterpriseListShellComponent,
@@ -18,10 +18,12 @@ import {
     imports: [EnterpriseListShellComponent],
     template: `
         <app-enterprise-list-shell
+            #shell
             [config]="config"
             [listFn]="listFn"
             [createFn]="createFn"
             [deleteFn]="deleteFn"
+            [openDetailFn]="openDetailFn"
             [defaultView]="'cards'"
             listTitle="Campaign programs"
         />
@@ -29,6 +31,8 @@ import {
 })
 export class CampaignsListComponent {
     private readonly campaignService = inject(CampaignService);
+    private readonly dialogService = inject(DialogService);
+    private readonly shell = viewChild<EnterpriseListShellComponent<Campaign>>('shell');
 
     readonly config: EnterpriseListConfig<Campaign> = {
         title: 'Campaigns',
@@ -53,6 +57,7 @@ export class CampaignsListComponent {
                 label: 'Budget',
                 value: c.budget != null ? formatEnterpriseCurrency(c.budget) : '—',
             },
+            { label: 'Sent', value: String(c.sentCount ?? 0) },
         ],
         columns: [
             { key: 'name', label: 'Name', cell: (c) => c.name },
@@ -72,18 +77,42 @@ export class CampaignsListComponent {
                 cell: (c) => (c.budget != null ? formatEnterpriseCurrency(c.budget) : '—'),
                 hideBelow: 'md',
             },
+            {
+                key: 'sentCount',
+                label: 'Sent',
+                cell: (c) => String(c.sentCount ?? 0),
+                hideBelow: 'lg',
+            },
         ],
     };
 
     readonly listFn = (filters: Parameters<CampaignService['list']>[0]) =>
         this.campaignService.list(filters);
 
-    readonly createFn = () =>
-        this.campaignService.create({
-            name: `Campaign ${new Date().toLocaleDateString()}`,
-            type: 'EMAIL',
-            status: 'DRAFT',
-        });
+    readonly createFn = async () => {
+        await this.openCampaignDialog();
+        return null;
+    };
 
     readonly deleteFn = (id: string) => this.campaignService.delete(id);
+
+    readonly openDetailFn = (item: Campaign) => this.openCampaignDialog(item.id);
+
+    private async openCampaignDialog(campaignId?: string): Promise<void> {
+        const ref = await this.dialogService.openLazy<
+            import('./campaign-detail-dialog.component').CampaignDetailDialogComponent,
+            import('./campaign-detail-dialog.component').CampaignDetailDialogData,
+            import('./campaign-detail-dialog.component').CampaignDetailDialogResult
+        >(
+            () =>
+                import('./campaign-detail-dialog.component').then(
+                    (m) => m.CampaignDetailDialogComponent,
+                ),
+            { data: { campaignId } },
+        );
+
+        ref.afterClosed().subscribe((result) => {
+            if (result) this.shell()?.reload();
+        });
+    }
 }

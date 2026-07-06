@@ -2,9 +2,10 @@
  * Company Detail Dialog — view, edit, delete
  */
 
+import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Company } from '@models/index';
+import { Company, CompanyLocation } from '@models/index';
 import { CompanyService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
@@ -32,6 +33,7 @@ type DialogMode = 'view' | 'edit' | 'delete';
     selector: 'app-company-detail-dialog',
     host: { class: 'contents' },
     imports: [
+        DecimalPipe,
         ReactiveFormsModule,
         DialogComponent,
         ButtonComponent,
@@ -83,12 +85,42 @@ type DialogMode = 'view' | 'edit' | 'delete';
                 } @else {
                     <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div class="space-y-1">
+                            <dt class="text-xs font-medium text-muted-foreground">Parent company</dt>
+                            <dd class="text-sm">{{ item.parentCompany?.name || '—' }}</dd>
+                        </div>
+                        <div class="space-y-1">
+                            <dt class="text-xs font-medium text-muted-foreground">Ownership</dt>
+                            <dd class="text-sm">
+                                {{
+                                    item.ownershipPercent !== null &&
+                                    item.ownershipPercent !== undefined
+                                        ? item.ownershipPercent + '%'
+                                        : '—'
+                                }}
+                            </dd>
+                        </div>
+                        <div class="space-y-1">
                             <dt class="text-xs font-medium text-muted-foreground">Domain</dt>
                             <dd class="text-sm">{{ item.domain || '—' }}</dd>
                         </div>
                         <div class="space-y-1">
                             <dt class="text-xs font-medium text-muted-foreground">Industry</dt>
                             <dd class="text-sm">{{ item.industry || '—' }}</dd>
+                        </div>
+                        <div class="space-y-1">
+                            <dt class="text-xs font-medium text-muted-foreground">Employees</dt>
+                            <dd class="text-sm tabular-nums">{{ item.employeeCount ?? '—' }}</dd>
+                        </div>
+                        <div class="space-y-1">
+                            <dt class="text-xs font-medium text-muted-foreground">Annual revenue</dt>
+                            <dd class="text-sm tabular-nums">
+                                @if (item.annualRevenue !== null && item.annualRevenue !== undefined) {
+                                    {{ item.revenueCurrency || 'USD' }}
+                                    {{ item.annualRevenue | number }}
+                                } @else {
+                                    —
+                                }
+                            </dd>
                         </div>
                         <div class="space-y-1">
                             <dt class="text-xs font-medium text-muted-foreground">Website</dt>
@@ -98,10 +130,32 @@ type DialogMode = 'view' | 'edit' | 'delete';
                             <dt class="text-xs font-medium text-muted-foreground">Contacts</dt>
                             <dd class="text-sm tabular-nums">{{ item.contactCount ?? 0 }}</dd>
                         </div>
+                        <div class="space-y-1">
+                            <dt class="text-xs font-medium text-muted-foreground">Subsidiaries</dt>
+                            <dd class="text-sm tabular-nums">{{ item.subsidiaryCount ?? 0 }}</dd>
+                        </div>
                         <div class="space-y-1 sm:col-span-2">
                             <dt class="text-xs font-medium text-muted-foreground">Address</dt>
                             <dd class="text-sm">{{ item.address || '—' }}</dd>
                         </div>
+                        @if (item.locations?.length) {
+                            <div class="space-y-2 sm:col-span-2">
+                                <dt class="text-xs font-medium text-muted-foreground">Locations</dt>
+                                <dd>
+                                    <ul class="space-y-2 text-sm">
+                                        @for (location of item.locations; track location.id) {
+                                            <li class="rounded-md border px-3 py-2">
+                                                <p class="font-medium">{{ location.line1 }}</p>
+                                                <p class="text-muted-foreground">
+                                                    {{ formatLocationLine(location) }}
+                                                    {{ location.country }}
+                                                </p>
+                                            </li>
+                                        }
+                                    </ul>
+                                </dd>
+                            </div>
+                        }
                         @if (item.notes) {
                             <div class="space-y-1 sm:col-span-2">
                                 <dt class="text-xs font-medium text-muted-foreground">Notes</dt>
@@ -120,7 +174,7 @@ type DialogMode = 'view' | 'edit' | 'delete';
                 }
             }
 
-            <div dialogFooter>
+            <div dialogFooter class="flex flex-wrap gap-2">
                 @if (mode() === 'delete') {
                     <app-button variant="outline" type="button" (clicked)="setMode('view')"
                         >Cancel</app-button
@@ -167,6 +221,8 @@ export class CompanyDetailDialogComponent implements OnInit {
     private readonly data = inject<CompanyDetailDialogData>(DIALOG_DATA);
 
     readonly formatDate = formatCompanyDate;
+    readonly formatLocationLine = (location: CompanyLocation): string =>
+        [location.city, location.state, location.postalCode].filter((part) => !!part).join(', ');
 
     company = signal<Company | null>(null);
     mode = signal<DialogMode>('view');

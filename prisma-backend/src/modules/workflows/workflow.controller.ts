@@ -30,3 +30,24 @@ export const deleteWorkflow = asyncHandler(async (req, res) => {
   await workflowService.deleteWorkflow(String(req.params.id), getAuthContext(req));
   return sendSuccess(res, null, "Workflow deleted");
 });
+
+export const activateWorkflow = asyncHandler(async (req, res) => {
+  const item = await workflowService.activateWorkflow(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, item, "Workflow activated");
+});
+
+export const deactivateWorkflow = asyncHandler(async (req, res) => {
+  const item = await workflowService.deactivateWorkflow(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, item, "Workflow deactivated");
+});
+
+export const listWorkflowRuns = asyncHandler(async (req, res) => {
+  const query = getValidatedQuery<ListWorkflowsQuery>(req);
+  const result = await workflowService.listRuns(String(req.params.id), query, getAuthContext(req));
+  return sendSuccess(res, result);
+});
+
+export const testWorkflow = asyncHandler(async (req, res) => {
+  const item = await workflowService.testWorkflow(String(req.params.id), req.body, getAuthContext(req));
+  return sendSuccess(res, item, "Workflow test started");
+});

@@ -8,7 +8,9 @@ import * as controller from "./activity.controller";
 import {
   activityIdParamSchema,
   createActivitySchema,
+  importActivitiesCsvSchema,
   listActivitiesQuerySchema,
+  timelineQuerySchema,
   updateActivitySchema,
 } from "./activity.validation";
 
@@ -25,6 +27,24 @@ activityRouter.get(
   validate({ query: listActivitiesQuerySchema }),
   controller.listActivities,
 );
+activityRouter.get(
+  "/timeline",
+  canRead,
+  validate({ query: timelineQuerySchema }),
+  controller.getTimeline,
+);
+activityRouter.get(
+  "/export",
+  canRead,
+  validate({ query: listActivitiesQuerySchema }),
+  controller.exportActivities,
+);
+activityRouter.post(
+  "/import/csv",
+  canManage,
+  validate({ body: importActivitiesCsvSchema }),
+  controller.importActivitiesCsv,
+);
 activityRouter.post(
   "/",
   canManage,
@@ -37,11 +57,35 @@ activityRouter.get(
   validate({ params: activityIdParamSchema }),
   controller.getActivity,
 );
+activityRouter.get(
+  "/:id/history",
+  canRead,
+  validate({ params: activityIdParamSchema }),
+  controller.getActivityHistory,
+);
 activityRouter.patch(
   "/:id",
   canManage,
   validate({ params: activityIdParamSchema, body: updateActivitySchema }),
   controller.updateActivity,
+);
+activityRouter.post(
+  "/:id/complete",
+  canManage,
+  validate({ params: activityIdParamSchema }),
+  controller.completeActivity,
+);
+activityRouter.post(
+  "/:id/reopen",
+  canManage,
+  validate({ params: activityIdParamSchema }),
+  controller.reopenActivity,
+);
+activityRouter.post(
+  "/:id/cancel",
+  canManage,
+  validate({ params: activityIdParamSchema }),
+  controller.cancelActivity,
 );
 activityRouter.delete(
   "/:id",

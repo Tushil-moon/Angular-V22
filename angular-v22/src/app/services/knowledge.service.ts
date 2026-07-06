@@ -18,12 +18,39 @@ export class KnowledgeService {
         return mapEnterprisePaginated(response.data, mapApiKnowledgeArticle);
     }
 
+    async getById(id: string): Promise<KnowledgeArticle | null> {
+        const response = await this.httpClient.get<Record<string, unknown>>(`/knowledge/${id}`);
+        return response.data ? mapApiKnowledgeArticle(response.data) : null;
+    }
+
     async create(payload: Record<string, unknown>): Promise<KnowledgeArticle | null> {
         const response = await this.httpClient.post<Record<string, unknown>>('/knowledge', payload);
         return response.data ? mapApiKnowledgeArticle(response.data) : null;
     }
 
+    async update(id: string, payload: Record<string, unknown>): Promise<KnowledgeArticle | null> {
+        const response = await this.httpClient.patch<Record<string, unknown>>(
+            `/knowledge/${id}`,
+            payload,
+        );
+        return response.data ? mapApiKnowledgeArticle(response.data) : null;
+    }
+
     async delete(id: string): Promise<void> {
         await this.httpClient.delete(`/knowledge/${id}`);
+    }
+
+    async publish(id: string): Promise<KnowledgeArticle | null> {
+        const response = await this.httpClient.post<Record<string, unknown>>(
+            `/knowledge/${id}/publish`,
+        );
+        return response.data ? mapApiKnowledgeArticle(response.data) : null;
+    }
+
+    async unpublish(id: string): Promise<KnowledgeArticle | null> {
+        const response = await this.httpClient.post<Record<string, unknown>>(
+            `/knowledge/${id}/unpublish`,
+        );
+        return response.data ? mapApiKnowledgeArticle(response.data) : null;
     }
 }

@@ -63,7 +63,7 @@ const PERMISSION_GROUPS: { label: string; prefix: string }[] = [
                 </div>
             }
 
-            <div dialogFooter>
+            <div dialogFooter class="flex flex-wrap gap-2">
                 <app-button variant="outline" type="button" (clicked)="close()">Cancel</app-button>
                 <app-button type="button" [disabled]="isSaving()" (clicked)="save()">
                     @if (isSaving()) {

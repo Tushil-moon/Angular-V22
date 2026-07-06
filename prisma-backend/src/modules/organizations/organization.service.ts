@@ -178,6 +178,7 @@ export const organizationService = {
       where: { organizationId },
       include: {
         user: { select: { id: true, email: true, status: true } },
+        manager: { select: { id: true, email: true } },
       },
       orderBy: { joinedAt: "asc" },
     });
@@ -185,6 +186,9 @@ export const organizationService = {
     return members.map((member) => ({
       userId: member.userId,
       role: member.role,
+      jobTitle: member.jobTitle,
+      employeeCode: member.employeeCode,
+      managerUserId: member.managerUserId,
       joinedAt: member.joinedAt,
       user: member.user,
     }));

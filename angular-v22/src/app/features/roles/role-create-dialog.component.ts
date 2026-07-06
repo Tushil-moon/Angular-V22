@@ -53,7 +53,7 @@ export type RoleCreateDialogResult = 'created';
                 />
             </form>
 
-            <div dialogFooter>
+            <div dialogFooter class="flex flex-wrap gap-2">
                 <app-button variant="outline" type="button" (clicked)="close()">Cancel</app-button>
                 <app-button type="submit" form="role-create-form" [disabled]="isSubmitting()">
                     @if (isSubmitting()) {

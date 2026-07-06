@@ -1,19 +1,13 @@
 import { z } from "zod";
 
-const passwordSchema = z
-  .string()
-  .min(10)
-  .regex(/[a-z]/, "Password must include a lowercase letter")
-  .regex(/[A-Z]/, "Password must include an uppercase letter")
-  .regex(/[0-9]/, "Password must include a number")
-  .regex(/[^A-Za-z0-9]/, "Password must include a symbol");
+import { passwordPolicySchema } from "../../shared/validation/password-policy";
 
 const phoneSchema = z.string().regex(/^\+[1-9]\d{7,14}$/, "Use E.164 format, for example +919999999999");
 
 export const registerSchema = z.object({
   email: z.string().email().optional(),
   phone: phoneSchema.optional(),
-  password: passwordSchema,
+  password: passwordPolicySchema,
   deviceName: z.string().max(100).optional(),
   firstName: z.string().max(100).optional(),
   lastName: z.string().max(100).optional(),
@@ -27,6 +21,7 @@ export const loginSchema = z.object({
   phone: phoneSchema.optional(),
   password: z.string().min(1),
   deviceName: z.string().max(100).optional(),
+  rememberMe: z.boolean().optional().default(false),
 }).refine((value) => value.email || value.phone, {
   message: "Email or phone is required",
   path: ["email"],
@@ -46,6 +41,7 @@ export const verifyOtpSchema = z.object({
   otp: z.string().length(6),
   purpose: z.enum(["LOGIN", "PHONE_VERIFICATION"]),
   deviceName: z.string().max(100).optional(),
+  rememberMe: z.boolean().optional().default(false),
 });
 
 export const requestEmailVerificationSchema = z.object({
@@ -62,12 +58,12 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   token: z.string().min(20),
-  password: passwordSchema,
+  password: passwordPolicySchema,
 });
 
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
-  newPassword: passwordSchema,
+  newPassword: passwordPolicySchema,
 });
 
 export const linkPhoneSchema = z.object({

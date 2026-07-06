@@ -23,6 +23,7 @@ const passwordSchema = z
 export const signInSchema = z.object({
     email: emailSchema,
     password: z.string().min(1, 'Password is required'),
+    rememberMe: z.boolean().optional(),
 });
 
 export const signUpSchema = z
@@ -121,17 +122,61 @@ export const createDealSchema = z.object({
 export const updateDealSchema = createDealSchema.partial();
 
 export const activityTypeSchema = z.enum(['NOTE', 'CALL', 'EMAIL', 'MEETING', 'TASK']);
+export const activityStatusSchema = z.enum(['PENDING', 'COMPLETED', 'CANCELLED']);
+export const activityPrioritySchema = z.enum(['LOW', 'NORMAL', 'HIGH', 'URGENT']);
+export const recurrenceFrequencySchema = z.enum(['DAILY', 'WEEKLY', 'MONTHLY']);
 
-export const createActivitySchema = z.object({
-    type: activityTypeSchema.optional(),
-    subject: z.string().trim().min(1, 'Subject is required').max(200),
-    body: z.string().max(5000).optional(),
-    dueAt: z.string().optional(),
-    contactId: z.string().uuid().optional().or(z.literal('')),
-    dealId: z.string().uuid().optional().or(z.literal('')),
-});
+const activityRecurrenceSchema = z
+    .object({
+        frequency: recurrenceFrequencySchema,
+        interval: z.number().int().min(1).max(365).optional(),
+        endAt: z.string().optional(),
+    })
+    .optional();
 
-export const updateActivitySchema = createActivitySchema.partial();
+export const createActivitySchema = z
+    .object({
+        type: activityTypeSchema.optional(),
+        priority: activityPrioritySchema.optional(),
+        subject: z.string().trim().min(1, 'Subject is required').max(200),
+        body: z.string().max(5000).optional(),
+        dueAt: z.string().optional(),
+        reminderAt: z.string().optional(),
+        location: z.string().max(500).optional(),
+        contactId: z.string().uuid().optional().or(z.literal('')),
+        dealId: z.string().uuid().optional().or(z.literal('')),
+        companyId: z.string().uuid().optional().or(z.literal('')),
+        leadId: z.string().uuid().optional().or(z.literal('')),
+        recurrence: activityRecurrenceSchema,
+    })
+    .refine(
+        (data) =>
+            data.contactId ||
+            data.dealId ||
+            data.companyId ||
+            data.leadId ||
+            data.type === 'TASK',
+        { message: 'Link to a record or create a standalone task', path: ['contactId'] },
+    );
+
+export const updateActivitySchema = z
+    .object({
+        type: activityTypeSchema.optional(),
+        priority: activityPrioritySchema.optional(),
+        subject: z.string().trim().min(1, 'Subject is required').max(200).optional(),
+        body: z.string().max(5000).optional(),
+        dueAt: z.string().optional(),
+        reminderAt: z.string().optional(),
+        location: z.string().max(500).optional(),
+        contactId: z.string().uuid().optional().or(z.literal('')),
+        dealId: z.string().uuid().optional().or(z.literal('')),
+        companyId: z.string().uuid().optional().or(z.literal('')),
+        leadId: z.string().uuid().optional().or(z.literal('')),
+        recurrence: activityRecurrenceSchema,
+    })
+    .refine((data) => Object.keys(data).length > 0, {
+        message: 'At least one field is required',
+    });
 
 export const createCompanySchema = z.object({
     name: z.string().trim().min(1, 'Name is required').max(200),

@@ -88,29 +88,37 @@ interface PageResult<T> {
         ViewSwitcherComponent,
     ],
     template: `
-        <div class="page-shell page-shell-fill enterprise-list-shell">
-            <div class="page-toolbar">
-                <div class="page-header">
-                    <h1 class="page-title">{{ config().title }}</h1>
-                    <p class="page-description">{{ config().description }}</p>
+        <div
+            [class]="
+                embedded()
+                    ? 'enterprise-list-shell-embedded'
+                    : 'page-shell page-shell-fill enterprise-list-shell'
+            "
+        >
+            @if (!embedded()) {
+                <div class="page-toolbar">
+                    <div class="page-header">
+                        <h1 class="page-title">{{ config().title }}</h1>
+                        <p class="page-description">{{ config().description }}</p>
+                    </div>
+                    <div class="toolbar-actions">
+                        @if (hasCardView()) {
+                            <app-view-switcher
+                                ariaLabel="List view mode"
+                                [options]="listCardsViewOptions"
+                                [value]="viewMode()"
+                                (valueChange)="viewMode.set($event)"
+                            />
+                        }
+                        @if (canManage()) {
+                            <app-button size="sm" [disabled]="creating()" (clicked)="onCreate()">
+                                <app-icon name="plus" [size]="14" />
+                                Create {{ config().entityLabel }}
+                            </app-button>
+                        }
+                    </div>
                 </div>
-                <div class="toolbar-actions">
-                    @if (hasCardView()) {
-                        <app-view-switcher
-                            ariaLabel="List view mode"
-                            [options]="listCardsViewOptions"
-                            [value]="viewMode()"
-                            (valueChange)="viewMode.set($event)"
-                        />
-                    }
-                    @if (canManage()) {
-                        <app-button size="sm" [disabled]="creating()" (clicked)="onCreate()">
-                            <app-icon name="plus" [size]="14" />
-                            Create {{ config().entityLabel }}
-                        </app-button>
-                    }
-                </div>
-            </div>
+            }
 
             @if (kpis().length > 0) {
                 <div class="enterprise-kpi-grid">
@@ -154,11 +162,27 @@ interface PageResult<T> {
                             </div>
                         }
                     </div>
-                    <app-search-input
-                        placeholder="Search..."
-                        [initialValue]="searchQuery()"
-                        (searchChange)="onSearch($event)"
-                    />
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if (embedded() && hasCardView()) {
+                            <app-view-switcher
+                                ariaLabel="List view mode"
+                                [options]="listCardsViewOptions"
+                                [value]="viewMode()"
+                                (valueChange)="viewMode.set($event)"
+                            />
+                        }
+                        <app-search-input
+                            placeholder="Search..."
+                            [initialValue]="searchQuery()"
+                            (searchChange)="onSearch($event)"
+                        />
+                        @if (embedded() && canManage()) {
+                            <app-button size="sm" [disabled]="creating()" (clicked)="onCreate()">
+                                <app-icon name="plus" [size]="14" />
+                                Create {{ config().entityLabel }}
+                            </app-button>
+                        }
+                    </div>
                 </app-card-header>
 
                 <app-card-body [flush]="true" [fill]="true">
@@ -332,6 +356,10 @@ interface PageResult<T> {
         .enterprise-card-subtitle {
             @apply mt-2 text-xs text-muted-foreground;
         }
+
+        .enterprise-list-shell-embedded {
+            @apply space-y-4;
+        }
     `,
 })
 export class EnterpriseListShellComponent<T extends { id: string }> {
@@ -343,10 +371,12 @@ export class EnterpriseListShellComponent<T extends { id: string }> {
     listFn = input.required<(filters: FilterOptions) => Promise<PaginatedResponse<T>>>();
     createFn = input.required<() => Promise<T | null>>();
     deleteFn = input.required<(id: string) => Promise<void>>();
+    openDetailFn = input<((item: T) => Promise<void>) | null>(null);
     itemTrackBy = input<(item: T) => string>((item) => item.id);
     kpis = input<WorkspaceKpi[]>([]);
     listTitle = input('All records');
     defaultView = input<'list' | 'cards'>('list');
+    embedded = input(false);
 
     searchQuery = signal('');
     currentPage = signal(1);
@@ -493,8 +523,17 @@ export class EnterpriseListShellComponent<T extends { id: string }> {
     }
 
     openDetail(item: T): void {
+        const custom = this.openDetailFn();
+        if (custom) {
+            void custom(item).then(() => this.pageResource.reload());
+            return;
+        }
         this.selectedItem.set(item);
         this.detailOpen.set(true);
+    }
+
+    reload(): void {
+        this.pageResource.reload();
     }
 
     closeDetail(): void {

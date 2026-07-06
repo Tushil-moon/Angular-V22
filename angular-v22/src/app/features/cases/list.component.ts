@@ -2,17 +2,14 @@
  * Cases — support desk kanban board
  */
 
-import { ChangeDetectionStrategy, Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core'
-import { RouterLink } from '@angular/router';
-import type { CaseRecord } from '@models/enterprise.model';
-import { AuthService, CaseService } from '@services/index';
-import { ToastService } from '@services/toast.service';
+import { ChangeDetectionStrategy, Component, computed, inject, resource, ViewEncapsulation } from '@angular/core';
+import { AuthService, CaseService, DialogService } from '@services/index';
 import { BadgeComponent } from '@shared/components/badge.component';
 import { ButtonComponent } from '@shared/components/button.component';
 import { IconComponent } from '@shared/components/icon.component';
 import {
     ModuleWorkspaceShellComponent,
-    type WorkspaceNavItem,
+    type WorkspaceKpi,
 } from '@shared/components/module-workspace-shell.component';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
@@ -23,20 +20,14 @@ import {
     enterpriseStatusBadge,
     formatEnterpriseStatus,
 } from '../enterprise/enterprise-ui.util';
+import { SERVICE_NAV } from '../workspaces/service-nav';
 
-const CASE_STATUSES = ['NEW', 'OPEN', 'PENDING', 'RESOLVED', 'CLOSED'] as const;
-
-const SERVICE_NAV: WorkspaceNavItem[] = [
-    { label: 'Service', route: '/dashboard/service', icon: 'layout-dashboard' },
-    { label: 'Case board', route: '/dashboard/cases', icon: 'alert-circle' },
-    { label: 'Knowledge', route: '/dashboard/knowledge', icon: 'list' },
-];
+const CASE_STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'] as const;
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-cases-list',
     imports: [
-        RouterLink,
         ModuleWorkspaceShellComponent,
         ButtonComponent,
         IconComponent,
@@ -47,15 +38,13 @@ const SERVICE_NAV: WorkspaceNavItem[] = [
             eyebrow="Service Cloud"
             title="Case board"
             description="Triage and resolve customer issues by status"
+            [kpis]="kpis()"
             [navItems]="navItems"
         >
             <div workspaceActions>
-                <app-button size="sm" [disabled]="creating()" (clicked)="createCase()">
+                <app-button size="sm" (clicked)="openCaseDialog()">
                     <app-icon name="plus" [size]="14" />
                     New case
-                </app-button>
-                <app-button variant="outline" size="sm" routerLink="/dashboard/knowledge">
-                    Knowledge base
                 </app-button>
             </div>
 
@@ -77,15 +66,18 @@ const SERVICE_NAV: WorkspaceNavItem[] = [
                                 <button
                                     type="button"
                                     class="kanban-card text-left"
-                                    (click)="selectedCase.set(caseItem)"
+                                    (click)="openCaseDialog(caseItem.id)"
                                 >
+                                    <p class="kanban-card-meta">{{ caseItem.caseNumber ?? 'Case' }}</p>
                                     <p class="kanban-card-title">{{ caseItem.subject }}</p>
-                                    <app-badge
-                                        class="mt-2"
-                                        [variant]="enterprisePriorityBadge(caseItem.priority)"
-                                    >
-                                        {{ formatEnterpriseStatus(caseItem.priority) }}
-                                    </app-badge>
+                                    <div class="mt-2 flex flex-wrap gap-1">
+                                        <app-badge [variant]="enterprisePriorityBadge(caseItem.priority)">
+                                            {{ formatEnterpriseStatus(caseItem.priority) }}
+                                        </app-badge>
+                                        @if (caseItem.slaBreached) {
+                                            <app-badge variant="destructive">SLA</app-badge>
+                                        }
+                                    </div>
                                     <p class="kanban-card-meta">
                                         {{ formatEnterpriseDate(caseItem.createdAt) }}
                                     </p>
@@ -95,56 +87,6 @@ const SERVICE_NAV: WorkspaceNavItem[] = [
                     </div>
                 }
             </div>
-
-            @if (selectedCase(); as caseItem) {
-                <div
-                    class="case-detail-overlay"
-                    role="button"
-                    tabindex="0"
-                    aria-label="Close case details"
-                    (click)="selectedCase.set(null)"
-                    (keydown.enter)="selectedCase.set(null)"
-                    (keydown.escape)="selectedCase.set(null)"
-                ></div>
-                <aside class="case-detail-panel" role="dialog">
-                    <div class="case-detail-header">
-                        <h2 class="text-lg font-semibold">{{ caseItem.subject }}</h2>
-                        <app-button variant="ghost" size="icon" type="button" (clicked)="selectedCase.set(null)">
-                            <app-icon name="x" [size]="18" />
-                        </app-button>
-                    </div>
-                    <dl class="case-detail-fields">
-                        <div>
-                            <dt>Status</dt>
-                            <dd>
-                                <app-badge [variant]="enterpriseStatusBadge(caseItem.status)">
-                                    {{ formatEnterpriseStatus(caseItem.status) }}
-                                </app-badge>
-                            </dd>
-                        </div>
-                        <div>
-                            <dt>Priority</dt>
-                            <dd>
-                                <app-badge [variant]="enterprisePriorityBadge(caseItem.priority)">
-                                    {{ formatEnterpriseStatus(caseItem.priority) }}
-                                </app-badge>
-                            </dd>
-                        </div>
-                        <div>
-                            <dt>Created</dt>
-                            <dd>{{ formatEnterpriseDate(caseItem.createdAt) }}</dd>
-                        </div>
-                    </dl>
-                    <app-button
-                        variant="destructive"
-                        size="sm"
-                        type="button"
-                        (clicked)="deleteCase(caseItem.id)"
-                    >
-                        Delete case
-                    </app-button>
-                </aside>
-            }
         </app-module-workspace-shell>
     `,
     styleUrl: './cases-board.component.scss',
@@ -153,16 +95,13 @@ const SERVICE_NAV: WorkspaceNavItem[] = [
 export class CasesListComponent {
     private readonly caseService = inject(CaseService);
     private readonly authService = inject(AuthService);
-    private readonly toastService = inject(ToastService);
+    private readonly dialogService = inject(DialogService);
 
     readonly navItems = SERVICE_NAV;
     readonly enterpriseStatusBadge = enterpriseStatusBadge;
     readonly enterprisePriorityBadge = enterprisePriorityBadge;
     readonly formatEnterpriseStatus = formatEnterpriseStatus;
     readonly formatEnterpriseDate = formatEnterpriseDate;
-
-    readonly creating = signal(false);
-    readonly selectedCase = signal<CaseRecord | null>(null);
 
     readonly casesResource = resource({
         params: () => (this.authService.isAuthenticated() ? true : undefined),
@@ -179,6 +118,34 @@ export class CasesListComponent {
 
     readonly loadError = computed(() => this.casesResource.error()?.message ?? null);
 
+    readonly kpis = computed((): WorkspaceKpi[] => {
+        const cases = this.casesResource.value() ?? [];
+        const open = cases.filter((c) => !['RESOLVED', 'CLOSED'].includes(c.status.toUpperCase())).length;
+        const urgent = cases.filter((c) =>
+            ['HIGH', 'URGENT'].includes(c.priority.toUpperCase()),
+        ).length;
+        return [
+            {
+                label: 'Open cases',
+                value: String(open),
+                detail: `${cases.length} on board`,
+                icon: 'alert-circle',
+            },
+            {
+                label: 'Urgent',
+                value: String(urgent),
+                detail: 'Needs attention',
+                icon: 'activity',
+            },
+            {
+                label: 'Resolved',
+                value: String(cases.filter((c) => c.status.toUpperCase() === 'RESOLVED').length),
+                detail: 'Awaiting close',
+                icon: 'check',
+            },
+        ];
+    });
+
     readonly columns = computed(() => {
         const cases = this.casesResource.value() ?? [];
         return CASE_STATUSES.map((status) => ({
@@ -187,39 +154,19 @@ export class CasesListComponent {
         }));
     });
 
-    async createCase(): Promise<void> {
-        this.creating.set(true);
-        try {
-            await this.caseService.create({
-                subject: `Support request ${new Date().toLocaleDateString()}`,
-                priority: 'MEDIUM',
-                status: 'NEW',
-            });
-            this.casesResource.reload();
-            this.toastService.success('Case created', 'Added to New column.');
-        } catch {
-            this.toastService.show({
-                title: 'Create failed',
-                description: 'Could not create case.',
-                variant: 'destructive',
-            });
-        } finally {
-            this.creating.set(false);
-        }
-    }
+    async openCaseDialog(caseId?: string): Promise<void> {
+        const ref = await this.dialogService.openLazy<
+            import('./case-detail-dialog.component').CaseDetailDialogComponent,
+            import('./case-detail-dialog.component').CaseDetailDialogData,
+            import('./case-detail-dialog.component').CaseDetailDialogResult
+        >(
+            () =>
+                import('./case-detail-dialog.component').then((m) => m.CaseDetailDialogComponent),
+            { data: { caseId } },
+        );
 
-    async deleteCase(id: string): Promise<void> {
-        try {
-            await this.caseService.delete(id);
-            this.selectedCase.set(null);
-            this.casesResource.reload();
-            this.toastService.success('Deleted', 'Case removed.');
-        } catch {
-            this.toastService.show({
-                title: 'Delete failed',
-                description: 'Could not delete case.',
-                variant: 'destructive',
-            });
-        }
+        ref.afterClosed().subscribe((result) => {
+            if (result) this.casesResource.reload();
+        });
     }
 }

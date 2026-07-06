@@ -10,6 +10,7 @@ import {
   listWebhookDeliveriesQuerySchema,
   listWebhooksQuerySchema,
   updateWebhookSchema,
+  webhookDeliveryParamSchema,
   webhookIdParamSchema,
 } from "./webhook.validation";
 
@@ -23,6 +24,13 @@ webhookRouter.use(authenticate, resolveOrganization);
 webhookRouter.get("/", canRead, validate({ query: listWebhooksQuerySchema }), controller.listWebhooks);
 webhookRouter.post("/", canManage, validate({ body: createWebhookSchema }), controller.createWebhook);
 webhookRouter.get("/:id/deliveries", canRead, validate({ params: webhookIdParamSchema, query: listWebhookDeliveriesQuerySchema }), controller.listDeliveries);
+webhookRouter.post("/:id/test", canManage, validate({ params: webhookIdParamSchema }), controller.testWebhook);
+webhookRouter.post(
+  "/:id/deliveries/:deliveryId/retry",
+  canManage,
+  validate({ params: webhookDeliveryParamSchema }),
+  controller.retryDelivery,
+);
 webhookRouter.get("/:id", canRead, validate({ params: webhookIdParamSchema }), controller.getWebhook);
 webhookRouter.patch(
   "/:id",

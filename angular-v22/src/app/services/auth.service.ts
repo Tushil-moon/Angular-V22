@@ -15,6 +15,7 @@ import {
     mapApiRefreshResponse,
     mapApiUser,
 } from '@utils/api-mappers';
+import { getDeviceName } from '@utils/device-id.util';
 import { ignorePromise } from '@utils/form-display.util';
 
 import { HttpClientService } from './http-client.service';
@@ -50,6 +51,9 @@ export class AuthService {
         const last = user.lastName?.[0] || '';
         return (first + last).toUpperCase() || user.email[0].toUpperCase();
     });
+    readonly mustChangePassword = computed(
+        () => this.currentUserSignal()?.mustChangePassword ?? false,
+    );
 
     private sessionInitPromise: Promise<void> | null = null;
 
@@ -172,7 +176,10 @@ export class AuthService {
         try {
             const response = await this.httpClient.post<ApiAuthResponsePayload>(
                 '/auth/login',
-                request,
+                {
+                    ...request,
+                    deviceName: request.deviceName ?? getDeviceName(),
+                },
                 {
                     skipAuth: true,
                 },
@@ -359,6 +366,10 @@ export class AuthService {
                 currentPassword,
                 newPassword,
             });
+            const user = this.currentUserSignal();
+            if (user) {
+                this.updateCurrentUser({ ...user, mustChangePassword: false });
+            }
         } catch (error: unknown) {
             this.errorSignal.set(this.getErrorMessage(error, 'Failed to change password.'));
             throw error;

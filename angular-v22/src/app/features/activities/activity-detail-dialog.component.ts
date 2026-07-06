@@ -4,7 +4,7 @@
 
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Activity, ACTIVITY_TYPE_LABELS, ActivityType } from '@models/index';
+import { Activity, ACTIVITY_HISTORY_ACTION_LABELS, ACTIVITY_TYPE_LABELS, ActivityHistoryEntry, ActivityType } from '@models/index';
 import { ActivityService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
@@ -18,7 +18,11 @@ import {
     TextareaComponent,
 } from '@shared/components';
 import {
+    activityStatusBadgeVariant,
     formatActivityDate,
+    formatActivityDateTime,
+    formatActivityPriority,
+    formatActivityStatus,
     formatActivityType,
 } from '@shared/config/activities-table.config';
 import { Permissions } from '@shared/constants/permissions';
@@ -91,7 +95,17 @@ const TYPE_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, stri
                     </form>
                 } @else {
                     <div class="space-y-4">
-                        <app-badge variant="secondary">{{ formatType(item.type) }}</app-badge>
+                        <div class="flex flex-wrap gap-2">
+                            <app-badge variant="secondary">{{ formatType(item.type) }}</app-badge>
+                            <app-badge [variant]="statusVariant(item.status)">{{
+                                formatStatus(item.status)
+                            }}</app-badge>
+                            @if (item.type === 'TASK') {
+                                <app-badge variant="outline">{{
+                                    formatPriority(item.priority)
+                                }}</app-badge>
+                            }
+                        </div>
                         @if (item.body) {
                             <p class="text-sm whitespace-pre-wrap text-muted-foreground">
                                 {{ item.body }}
@@ -111,15 +125,44 @@ const TYPE_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, stri
                                 <dd class="text-sm">{{ formatDate(item.dueAt) }}</dd>
                             </div>
                             <div class="space-y-1">
+                                <dt class="text-xs font-medium text-muted-foreground">Reminder</dt>
+                                <dd class="text-sm">{{ formatDateTime(item.reminderAt) }}</dd>
+                            </div>
+                            <div class="space-y-1">
+                                <dt class="text-xs font-medium text-muted-foreground">Assignee</dt>
+                                <dd class="text-sm">{{ item.assignee?.email || item.user?.email || '—' }}</dd>
+                            </div>
+                            <div class="space-y-1">
                                 <dt class="text-xs font-medium text-muted-foreground">Logged</dt>
-                                <dd class="text-sm">{{ formatDate(item.createdAt) }}</dd>
+                                <dd class="text-sm">{{ formatDateTime(item.createdAt) }}</dd>
                             </div>
                         </dl>
+
+                        @if (history().length > 0) {
+                            <div class="space-y-2 border-t border-border pt-4">
+                                <p class="text-sm font-medium text-foreground">History</p>
+                                <div class="space-y-2">
+                                    @for (entry of history(); track entry.id) {
+                                        <div class="rounded-md border px-3 py-2 text-sm">
+                                            <p class="font-medium">
+                                                {{ historyActionLabel(entry.action) }}
+                                            </p>
+                                            <p class="text-xs text-muted-foreground">
+                                                {{ formatDateTime(entry.createdAt) }}
+                                                @if (entry.user?.email) {
+                                                    · {{ entry.user.email }}
+                                                }
+                                            </p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
             }
 
-            <div dialogFooter>
+            <div dialogFooter class="flex flex-wrap gap-2">
                 @if (mode() === 'delete') {
                     <app-button variant="outline" type="button" (clicked)="setMode('view')"
                         >Cancel</app-button
@@ -140,6 +183,28 @@ const TYPE_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, stri
                         Save changes
                     </app-button>
                 } @else if (canManage()) {
+                    @if (activity()?.status === 'PENDING') {
+                        <app-button type="button" [disabled]="isSubmitting()" (clicked)="completeActivity()">
+                            Complete
+                        </app-button>
+                        <app-button
+                            variant="outline"
+                            type="button"
+                            [disabled]="isSubmitting()"
+                            (clicked)="cancelActivity()"
+                        >
+                            Cancel task
+                        </app-button>
+                    } @else if (activity()?.status === 'COMPLETED' && activity()?.type === 'TASK') {
+                        <app-button
+                            variant="outline"
+                            type="button"
+                            [disabled]="isSubmitting()"
+                            (clicked)="reopenActivity()"
+                        >
+                            Reopen
+                        </app-button>
+                    }
                     <app-button variant="outline" type="button" (clicked)="setMode('edit')"
                         >Edit</app-button
                     >
@@ -166,13 +231,20 @@ export class ActivityDetailDialogComponent implements OnInit {
     private readonly data = inject<ActivityDetailDialogData>(DIALOG_DATA);
 
     readonly formatDate = formatActivityDate;
+    readonly formatDateTime = formatActivityDateTime;
     readonly formatType = formatActivityType;
+    readonly formatStatus = formatActivityStatus;
+    readonly formatPriority = formatActivityPriority;
+    readonly statusVariant = activityStatusBadgeVariant;
+    readonly historyActionLabel = (action: ActivityHistoryEntry['action']) =>
+        ACTIVITY_HISTORY_ACTION_LABELS[action] ?? action;
     readonly typeSelectOptions: SelectOption[] = TYPE_OPTIONS.map(([value, label]) => ({
         value,
         label,
     }));
 
     activity = signal<Activity | null>(null);
+    history = signal<ActivityHistoryEntry[]>([]);
     mode = signal<DialogMode>('view');
     isLoading = signal(true);
     isSubmitting = signal(false);
@@ -208,8 +280,12 @@ export class ActivityDetailDialogComponent implements OnInit {
     async loadActivity(): Promise<void> {
         this.isLoading.set(true);
         try {
-            const activity = await this.activityService.getActivityById(this.data.activityId);
+            const [activity, history] = await Promise.all([
+                this.activityService.getActivityById(this.data.activityId),
+                this.activityService.getActivityHistory(this.data.activityId),
+            ]);
             this.activity.set(activity);
+            this.history.set(history);
             if (activity) this.patchEditForm(activity);
         } finally {
             this.isLoading.set(false);
@@ -261,6 +337,80 @@ export class ActivityDetailDialogComponent implements OnInit {
             this.toastService.show({
                 title: 'Update failed',
                 description: 'Could not save activity.',
+                variant: 'destructive',
+            });
+        } finally {
+            this.isSubmitting.set(false);
+        }
+    }
+
+    async completeActivity(): Promise<void> {
+        const activity = this.activity();
+        if (!activity) return;
+
+        this.isSubmitting.set(true);
+        try {
+            const result = await this.activityService.completeActivity(activity.id);
+            if (result) {
+                this.activity.set(result.activity);
+                await this.loadActivity();
+                this.toastService.success('Activity completed', result.nextOccurrence
+                    ? 'Next recurring task was scheduled.'
+                    : 'Marked as complete.');
+                this.dialogRef.close('updated');
+            }
+        } catch {
+            this.toastService.show({
+                title: 'Complete failed',
+                description: 'Could not complete activity.',
+                variant: 'destructive',
+            });
+        } finally {
+            this.isSubmitting.set(false);
+        }
+    }
+
+    async reopenActivity(): Promise<void> {
+        const activity = this.activity();
+        if (!activity) return;
+
+        this.isSubmitting.set(true);
+        try {
+            const updated = await this.activityService.reopenActivity(activity.id);
+            if (updated) {
+                this.activity.set(updated);
+                await this.loadActivity();
+                this.toastService.success('Activity reopened', 'Task is pending again.');
+                this.dialogRef.close('updated');
+            }
+        } catch {
+            this.toastService.show({
+                title: 'Reopen failed',
+                description: 'Could not reopen activity.',
+                variant: 'destructive',
+            });
+        } finally {
+            this.isSubmitting.set(false);
+        }
+    }
+
+    async cancelActivity(): Promise<void> {
+        const activity = this.activity();
+        if (!activity) return;
+
+        this.isSubmitting.set(true);
+        try {
+            const updated = await this.activityService.cancelActivity(activity.id);
+            if (updated) {
+                this.activity.set(updated);
+                await this.loadActivity();
+                this.toastService.success('Activity cancelled', 'Task was cancelled.');
+                this.dialogRef.close('updated');
+            }
+        } catch {
+            this.toastService.show({
+                title: 'Cancel failed',
+                description: 'Could not cancel activity.',
                 variant: 'destructive',
             });
         } finally {

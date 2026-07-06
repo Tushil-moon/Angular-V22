@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '@guards/auth.guard';
 import { guestGuard } from '@guards/guest.guard';
+import { mustChangePasswordGuard } from '@guards/must-change-password.guard';
 import { permissionGuard } from '@guards/permission.guard';
 import { Permissions } from '@shared/constants/permissions';
 
@@ -64,7 +65,7 @@ export const routes: Routes = [
         path: 'dashboard',
         loadComponent: () =>
             import('@shared/layouts/admin-layout.component').then((m) => m.AdminLayoutComponent),
-        canActivate: [authGuard],
+        canActivate: [authGuard, mustChangePasswordGuard],
         children: [
             {
                 path: '',
@@ -81,6 +82,13 @@ export const routes: Routes = [
                     import('@features/contacts/list.component').then(
                         (m) => m.ContactsListComponent,
                     ),
+            },
+            {
+                path: 'leads',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadLeads },
+                loadComponent: () =>
+                    import('@features/leads/list.component').then((m) => m.LeadsListComponent),
             },
             {
                 path: 'companies',
@@ -152,6 +160,15 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'organization',
+                canActivate: [permissionGuard],
+                data: { permission: [Permissions.ReadOrganizations, Permissions.ReadOrgUnits] },
+                loadComponent: () =>
+                    import('@features/organization/structure.component').then(
+                        (m) => m.OrganizationStructureComponent,
+                    ),
+            },
+            {
                 path: 'sales',
                 canActivate: [permissionGuard],
                 data: { permission: Permissions.ReadDeals },
@@ -218,6 +235,13 @@ export const routes: Routes = [
                     import('@features/quotes/list.component').then((m) => m.QuotesListComponent),
             },
             {
+                path: 'products',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/products/list.component').then((m) => m.ProductsListComponent),
+            },
+            {
                 path: 'forecasting',
                 canActivate: [permissionGuard],
                 data: { permission: Permissions.ReadDeals },
@@ -254,6 +278,24 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'email-templates',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/email-templates/list.component').then(
+                        (m) => m.EmailTemplatesListComponent,
+                    ),
+            },
+            {
+                path: 'email-sequences',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/email-sequences/list.component').then(
+                        (m) => m.EmailSequencesListComponent,
+                    ),
+            },
+            {
                 path: 'cases',
                 canActivate: [permissionGuard],
                 data: { permission: Permissions.ReadDeals },
@@ -268,6 +310,13 @@ export const routes: Routes = [
                     import('@features/knowledge/list.component').then(
                         (m) => m.KnowledgeListComponent,
                     ),
+            },
+            {
+                path: 'sla',
+                canActivate: [permissionGuard],
+                data: { permission: Permissions.ReadDeals },
+                loadComponent: () =>
+                    import('@features/sla/list.component').then((m) => m.SlaListComponent),
             },
             {
                 path: 'reports',

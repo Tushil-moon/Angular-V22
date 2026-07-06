@@ -26,4 +26,17 @@ export class LeadScoringService {
     async delete(id: string): Promise<void> {
         await this.httpClient.delete(`/lead-scoring/${id}`);
     }
+
+    async getById(id: string): Promise<LeadScoreRule | null> {
+        const response = await this.httpClient.get<Record<string, unknown>>(`/lead-scoring/${id}`);
+        return response.data ? mapApiLeadScoreRule(response.data) : null;
+    }
+
+    async update(id: string, payload: Record<string, unknown>): Promise<LeadScoreRule | null> {
+        const response = await this.httpClient.patch<Record<string, unknown>>(
+            `/lead-scoring/${id}`,
+            payload,
+        );
+        return response.data ? mapApiLeadScoreRule(response.data) : null;
+    }
 }

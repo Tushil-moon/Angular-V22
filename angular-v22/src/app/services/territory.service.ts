@@ -26,4 +26,17 @@ export class TerritoryService {
     async delete(id: string): Promise<void> {
         await this.httpClient.delete(`/territories/${id}`);
     }
+
+    async getById(id: string): Promise<Territory | null> {
+        const response = await this.httpClient.get<Record<string, unknown>>(`/territories/${id}`);
+        return response.data ? mapApiTerritory(response.data) : null;
+    }
+
+    async update(id: string, payload: Record<string, unknown>): Promise<Territory | null> {
+        const response = await this.httpClient.patch<Record<string, unknown>>(
+            `/territories/${id}`,
+            payload,
+        );
+        return response.data ? mapApiTerritory(response.data) : null;
+    }
 }

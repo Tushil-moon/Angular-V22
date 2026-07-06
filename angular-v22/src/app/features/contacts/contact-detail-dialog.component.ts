@@ -10,6 +10,7 @@ import {
     ActivityType,
     Contact,
     CONTACT_STATUS_LABELS,
+    ContactAddress,
     ContactStatus,
 } from '@models/index';
 import { ActivityService, ContactService, PermissionService } from '@services/index';
@@ -207,6 +208,12 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
                                 <dd class="text-sm text-foreground">{{ item.phone || '—' }}</dd>
                             </div>
                             <div class="space-y-1">
+                                <dt class="text-xs font-medium text-muted-foreground">Lead source</dt>
+                                <dd class="text-sm text-foreground">
+                                    {{ item.leadSource || '—' }}
+                                </dd>
+                            </div>
+                            <div class="space-y-1">
                                 <dt class="text-xs font-medium text-muted-foreground">Owner</dt>
                                 <dd class="text-sm text-foreground">
                                     {{ item.owner?.email || '—' }}
@@ -219,6 +226,130 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
                                 </dd>
                             </div>
                         </dl>
+
+                        @if (item.emails?.length) {
+                            <div class="space-y-2">
+                                <p class="text-xs font-medium text-muted-foreground">Emails</p>
+                                <ul class="space-y-1 text-sm">
+                                    @for (entry of item.emails; track entry.id) {
+                                        <li>
+                                            {{ entry.email }}
+                                            <span class="text-xs text-muted-foreground"
+                                                >({{ entry.type
+                                                }}{{ entry.isPrimary ? ', primary' : '' }})</span
+                                            >
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        @if (item.phones?.length) {
+                            <div class="space-y-2">
+                                <p class="text-xs font-medium text-muted-foreground">Phones</p>
+                                <ul class="space-y-1 text-sm">
+                                    @for (entry of item.phones; track entry.id) {
+                                        <li>
+                                            {{ entry.phone }}
+                                            <span class="text-xs text-muted-foreground"
+                                                >({{ entry.type
+                                                }}{{ entry.isPrimary ? ', primary' : '' }})</span
+                                            >
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        @if (item.addresses?.length) {
+                            <div class="space-y-2">
+                                <p class="text-xs font-medium text-muted-foreground">Addresses</p>
+                                <ul class="space-y-2 text-sm">
+                                    @for (entry of item.addresses; track entry.id) {
+                                        <li class="rounded-md border px-3 py-2">
+                                            <p class="font-medium">{{ entry.line1 }}</p>
+                                            @if (entry.line2) {
+                                                <p>{{ entry.line2 }}</p>
+                                            }
+                                            <p class="text-muted-foreground">
+                                                {{ formatAddressLine(entry) }}
+                                                {{ entry.country }}
+                                            </p>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        @if (item.socialLinks?.length) {
+                            <div class="space-y-2">
+                                <p class="text-xs font-medium text-muted-foreground">Social links</p>
+                                <ul class="space-y-1 text-sm">
+                                    @for (entry of item.socialLinks; track entry.id) {
+                                        <li>
+                                            <span class="font-medium">{{ entry.platform }}:</span>
+                                            <a
+                                                class="text-primary hover:underline"
+                                                [href]="entry.url"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                >{{ entry.url }}</a
+                                            >
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        @if (duplicates().length) {
+                            <div class="space-y-3 rounded-md border p-3">
+                                <div class="dialog-section-toolbar">
+                                    <p class="text-sm font-medium text-foreground">
+                                        Possible duplicates
+                                    </p>
+                                    @if (canManage()) {
+                                        <app-button
+                                            size="sm"
+                                            variant="outline"
+                                            type="button"
+                                            [disabled]="!selectedDuplicateIds().length || isSubmitting()"
+                                            (clicked)="mergeDuplicates()"
+                                        >
+                                            Merge selected
+                                        </app-button>
+                                    }
+                                </div>
+                                <ul class="space-y-2">
+                                    @for (match of duplicates(); track match.contactId) {
+                                        <li class="flex items-start gap-2 text-sm">
+                                            @if (canManage()) {
+                                                <input
+                                                    type="checkbox"
+                                                    class="checkbox mt-1"
+                                                    [checked]="
+                                                        selectedDuplicateIds().includes(
+                                                            match.contactId
+                                                        )
+                                                    "
+                                                    (change)="toggleDuplicate(match.contactId)"
+                                                />
+                                            }
+                                            <div>
+                                                <p class="font-medium">
+                                                    {{ match.contact?.fullName }}
+                                                </p>
+                                                <p class="text-xs text-muted-foreground">
+                                                    {{ match.contact?.email || 'No email' }} · score
+                                                    {{ match.score }} ({{
+                                                        match.reasons.join(', ')
+                                                    }})
+                                                </p>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
 
                         @if (item.notes) {
                             <div class="space-y-1">
@@ -280,7 +411,7 @@ const ACTIVITY_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, 
                 </p>
             }
 
-            <div dialogFooter>
+            <div dialogFooter class="flex flex-wrap gap-2">
                 @if (mode() === 'view' && contact()) {
                     @if (canManage() && contact()?.status === 'LEAD') {
                         <app-button variant="outline" type="button" (clicked)="mode.set('convert')"
@@ -385,6 +516,8 @@ export class ContactDetailDialogComponent implements OnInit {
     readonly formatStatus = formatContactStatus;
     readonly formatDate = formatContactDate;
     readonly formatActivityType = (type: ActivityType) => ACTIVITY_TYPE_LABELS[type];
+    readonly formatAddressLine = (address: ContactAddress): string =>
+        [address.city, address.state, address.postalCode].filter((part) => !!part).join(', ');
 
     readonly canManage = computed(() =>
         this.permissionService.hasPermission(Permissions.ManageContacts),
@@ -393,6 +526,8 @@ export class ContactDetailDialogComponent implements OnInit {
     mode = signal<DialogMode>('view');
     contact = signal<Contact | null>(null);
     activities = signal<Activity[]>([]);
+    duplicates = signal<import('@models/index').ContactDuplicateMatch[]>([]);
+    selectedDuplicateIds = signal<string[]>([]);
     isLoading = signal(true);
     activitiesLoading = signal(true);
     isSubmitting = signal(false);
@@ -503,9 +638,52 @@ export class ContactDetailDialogComponent implements OnInit {
         try {
             const contact = await this.contactService.getContactById(this.data.contactId);
             this.contact.set(contact);
-            if (contact) ignorePromise(this.loadActivities(contact.id));
+            if (contact) {
+                ignorePromise(this.loadActivities(contact.id));
+                ignorePromise(this.loadDuplicates(contact.id));
+            }
         } finally {
             this.isLoading.set(false);
+        }
+    }
+
+    async loadDuplicates(contactId: string): Promise<void> {
+        try {
+            const matches = await this.contactService.getDuplicates(contactId);
+            this.duplicates.set(matches);
+            this.selectedDuplicateIds.set([]);
+        } catch {
+            this.duplicates.set([]);
+        }
+    }
+
+    toggleDuplicate(contactId: string): void {
+        const current = this.selectedDuplicateIds();
+        this.selectedDuplicateIds.set(
+            current.includes(contactId)
+                ? current.filter((id) => id !== contactId)
+                : [...current, contactId],
+        );
+    }
+
+    async mergeDuplicates(): Promise<void> {
+        const contact = this.contact();
+        const sourceIds = this.selectedDuplicateIds();
+        if (!contact || !sourceIds.length) return;
+
+        this.isSubmitting.set(true);
+        try {
+            const merged = await this.contactService.mergeContacts(contact.id, sourceIds);
+            if (merged) {
+                this.contact.set(merged);
+                this.wasUpdated.set(true);
+                this.toastService.success('Contacts merged', 'Duplicate records were combined.');
+                await this.loadDuplicates(contact.id);
+            }
+        } catch {
+            this.toastService.error('Merge failed', 'Could not merge duplicate contacts.');
+        } finally {
+            this.isSubmitting.set(false);
         }
     }
 

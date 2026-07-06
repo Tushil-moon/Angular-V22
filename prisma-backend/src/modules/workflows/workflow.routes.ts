@@ -8,6 +8,7 @@ import * as controller from "./workflow.controller";
 import {
   createWorkflowSchema,
   listWorkflowsQuerySchema,
+  testWorkflowSchema,
   updateWorkflowSchema,
   workflowIdParamSchema,
 } from "./workflow.validation";
@@ -22,6 +23,30 @@ workflowRouter.use(authenticate, resolveOrganization);
 workflowRouter.get("/", canRead, validate({ query: listWorkflowsQuerySchema }), controller.listWorkflows);
 workflowRouter.post("/", canManage, validate({ body: createWorkflowSchema }), controller.createWorkflow);
 workflowRouter.get("/:id", canRead, validate({ params: workflowIdParamSchema }), controller.getWorkflow);
+workflowRouter.get(
+  "/:id/runs",
+  canRead,
+  validate({ params: workflowIdParamSchema, query: listWorkflowsQuerySchema }),
+  controller.listWorkflowRuns,
+);
+workflowRouter.post(
+  "/:id/test",
+  canManage,
+  validate({ params: workflowIdParamSchema, body: testWorkflowSchema }),
+  controller.testWorkflow,
+);
+workflowRouter.post(
+  "/:id/activate",
+  canManage,
+  validate({ params: workflowIdParamSchema }),
+  controller.activateWorkflow,
+);
+workflowRouter.post(
+  "/:id/deactivate",
+  canManage,
+  validate({ params: workflowIdParamSchema }),
+  controller.deactivateWorkflow,
+);
 workflowRouter.patch(
   "/:id",
   canManage,

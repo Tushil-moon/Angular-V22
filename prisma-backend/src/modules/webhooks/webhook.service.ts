@@ -1,9 +1,13 @@
-import { prisma } from "../../config/prisma";
 import { AppError } from "../../shared/errors/app-error";
+import { mapWebhook, mapWebhookDelivery } from "../../shared/utils/automation-mapper";
 import type { AuthContext } from "../../shared/types/auth-context";
 import { requireOrganizationContext } from "../../shared/utils/auth-context";
-import { randomToken, sha256 } from "../../shared/utils/crypto";
+import { randomToken } from "../../shared/utils/crypto";
 import { buildPaginationMeta } from "../../shared/validation/pagination";
+import { enqueueJob } from "../../shared/jobs/job-queue";
+import { dispatchWebhookDelivery } from "./webhook.dispatcher";
+import { webhookRepository } from "./webhook.repository";
+import { buildWebhookListWhere } from "./webhook.utils";
 import type {
   CreateWebhookInput,
   ListWebhookDeliveriesQuery,
@@ -14,81 +18,106 @@ import type {
 export const webhookService = {
   async listWebhooks(query: ListWebhooksQuery, auth: AuthContext) {
     const organizationId = requireOrganizationContext(auth);
-    const where = {
-      organizationId,
-      ...(query.active !== undefined ? { active: query.active } : {}),
-    };
+    const where = buildWebhookListWhere(organizationId, query.active);
     const skip = (query.page - 1) * query.pageSize;
-    const [data, total] = await prisma.$transaction([
-      prisma.webhook.findMany({
-        where,
-        orderBy: { updatedAt: "desc" },
-        skip,
-        take: query.pageSize,
-        select: { id: true, organizationId: true, url: true, events: true, active: true, createdAt: true, updatedAt: true },
-      }),
-      prisma.webhook.count({ where }),
+    const [data, total] = await Promise.all([
+      webhookRepository.findMany(where, skip, query.pageSize),
+      webhookRepository.count(where),
     ]);
-    return { data, ...buildPaginationMeta(total, query.page, query.pageSize) };
+    return { data: data.map(mapWebhook), ...buildPaginationMeta(total, query.page, query.pageSize) };
   },
 
   async getWebhookById(id: string, auth: AuthContext) {
     const organizationId = requireOrganizationContext(auth);
-    const item = await prisma.webhook.findFirst({
-      where: { id, organizationId },
-      select: { id: true, organizationId: true, url: true, events: true, active: true, createdAt: true, updatedAt: true },
-    });
+    const item = await webhookRepository.findById({ id, organizationId });
     if (!item) throw new AppError(404, "Webhook not found", "WEBHOOK_NOT_FOUND");
-    return item;
+    return mapWebhook(item);
   },
 
   async createWebhook(input: CreateWebhookInput, auth: AuthContext) {
     const organizationId = requireOrganizationContext(auth);
     const secret = input.secret ?? randomToken(32);
-    return prisma.webhook.create({
-      data: {
-        organizationId,
-        url: input.url,
-        events: input.events,
-        secret: sha256(secret),
-        active: input.active ?? true,
-      },
-      select: { id: true, organizationId: true, url: true, events: true, active: true, createdAt: true, updatedAt: true },
+    const item = await webhookRepository.create({
+      organization: { connect: { id: organizationId } },
+      url: input.url,
+      events: input.events,
+      secret,
+      active: input.active ?? true,
     });
+    return mapWebhook(item);
   },
 
   async updateWebhook(id: string, input: UpdateWebhookInput, auth: AuthContext) {
     const organizationId = requireOrganizationContext(auth);
-    const existing = await prisma.webhook.findFirst({ where: { id, organizationId } });
+    const existing = await webhookRepository.findById({ id, organizationId });
     if (!existing) throw new AppError(404, "Webhook not found", "WEBHOOK_NOT_FOUND");
-    const { secret, ...rest } = input;
-    return prisma.webhook.update({
-      where: { id },
-      data: {
-        ...rest,
-        ...(secret !== undefined ? { secret: sha256(secret) } : {}),
-      },
-      select: { id: true, organizationId: true, url: true, events: true, active: true, createdAt: true, updatedAt: true },
+
+    const item = await webhookRepository.update(id, {
+      url: input.url,
+      events: input.events,
+      active: input.active,
+      ...(input.secret ? { secret: input.secret } : {}),
     });
+    return mapWebhook(item);
   },
 
   async deleteWebhook(id: string, auth: AuthContext) {
     const organizationId = requireOrganizationContext(auth);
-    const existing = await prisma.webhook.findFirst({ where: { id, organizationId } });
+    const existing = await webhookRepository.findById({ id, organizationId });
     if (!existing) throw new AppError(404, "Webhook not found", "WEBHOOK_NOT_FOUND");
-    await prisma.webhook.delete({ where: { id } });
+    await webhookRepository.delete(id);
   },
 
   async listDeliveries(webhookId: string, query: ListWebhookDeliveriesQuery, auth: AuthContext) {
     const organizationId = requireOrganizationContext(auth);
-    const webhook = await prisma.webhook.findFirst({ where: { id: webhookId, organizationId } });
+    const webhook = await webhookRepository.findById({ id: webhookId, organizationId });
     if (!webhook) throw new AppError(404, "Webhook not found", "WEBHOOK_NOT_FOUND");
-    const where = { webhookId };
+
     const skip = (query.page - 1) * query.pageSize;
-    const [data, total] = await prisma.$transaction([
-      prisma.webhookDelivery.findMany({ where, orderBy: { createdAt: "desc" }, skip, take: query.pageSize }),
-      prisma.webhookDelivery.count({ where }),
+    const [data, total] = await Promise.all([
+      webhookRepository.listDeliveries(webhookId, skip, query.pageSize),
+      webhookRepository.countDeliveries(webhookId),
     ]);
-    return { data, ...buildPaginationMeta(total, query.page, query.pageSize) };
+    return { data: data.map(mapWebhookDelivery), ...buildPaginationMeta(total, query.page, query.pageSize) };
+  },
+
+  async testWebhook(id: string, auth: AuthContext) {
+    const organizationId = requireOrganizationContext(auth);
+    const webhook = await webhookRepository.findByIdWithSecret(id, organizationId);
+    if (!webhook) throw new AppError(404, "Webhook not found", "WEBHOOK_NOT_FOUND");
+
+    const delivery = await webhookRepository.createDelivery({
+      webhook: { connect: { id: webhook.id } },
+      event: "webhook.test",
+      payload: {
+        event: "webhook.test",
+        organizationId,
+        data: { message: "Test delivery from CRM" },
+        timestamp: new Date().toISOString(),
+      },
+    });
+
+    enqueueJob(`webhook-test:${delivery.id}`, () => dispatchWebhookDelivery(delivery.id));
+
+    const [item] = await webhookRepository.listDeliveries(webhook.id, 0, 1);
+    return mapWebhookDelivery(item);
+  },
+
+  async retryDelivery(webhookId: string, deliveryId: string, auth: AuthContext) {
+    const organizationId = requireOrganizationContext(auth);
+    const webhook = await webhookRepository.findById({ id: webhookId, organizationId });
+    if (!webhook) throw new AppError(404, "Webhook not found", "WEBHOOK_NOT_FOUND");
+
+    const delivery = await webhookRepository.findDeliveryById(deliveryId);
+    if (!delivery || delivery.webhookId !== webhookId) {
+      throw new AppError(404, "Delivery not found", "WEBHOOK_DELIVERY_NOT_FOUND");
+    }
+
+    await webhookRepository.updateDelivery(deliveryId, { status: "PENDING", errorMessage: null });
+    enqueueJob(`webhook-retry:${deliveryId}`, () => dispatchWebhookDelivery(deliveryId));
+
+    const item = await webhookRepository.findDeliverySelectById(deliveryId);
+    if (!item) throw new AppError(404, "Delivery not found", "WEBHOOK_DELIVERY_NOT_FOUND");
+    return mapWebhookDelivery(item);
   },
 };

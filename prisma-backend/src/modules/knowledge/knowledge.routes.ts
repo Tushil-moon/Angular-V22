@@ -22,6 +22,24 @@ knowledgeRouter.use(authenticate, resolveOrganization);
 knowledgeRouter.get("/", canRead, validate({ query: listKnowledgeArticlesQuerySchema }), controller.listArticles);
 knowledgeRouter.post("/", canManage, validate({ body: createKnowledgeArticleSchema }), controller.createArticle);
 knowledgeRouter.get("/:id", canRead, validate({ params: knowledgeArticleIdParamSchema }), controller.getArticle);
+knowledgeRouter.post(
+  "/:id/view",
+  canRead,
+  validate({ params: knowledgeArticleIdParamSchema }),
+  controller.recordArticleView,
+);
+knowledgeRouter.post(
+  "/:id/publish",
+  canManage,
+  validate({ params: knowledgeArticleIdParamSchema }),
+  controller.publishArticle,
+);
+knowledgeRouter.post(
+  "/:id/unpublish",
+  canManage,
+  validate({ params: knowledgeArticleIdParamSchema }),
+  controller.unpublishArticle,
+);
 knowledgeRouter.patch(
   "/:id",
   canManage,

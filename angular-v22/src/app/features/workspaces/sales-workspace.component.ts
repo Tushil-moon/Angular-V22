@@ -27,6 +27,7 @@ import { formatEnterpriseCurrency } from '../enterprise/enterprise-list.util';
 const SALES_NAV: WorkspaceNavItem[] = [
     { label: 'Overview', route: '/dashboard/sales', icon: 'layout-dashboard' },
     { label: 'Quotes', route: '/dashboard/quotes', icon: 'circle-dollar-sign' },
+    { label: 'Products', route: '/dashboard/products', icon: 'tag' },
     { label: 'Forecasting', route: '/dashboard/forecasting', icon: 'activity' },
     { label: 'Lead scoring', route: '/dashboard/lead-scoring', icon: 'tag' },
     { label: 'Calendar', route: '/dashboard/calendar', icon: 'calendar' },

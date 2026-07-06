@@ -4,7 +4,7 @@
 
 import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core'
 import { RouterLink } from '@angular/router';
-import { AuthService, CampaignService } from '@services/index';
+import { AuthService, CampaignService, EmailSequenceService, EmailTemplateService } from '@services/index';
 import { ButtonComponent } from '@shared/components/button.component';
 import {
     CardBodyComponent,
@@ -22,11 +22,11 @@ import {
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
 
-import { formatEnterpriseCurrency } from '../enterprise/enterprise-list.util';
-
 const MARKETING_NAV: WorkspaceNavItem[] = [
     { label: 'Overview', route: '/dashboard/marketing', icon: 'layout-dashboard' },
     { label: 'Campaigns', route: '/dashboard/campaigns', icon: 'bookmark' },
+    { label: 'Email templates', route: '/dashboard/email-templates', icon: 'link' },
+    { label: 'Sequences', route: '/dashboard/email-sequences', icon: 'list-ordered' },
 ];
 
 @Component({
@@ -96,6 +96,8 @@ const MARKETING_NAV: WorkspaceNavItem[] = [
 export class MarketingWorkspaceComponent {
     private readonly authService = inject(AuthService);
     private readonly campaignService = inject(CampaignService);
+    private readonly emailTemplateService = inject(EmailTemplateService);
+    private readonly emailSequenceService = inject(EmailSequenceService);
 
     readonly navItems = MARKETING_NAV;
 
@@ -105,12 +107,25 @@ export class MarketingWorkspaceComponent {
             runResourceLoader(
                 async () => {
                     throwIfAborted(abortSignal);
-                    const campaigns = await this.campaignService.list({ pageSize: 100 });
+                    const [campaigns, templates, sequences] = await Promise.all([
+                        this.campaignService.list({ pageSize: 100 }),
+                        this.emailTemplateService.list({ pageSize: 1 }),
+                        this.emailSequenceService.list({ pageSize: 1 }),
+                    ]);
                     const active = campaigns.data.filter((c) => c.status === 'ACTIVE').length;
-                    const budget = campaigns.data.reduce((sum, c) => sum + (c.budget ?? 0), 0);
-                    return { total: campaigns.total, active, budget };
+                    const sent = campaigns.data.reduce((sum, c) => sum + (c.sentCount ?? 0), 0);
+                    return {
+                        total: campaigns.total,
+                        active,
+                        sent,
+                        templates: templates.total,
+                        sequences: sequences.total,
+                    };
                 },
-                { fallback: { total: 0, active: 0, budget: 0 }, logMessage: 'Failed to load marketing:' },
+                {
+                    fallback: { total: 0, active: 0, sent: 0, templates: 0, sequences: 0 },
+                    logMessage: 'Failed to load marketing:',
+                },
             ),
     });
 
@@ -121,23 +136,30 @@ export class MarketingWorkspaceComponent {
             {
                 label: 'Campaigns',
                 value: String(data.total),
-                detail: 'All programs',
+                detail: `${data.active} active`,
                 icon: 'bookmark',
                 route: '/dashboard/campaigns',
             },
             {
-                label: 'Active',
-                value: String(data.active),
-                detail: 'Running now',
+                label: 'Emails sent',
+                value: String(data.sent),
+                detail: 'Across all programs',
                 icon: 'activity',
                 route: '/dashboard/campaigns',
             },
             {
-                label: 'Total budget',
-                value: formatEnterpriseCurrency(data.budget),
-                detail: 'Allocated spend',
-                icon: 'circle-dollar-sign',
-                route: '/dashboard/campaigns',
+                label: 'Templates',
+                value: String(data.templates),
+                detail: 'Reusable content',
+                icon: 'link',
+                route: '/dashboard/email-templates',
+            },
+            {
+                label: 'Sequences',
+                value: String(data.sequences),
+                detail: 'Nurture flows',
+                icon: 'list-ordered',
+                route: '/dashboard/email-sequences',
             },
         ];
     });

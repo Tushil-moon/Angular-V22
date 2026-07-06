@@ -4,7 +4,7 @@
 
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core'
 import { Contact, FilterOptions } from '@models/index';
-import { AuthService, ContactService, DialogService, PermissionService } from '@services/index';
+import { AuthService, ContactService, DialogService, PermissionService, ToastService } from '@services/index';
 import {
     ButtonComponent,
     CardBodyComponent,
@@ -71,6 +71,12 @@ const EMPTY_PAGE: ContactsPageResult = { contacts: [], total: 0 };
                     <p class="page-description">Manage leads, prospects, and customers</p>
                 </div>
                 @if (canManage()) {
+                    <app-button size="sm" variant="outline" (clicked)="exportContacts()">
+                        Export CSV
+                    </app-button>
+                    <app-button size="sm" variant="outline" (clicked)="openImportDialog()">
+                        Import CSV
+                    </app-button>
                     <app-button size="sm" (clicked)="openCreateDialog()">
                         <app-icon name="plus" [size]="14" />
                         Add contact
@@ -185,6 +191,7 @@ export class ContactsListComponent {
     private readonly contactService = inject(ContactService);
     private readonly dialogService = inject(DialogService);
     private readonly permissionService = inject(PermissionService);
+    private readonly toastService = inject(ToastService);
 
     readonly canManage = computed(() =>
         this.permissionService.hasPermission(Permissions.ManageContacts),
@@ -261,6 +268,38 @@ export class ContactsListComponent {
         ref.afterClosed().subscribe((result) => {
             if (result === 'created') this.contactsResource.reload();
         });
+    }
+
+    async openImportDialog(): Promise<void> {
+        const ref = await this.dialogService.openLazy<
+            import('./contact-import-dialog.component').ContactImportDialogComponent,
+            undefined,
+            import('./contact-import-dialog.component').ContactImportDialogResult
+        >(() =>
+            import('./contact-import-dialog.component').then((m) => m.ContactImportDialogComponent),
+        );
+
+        ref.afterClosed().subscribe((result) => {
+            if (result === 'imported') this.contactsResource.reload();
+        });
+    }
+
+    async exportContacts(): Promise<void> {
+        try {
+            const csv = await this.contactService.exportContacts({
+                search: this.searchQuery().trim() || undefined,
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = 'contacts.csv';
+            anchor.click();
+            URL.revokeObjectURL(url);
+            this.toastService.success('Export complete', 'Contacts CSV downloaded.');
+        } catch {
+            this.toastService.error('Export failed', 'Could not export contacts.');
+        }
     }
 
     async openDetailDialog(contact: Contact, event?: MouseEvent): Promise<void> {

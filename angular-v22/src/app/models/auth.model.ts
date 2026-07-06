@@ -16,6 +16,8 @@ export interface SignUpRequest {
 export interface SignInRequest {
     email: string;
     password: string;
+    rememberMe?: boolean;
+    deviceName?: string;
 }
 
 export interface AuthResponse {
@@ -39,6 +41,8 @@ export interface User {
     lastName?: string;
     isActive: boolean;
     emailVerified: boolean;
+    mustChangePassword?: boolean;
+    twoFactorEnabled?: boolean;
     createdAt: Date;
     updatedAt: Date;
     permissions?: string[];

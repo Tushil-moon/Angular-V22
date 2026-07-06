@@ -4,7 +4,7 @@
 
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core'
 import { Activity, ActivityType, FilterOptions } from '@models/index';
-import { ActivityService, AuthService, DialogService, PermissionService } from '@services/index';
+import { ActivityService, AuthService, DialogService, PermissionService, ToastService } from '@services/index';
 import {
     BadgeComponent,
     ButtonComponent,
@@ -26,8 +26,13 @@ import {
 import { SavedViewsPickerComponent } from '@shared/components/saved-views-picker.component';
 import {
     ACTIVITY_TABLE_COLUMNS,
+    activityPriorityBadgeVariant,
+    activityStatusBadgeVariant,
     formatActivityDate,
+    formatActivityPriority,
+    formatActivityStatus,
     formatActivityType,
+    isActivityOverdue,
 } from '@shared/config/activities-table.config';
 import { Permissions } from '@shared/constants/permissions';
 import { throwIfAborted } from '@shared/utils/abort-signal';
@@ -103,6 +108,13 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
                             (filtersChange)="applySavedFilters($event)"
                         />
                         <app-filter-select
+                            [value]="statusFilter()"
+                            [options]="statusFilterOptions"
+                            placeholder="All statuses"
+                            ariaLabel="Filter by status"
+                            (valueChange)="onStatusFilterValue($event)"
+                        />
+                        <app-filter-select
                             [value]="typeFilter()"
                             [options]="typeFilterOptions"
                             placeholder="All types"
@@ -156,25 +168,28 @@ const EMPTY_PAGE: ActivitiesPageResult = { activities: [], total: 0 };
                                         formatType(activity.type)
                                     }}</app-badge>
                                 </app-flex-table-cell>
+                                <app-flex-table-cell column="status">
+                                    <app-badge [variant]="statusVariant(activity.status)">{{
+                                        formatStatus(activity.status)
+                                    }}</app-badge>
+                                </app-flex-table-cell>
+                                <app-flex-table-cell column="priority">
+                                    <app-badge [variant]="priorityVariant(activity.priority)">{{
+                                        formatPriority(activity.priority)
+                                    }}</app-badge>
+                                </app-flex-table-cell>
                                 <app-flex-table-cell column="contact">
                                     <span class="truncate text-muted-foreground">{{
-                                        activity.contact?.fullName || '—'
-                                    }}</span>
-                                </app-flex-table-cell>
-                                <app-flex-table-cell column="deal">
-                                    <span class="truncate text-muted-foreground">{{
-                                        activity.deal?.title || '—'
+                                        activity.contact?.fullName || activity.company?.name || '—'
                                     }}</span>
                                 </app-flex-table-cell>
                                 <app-flex-table-cell column="dueAt">
-                                    <span class="truncate text-muted-foreground">{{
-                                        formatDate(activity.dueAt)
-                                    }}</span>
-                                </app-flex-table-cell>
-                                <app-flex-table-cell column="createdAt">
-                                    <span class="truncate text-muted-foreground">{{
-                                        formatDate(activity.createdAt)
-                                    }}</span>
+                                    <span
+                                        class="truncate"
+                                        [class.text-destructive]="isOverdue(activity)"
+                                    >
+                                        {{ formatDate(activity.dueAt) }}
+                                    </span>
                                 </app-flex-table-cell>
                                 <app-flex-table-cell column="actions">
                                     <app-button
@@ -206,6 +221,7 @@ export class ActivitiesListComponent {
     private readonly activityService = inject(ActivityService);
     private readonly dialogService = inject(DialogService);
     private readonly permissionService = inject(PermissionService);
+    private readonly toastService = inject(ToastService);
 
     readonly canManage = computed(() =>
         this.permissionService.hasPermission(Permissions.ManageActivities),
@@ -214,6 +230,11 @@ export class ActivitiesListComponent {
     readonly columns = ACTIVITY_TABLE_COLUMNS;
     readonly formatDate = formatActivityDate;
     readonly formatType = formatActivityType;
+    readonly formatStatus = formatActivityStatus;
+    readonly formatPriority = formatActivityPriority;
+    readonly statusVariant = activityStatusBadgeVariant;
+    readonly priorityVariant = activityPriorityBadgeVariant;
+    readonly isOverdue = isActivityOverdue;
 
     readonly typeOptions: [ActivityType, string][] = [
         ['NOTE', 'Note'],
@@ -228,8 +249,17 @@ export class ActivitiesListComponent {
         ...this.typeOptions.map(([value, label]) => ({ value, label })),
     ];
 
+    readonly statusFilterOptions: SelectOption[] = [
+        { value: '', label: 'All statuses' },
+        { value: 'PENDING', label: 'Pending' },
+        { value: 'COMPLETED', label: 'Completed' },
+        { value: 'CANCELLED', label: 'Cancelled' },
+        { value: 'overdue', label: 'Overdue' },
+    ];
+
     searchQuery = signal('');
     typeFilter = signal('');
+    statusFilter = signal('');
     dueDateRange = signal<DateRangeValue>(EMPTY_DATE_RANGE);
     currentPage = signal(1);
     pageSize = signal(20);
@@ -242,6 +272,8 @@ export class ActivitiesListComponent {
                 pageSize: this.pageSize(),
                 search: this.searchQuery().trim() || undefined,
                 type: this.typeFilter() || undefined,
+                status: this.statusFilter() === 'overdue' ? undefined : this.statusFilter() || undefined,
+                overdue: this.statusFilter() === 'overdue' ? true : undefined,
             };
         },
         loader: async ({ params, abortSignal }) => {
@@ -255,6 +287,8 @@ export class ActivitiesListComponent {
                         pageSize: params.pageSize,
                         search: asOptionalString(params.search),
                         type: asOptionalString(params.type),
+                        status: asOptionalString(params.status),
+                        overdue: params.overdue,
                     };
                     const result = await this.activityService.listActivities(filters);
                     throwIfAborted(abortSignal);
@@ -284,6 +318,11 @@ export class ActivitiesListComponent {
 
     onTypeFilterValue(value: string): void {
         this.typeFilter.set(value);
+        this.currentPage.set(1);
+    }
+
+    onStatusFilterValue(value: string): void {
+        this.statusFilter.set(value);
         this.currentPage.set(1);
     }
 

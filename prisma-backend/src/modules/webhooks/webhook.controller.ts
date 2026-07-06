@@ -36,3 +36,17 @@ export const listDeliveries = asyncHandler(async (req, res) => {
   const result = await webhookService.listDeliveries(String(req.params.id), query, getAuthContext(req));
   return sendSuccess(res, result);
 });
+
+export const testWebhook = asyncHandler(async (req, res) => {
+  const item = await webhookService.testWebhook(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, item, "Webhook test queued");
+});
+
+export const retryDelivery = asyncHandler(async (req, res) => {
+  const item = await webhookService.retryDelivery(
+    String(req.params.id),
+    String(req.params.deliveryId),
+    getAuthContext(req),
+  );
+  return sendSuccess(res, item, "Delivery retry queued");
+});

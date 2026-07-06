@@ -5,6 +5,11 @@ import { sendCreated, sendSuccess } from "../../shared/utils/response";
 import type { ListDashboardLayoutsQuery, ListReportsQuery } from "./report.validation";
 import { reportService } from "./report.service";
 
+export const getAnalyticsOverview = asyncHandler(async (req, res) => {
+  const result = await reportService.getAnalyticsOverview(getAuthContext(req));
+  return sendSuccess(res, result);
+});
+
 export const listReports = asyncHandler(async (req, res) => {
   const query = getValidatedQuery<ListReportsQuery>(req);
   const result = await reportService.listReports(query, getAuthContext(req));
@@ -29,6 +34,24 @@ export const updateReport = asyncHandler(async (req, res) => {
 export const deleteReport = asyncHandler(async (req, res) => {
   await reportService.deleteReport(String(req.params.id), getAuthContext(req));
   return sendSuccess(res, null, "Report deleted");
+});
+
+export const runReport = asyncHandler(async (req, res) => {
+  const result = await reportService.runReport(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, result, "Report executed");
+});
+
+export const exportReportCsv = asyncHandler(async (req, res) => {
+  const csv = await reportService.exportReportCsv(String(req.params.id), getAuthContext(req));
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="report-${req.params.id}.csv"`);
+  return res.send(csv);
+});
+
+export const listReportRuns = asyncHandler(async (req, res) => {
+  const query = getValidatedQuery<ListReportsQuery>(req);
+  const result = await reportService.listReportRuns(String(req.params.id), query, getAuthContext(req));
+  return sendSuccess(res, result);
 });
 
 export const listDashboardLayouts = asyncHandler(async (req, res) => {

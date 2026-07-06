@@ -96,7 +96,7 @@ const STAGE_OPTIONS = Object.entries(DEAL_STAGE_LABELS) as [DealStage, string][]
                 />
             </form>
 
-            <div dialogFooter>
+            <div dialogFooter class="flex flex-wrap gap-2">
                 <app-button variant="outline" type="button" (clicked)="close()">Cancel</app-button>
                 <app-button type="submit" form="deal-create-form" [disabled]="isSubmitting()">
                     @if (isSubmitting()) {

@@ -67,3 +67,12 @@ export const changePassword = asyncHandler(async (req, res) => {
   );
   return sendSuccess(res, result, "Password changed");
 });
+
+export const securityPolicy = asyncHandler(async (_req, res) => {
+  return sendSuccess(res, authService.getSecurityPolicy(), "Security policy");
+});
+
+export const securityStatus = asyncHandler(async (req, res) => {
+  const result = await authService.getSecurityStatus(req.user!.id);
+  return sendSuccess(res, result, "Security status");
+});

@@ -28,5 +28,7 @@ authRouter.post("/email/verify", validate({ body: verifyEmailSchema }), controll
 authRouter.post("/password/forgot", authLimiter, validate({ body: forgotPasswordSchema }), controller.forgotPassword);
 authRouter.post("/password/reset", authLimiter, validate({ body: resetPasswordSchema }), controller.resetPassword);
 authRouter.post("/password/change", authenticate, validate({ body: changePasswordSchema }), controller.changePassword);
+authRouter.get("/security-policy", controller.securityPolicy);
+authRouter.get("/security-status", authenticate, controller.securityStatus);
 authRouter.post("/logout", authenticate, controller.logout);
 authRouter.post("/logout-all", authenticate, controller.logoutAll);

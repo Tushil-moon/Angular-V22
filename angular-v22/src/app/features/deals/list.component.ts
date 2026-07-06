@@ -5,7 +5,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core'
 import { RouterLink } from '@angular/router';
 import { Deal, DealStage, FilterOptions } from '@models/index';
-import { AuthService, DealService, DialogService, PermissionService } from '@services/index';
+import { AuthService, DealService, DialogService, PermissionService, ToastService } from '@services/index';
 import {
     BadgeComponent,
     ButtonComponent,
@@ -81,6 +81,12 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
                 </div>
                 @if (canManage()) {
                     <div class="toolbar-actions">
+                        <app-button size="sm" variant="outline" (clicked)="exportDeals()">
+                            Export CSV
+                        </app-button>
+                        <app-button size="sm" variant="outline" (clicked)="openImportDialog()">
+                            Import CSV
+                        </app-button>
                         <app-button
                             variant="outline"
                             size="sm"
@@ -179,6 +185,11 @@ const EMPTY_PAGE: DealsPageResult = { deals: [], total: 0 };
                                         formatValue(deal.value, deal.currency)
                                     }}</span>
                                 </app-flex-table-cell>
+                                <app-flex-table-cell column="probability">
+                                    <span class="tabular-nums text-muted-foreground"
+                                        >{{ deal.probability }}%</span
+                                    >
+                                </app-flex-table-cell>
                                 <app-flex-table-cell column="stage">
                                     <app-badge [variant]="stageBadgeVariant(deal.stage)">{{
                                         formatStage(deal.stage)
@@ -219,6 +230,7 @@ export class DealsListComponent {
     private readonly dealService = inject(DealService);
     private readonly dialogService = inject(DialogService);
     private readonly permissionService = inject(PermissionService);
+    private readonly toastService = inject(ToastService);
 
     readonly canManage = computed(() =>
         this.permissionService.hasPermission(Permissions.ManageDeals),
@@ -332,6 +344,39 @@ export class DealsListComponent {
         ref.afterClosed().subscribe((result) => {
             if (result === 'created') this.dealsResource.reload();
         });
+    }
+
+    async openImportDialog(): Promise<void> {
+        const ref = await this.dialogService.openLazy<
+            import('./deal-import-dialog.component').DealImportDialogComponent,
+            undefined,
+            import('./deal-import-dialog.component').DealImportDialogResult
+        >(() =>
+            import('./deal-import-dialog.component').then((m) => m.DealImportDialogComponent),
+        );
+
+        ref.afterClosed().subscribe((result) => {
+            if (result === 'imported') this.dealsResource.reload();
+        });
+    }
+
+    async exportDeals(): Promise<void> {
+        try {
+            const csv = await this.dealService.exportDeals({
+                search: this.searchQuery().trim() || undefined,
+                stage: this.stageFilter() || undefined,
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = 'deals.csv';
+            anchor.click();
+            URL.revokeObjectURL(url);
+            this.toastService.success('Export complete', 'Deals CSV downloaded.');
+        } catch {
+            this.toastService.error('Export failed', 'Could not export deals.');
+        }
     }
 
     async openDetailDialog(deal: Deal, event?: MouseEvent): Promise<void> {

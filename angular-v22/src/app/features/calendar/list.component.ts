@@ -4,8 +4,7 @@
 
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal, ViewEncapsulation } from '@angular/core'
 import type { CalendarEvent } from '@models/enterprise.model';
-import { AuthService, CalendarService } from '@services/index';
-import { ToastService } from '@services/toast.service';
+import { AuthService, CalendarService, DialogService } from '@services/index';
 import { BadgeComponent } from '@shared/components/badge.component';
 import { ButtonComponent } from '@shared/components/button.component';
 import {
@@ -76,7 +75,7 @@ interface CalendarDayCell {
             [navItems]="navItems"
         >
             <div workspaceActions>
-                <app-button size="sm" [disabled]="creating()" (clicked)="createEvent()">
+                <app-button size="sm" (clicked)="createEvent()">
                     <app-icon name="plus" [size]="14" />
                     Schedule
                 </app-button>
@@ -142,17 +141,21 @@ interface CalendarDayCell {
                         } @else {
                             <div class="calendar-agenda-list">
                                 @for (event of agendaEvents(); track event.id) {
-                                    <div class="calendar-agenda-item">
+                                    <button
+                                        type="button"
+                                        class="calendar-agenda-item w-full text-left"
+                                        (click)="openEventDialog(event)"
+                                    >
                                         <div class="calendar-agenda-time">
                                             {{ formatTime(event.startsAt) }}
                                         </div>
                                         <div class="min-w-0 flex-1">
                                             <p class="font-medium">{{ event.title }}</p>
-                                            <app-badge [variant]="enterpriseStatusBadge(event.type)">
-                                                {{ formatEnterpriseStatus(event.type) }}
+                                            <app-badge [variant]="enterpriseStatusBadge(event.status)">
+                                                {{ formatEnterpriseStatus(event.status) }}
                                             </app-badge>
                                         </div>
-                                    </div>
+                                    </button>
                                 }
                             </div>
                         }
@@ -167,7 +170,7 @@ interface CalendarDayCell {
 export class CalendarListComponent {
     private readonly calendarService = inject(CalendarService);
     private readonly authService = inject(AuthService);
-    private readonly toastService = inject(ToastService);
+    private readonly dialogService = inject(DialogService);
 
     readonly navItems = CALENDAR_NAV;
     readonly weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -176,16 +179,21 @@ export class CalendarListComponent {
 
     readonly visibleMonth = signal(startOfMonth(new Date()));
     readonly selectedDate = signal(new Date());
-    readonly creating = signal(false);
 
     readonly eventsResource = resource({
-        params: () => (this.authService.isAuthenticated() ? this.visibleMonth().toISOString() : undefined),
-        loader: async ({ abortSignal }) =>
+        params: () => {
+            if (!this.authService.isAuthenticated()) return undefined;
+            const month = this.visibleMonth();
+            const start = startOfWeek(startOfMonth(month));
+            const end = endOfWeek(endOfMonth(month));
+            return { start: start.toISOString(), end: end.toISOString() };
+        },
+        loader: async ({ params, abortSignal }) =>
             runResourceLoader(
                 async () => {
                     throwIfAborted(abortSignal);
-                    const result = await this.calendarService.list({ pageSize: 100 });
-                    return result.data;
+                    if (!params) return [];
+                    return this.calendarService.listInRange(params);
                 },
                 { fallback: [], logMessage: 'Failed to load calendar:' },
             ),
@@ -242,29 +250,47 @@ export class CalendarListComponent {
     }
 
     async createEvent(): Promise<void> {
-        const userId = this.authService.currentUser()?.id;
-        const start = this.selectedDate();
+        const start = new Date(this.selectedDate());
         start.setHours(10, 0, 0, 0);
         const end = new Date(start.getTime() + 60 * 60 * 1000);
-        this.creating.set(true);
-        try {
-            await this.calendarService.create({
-                ...(userId ? { userId } : {}),
-                title: 'Team sync',
-                type: 'MEETING',
-                startsAt: start.toISOString(),
-                endsAt: end.toISOString(),
-            });
-            this.eventsResource.reload();
-            this.toastService.success('Scheduled', 'Event added to calendar.');
-        } catch {
-            this.toastService.show({
-                title: 'Failed',
-                description: 'Could not create event.',
-                variant: 'destructive',
-            });
-        } finally {
-            this.creating.set(false);
-        }
+
+        const ref = await this.dialogService.openLazy<
+            import('./calendar-event-dialog.component').CalendarEventDialogComponent,
+            import('./calendar-event-dialog.component').CalendarEventDialogData,
+            import('./calendar-event-dialog.component').CalendarEventDialogResult
+        >(
+            () =>
+                import('./calendar-event-dialog.component').then(
+                    (m) => m.CalendarEventDialogComponent,
+                ),
+            {
+                data: {
+                    startsAt: start.toISOString(),
+                    endsAt: end.toISOString(),
+                },
+            },
+        );
+
+        ref.afterClosed().subscribe((result) => {
+            if (result === 'saved' || result === 'deleted') this.eventsResource.reload();
+        });
+    }
+
+    async openEventDialog(event: CalendarEvent): Promise<void> {
+        const ref = await this.dialogService.openLazy<
+            import('./calendar-event-dialog.component').CalendarEventDialogComponent,
+            import('./calendar-event-dialog.component').CalendarEventDialogData,
+            import('./calendar-event-dialog.component').CalendarEventDialogResult
+        >(
+            () =>
+                import('./calendar-event-dialog.component').then(
+                    (m) => m.CalendarEventDialogComponent,
+                ),
+            { data: { eventId: event.id } },
+        );
+
+        ref.afterClosed().subscribe((result) => {
+            if (result === 'saved' || result === 'deleted') this.eventsResource.reload();
+        });
     }
 }

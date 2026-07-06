@@ -4,7 +4,7 @@
 
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ACTIVITY_TYPE_LABELS, ActivityType } from '@models/index';
+import { ACTIVITY_PRIORITY_LABELS, ACTIVITY_TYPE_LABELS, ActivityPriority, ActivityType } from '@models/index';
 import { ActivityService, ContactService, DealService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
@@ -22,6 +22,8 @@ import { createActivitySchema, safeValidate } from '@utils/validators';
 export type ActivityCreateDialogResult = 'created';
 
 const TYPE_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, string][];
+
+const PRIORITY_OPTIONS = Object.entries(ACTIVITY_PRIORITY_LABELS) as [ActivityPriority, string][];
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,9 +80,21 @@ const TYPE_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, stri
                     label="Due date"
                     formControlName="dueAt"
                 />
+                <app-input
+                    id="activity-reminder"
+                    type="datetime-local"
+                    label="Reminder"
+                    formControlName="reminderAt"
+                />
+                <app-select
+                    id="activity-priority"
+                    label="Priority"
+                    formControlName="priority"
+                    [options]="prioritySelectOptions"
+                />
             </form>
 
-            <div dialogFooter>
+            <div dialogFooter class="flex flex-wrap gap-2">
                 <app-button variant="outline" type="button" (clicked)="close()">Cancel</app-button>
                 <app-button type="submit" form="activity-create-form" [disabled]="isSubmitting()">
                     @if (isSubmitting()) {
@@ -107,17 +121,23 @@ export class ActivityCreateDialogComponent implements OnInit {
         value,
         label,
     }));
+    readonly prioritySelectOptions: SelectOption[] = PRIORITY_OPTIONS.map(([value, label]) => ({
+        value,
+        label,
+    }));
 
     contactOptions = signal<SelectOption[]>([{ value: '', label: 'None' }]);
     dealOptions = signal<SelectOption[]>([{ value: '', label: 'None' }]);
 
     form = this.fb.group({
         type: ['NOTE' as ActivityType],
+        priority: ['NORMAL' as ActivityPriority],
         subject: ['', Validators.required],
         body: [''],
         contactId: [''],
         dealId: [''],
         dueAt: [''],
+        reminderAt: [''],
     });
 
     fieldErrors = signal<Record<string, string[]>>({});
@@ -155,16 +175,18 @@ export class ActivityCreateDialogComponent implements OnInit {
         const raw = this.form.getRawValue();
         const payload = {
             type: raw.type,
+            priority: raw.priority,
             subject: raw.subject.trim(),
             body: raw.body.trim() || undefined,
             contactId: raw.contactId || undefined,
             dealId: raw.dealId || undefined,
             dueAt: raw.dueAt || undefined,
+            reminderAt: raw.reminderAt || undefined,
         };
 
-        if (!payload.contactId && !payload.dealId) {
+        if (!payload.contactId && !payload.dealId && payload.type !== 'TASK') {
             this.fieldErrors.set({
-                contactId: ['Link to a contact or deal'],
+                contactId: ['Link to a contact or deal, or choose Task for a standalone item'],
             });
             return;
         }

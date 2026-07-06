@@ -2,7 +2,7 @@
  * Service Cloud workspace — cases and knowledge base
  */
 
-import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService, CaseService, KnowledgeService } from '@services/index';
 import { ButtonComponent } from '@shared/components/button.component';
@@ -10,16 +10,11 @@ import { IconComponent } from '@shared/components/icon.component';
 import {
     ModuleWorkspaceShellComponent,
     type WorkspaceKpi,
-    type WorkspaceNavItem,
 } from '@shared/components/module-workspace-shell.component';
 import { throwIfAborted } from '@shared/utils/abort-signal';
 import { runResourceLoader } from '@shared/utils/resource-error';
 
-const SERVICE_NAV: WorkspaceNavItem[] = [
-    { label: 'Overview', route: '/dashboard/service', icon: 'layout-dashboard' },
-    { label: 'Case board', route: '/dashboard/cases', icon: 'alert-circle' },
-    { label: 'Knowledge', route: '/dashboard/knowledge', icon: 'list' },
-];
+import { SERVICE_NAV } from './service-nav';
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,

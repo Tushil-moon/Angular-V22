@@ -1,17 +1,17 @@
 import { AppError } from "../shared/errors/app-error";
 import type { AuthContext } from "../shared/types/auth-context";
 
-const mockFindFirst = jest.fn();
+const mockFindById = jest.fn();
 const mockUpdate = jest.fn();
 const mockDelete = jest.fn();
+const mockAddHistory = jest.fn();
 
-jest.mock("../config/prisma", () => ({
-  prisma: {
-    activity: {
-      findFirst: (...args: unknown[]) => mockFindFirst(...args),
-      update: (...args: unknown[]) => mockUpdate(...args),
-      delete: (...args: unknown[]) => mockDelete(...args),
-    },
+jest.mock("../modules/activities/activity.repository", () => ({
+  activityRepository: {
+    findById: (...args: unknown[]) => mockFindById(...args),
+    update: (...args: unknown[]) => mockUpdate(...args),
+    delete: (...args: unknown[]) => mockDelete(...args),
+    addHistory: (...args: unknown[]) => mockAddHistory(...args),
   },
 }));
 
@@ -32,20 +32,20 @@ describe("activityService org isolation", () => {
   });
 
   it("rejects update when activity is outside organization", async () => {
-    mockFindFirst.mockResolvedValue(null);
+    mockFindById.mockResolvedValue(null);
 
     await expect(
       activityService.updateActivity("activity-1", { subject: "Updated" }, auth),
     ).rejects.toMatchObject({ statusCode: 404, code: "ACTIVITY_NOT_FOUND" });
 
-    expect(mockFindFirst).toHaveBeenCalledWith({
-      where: { id: "activity-1", organizationId: "org-1" },
-      select: { id: true, userId: true, contactId: true, dealId: true },
+    expect(mockFindById).toHaveBeenCalledWith({
+      id: "activity-1",
+      organizationId: "org-1",
     });
   });
 
   it("rejects delete when activity is outside organization", async () => {
-    mockFindFirst.mockResolvedValue(null);
+    mockFindById.mockResolvedValue(null);
 
     await expect(activityService.deleteActivity("activity-1", auth)).rejects.toBeInstanceOf(
       AppError,
@@ -53,11 +53,11 @@ describe("activityService org isolation", () => {
   });
 
   it("deletes activity within organization", async () => {
-    mockFindFirst.mockResolvedValue({ id: "activity-1", userId: "user-1" });
-    mockDelete.mockResolvedValue({});
+    mockFindById.mockResolvedValue({ id: "activity-1", userId: "user-1", assigneeId: "user-1" });
+    mockDelete.mockResolvedValue(undefined);
 
     await activityService.deleteActivity("activity-1", auth);
 
-    expect(mockDelete).toHaveBeenCalledWith({ where: { id: "activity-1" } });
+    expect(mockDelete).toHaveBeenCalledWith("activity-1");
   });
 });

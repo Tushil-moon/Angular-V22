@@ -26,4 +26,17 @@ export class CustomFieldService {
     async delete(id: string): Promise<void> {
         await this.httpClient.delete(`/custom-fields/${id}`);
     }
+
+    async getById(id: string): Promise<CustomFieldDefinition | null> {
+        const response = await this.httpClient.get<Record<string, unknown>>(`/custom-fields/${id}`);
+        return response.data ? mapApiCustomField(response.data) : null;
+    }
+
+    async update(id: string, payload: Record<string, unknown>): Promise<CustomFieldDefinition | null> {
+        const response = await this.httpClient.patch<Record<string, unknown>>(
+            `/custom-fields/${id}`,
+            payload,
+        );
+        return response.data ? mapApiCustomField(response.data) : null;
+    }
 }

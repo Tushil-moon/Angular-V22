@@ -4,10 +4,10 @@
 
 import { ChangeDetectionStrategy, Component, computed, inject, model, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { getUserDisplayName, getUserInitials } from '@features/users/user.utils';
 import { OrganizationInvite, OrganizationMember } from '@models/index';
-import { AuthService, OrganizationService, SessionService } from '@services/index';
+import { AuthService, OrganizationService, SecurityService, SessionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
     AvatarComponent,
@@ -312,7 +312,20 @@ type SettingsTab = 'profile' | 'security' | 'sessions' | 'organization';
                                 <app-card-title>Security</app-card-title>
                                 <app-card-description>Update your password</app-card-description>
                             </app-card-header>
-                            <app-card-body>
+                            <app-card-body contentClass="space-y-4">
+                                @if (forcePasswordChange()) {
+                                    <div class="alert alert-warning" role="alert">
+                                        Your administrator requires a password change before you can
+                                        continue using the application.
+                                    </div>
+                                }
+                                @if (passwordPolicyRules().length) {
+                                    <ul class="text-sm text-muted-foreground space-y-1 list-disc pl-5">
+                                        @for (rule of passwordPolicyRules(); track rule.id) {
+                                            <li>{{ rule.label }}</li>
+                                        }
+                                    </ul>
+                                }
                                 <form
                                     [formGroup]="passwordForm"
                                     (ngSubmit)="changePassword()"
@@ -453,9 +466,11 @@ type SettingsTab = 'profile' | 'security' | 'sessions' | 'organization';
 export class SettingsComponent implements OnInit {
     authService = inject(AuthService);
     sessionService = inject(SessionService);
+    securityService = inject(SecurityService);
     private readonly organizationService = inject(OrganizationService);
     private readonly toastService = inject(ToastService);
     private readonly router = inject(Router);
+    private readonly route = inject(ActivatedRoute);
     private readonly fb = inject(NonNullableFormBuilder);
 
     readonly tabs: { id: SettingsTab; label: string }[] = [
@@ -471,6 +486,11 @@ export class SettingsComponent implements OnInit {
     verificationSending = signal(false);
     revokingId = signal<string | null>(null);
     passwordErrors = signal<Record<string, string[]>>({});
+    forcePasswordChange = signal(false);
+
+    readonly passwordPolicyRules = computed(
+        () => this.securityService.policyResource.value()?.rules ?? [],
+    );
 
     passwordForm = this.fb.group({
         currentPassword: ['', Validators.required],
@@ -516,6 +536,15 @@ export class SettingsComponent implements OnInit {
     emailVerified = () => this.authService.currentUser()?.emailVerified ?? false;
 
     ngOnInit(): void {
+        const tab = this.route.snapshot.queryParamMap.get('tab');
+        if (tab === 'security' || tab === 'sessions' || tab === 'organization' || tab === 'profile') {
+            this.activeTab.set(tab);
+        }
+        this.forcePasswordChange.set(
+            this.route.snapshot.queryParamMap.get('forcePassword') === '1' ||
+                this.authService.mustChangePassword(),
+        );
+        this.securityService.policyResource.reload();
         ignorePromise(this.authService.refreshProfile());
         this.sessionService.reload();
         ignorePromise(this.loadOrganizationSettings());
@@ -668,7 +697,12 @@ export class SettingsComponent implements OnInit {
             const { currentPassword, newPassword } = validation.data;
             await this.authService.changePassword(currentPassword, newPassword);
             this.passwordForm.reset();
+            this.forcePasswordChange.set(false);
             this.toastService.success('Password updated', 'Your password has been changed.');
+            if (this.authService.mustChangePassword()) {
+                return;
+            }
+            ignorePromise(this.router.navigate(['/dashboard']));
         } catch {
             this.toastService.show({
                 title: 'Update failed',

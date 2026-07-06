@@ -1,5 +1,6 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject, Injector } from '@angular/core';
+import { getOrCreateDeviceId } from '@utils/device-id.util';
 import { catchError, switchMap, throwError } from 'rxjs';
 
 import { OrganizationContextService } from '../organization-context.service';
@@ -21,10 +22,10 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
     const injector = inject(Injector);
 
     const skipAuth = req.context.get(SKIP_AUTH) || isPublicAuthRequest(req.url);
-    let authReq = req;
+    let headers = req.headers.set('X-Device-Id', getOrCreateDeviceId());
+    let authReq = req.clone({ headers });
 
     if (!skipAuth) {
-        let headers = req.headers;
         const token = tokenService.getAccessToken();
 
         if (token) {

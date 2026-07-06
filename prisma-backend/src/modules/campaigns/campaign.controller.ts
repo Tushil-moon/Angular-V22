@@ -30,3 +30,33 @@ export const deleteCampaign = asyncHandler(async (req, res) => {
   await campaignService.deleteCampaign(String(req.params.id), getAuthContext(req));
   return sendSuccess(res, null, "Campaign deleted");
 });
+
+export const activateCampaign = asyncHandler(async (req, res) => {
+  const item = await campaignService.activateCampaign(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, item, "Campaign activated");
+});
+
+export const completeCampaign = asyncHandler(async (req, res) => {
+  const item = await campaignService.completeCampaign(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, item, "Campaign completed");
+});
+
+export const addCampaignMembers = asyncHandler(async (req, res) => {
+  const item = await campaignService.addMembers(String(req.params.id), req.body, getAuthContext(req));
+  return sendSuccess(res, item, "Members added");
+});
+
+export const removeCampaignMember = asyncHandler(async (req, res) => {
+  const item = await campaignService.removeMember(String(req.params.id), req.body, getAuthContext(req));
+  return sendSuccess(res, item, "Member removed");
+});
+
+export const sendCampaign = asyncHandler(async (req, res) => {
+  const item = await campaignService.sendCampaign(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, item, "Campaign send queued");
+});
+
+export const listCampaignHistory = asyncHandler(async (req, res) => {
+  const history = await campaignService.listHistory(String(req.params.id), getAuthContext(req));
+  return sendSuccess(res, history);
+});
