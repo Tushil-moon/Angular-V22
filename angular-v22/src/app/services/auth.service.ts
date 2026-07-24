@@ -1,12 +1,14 @@
 /**
- * Authentication Service
- * Signal-driven auth service managing user authentication state and tokens
+ * Authentication Service — signals for state, resource for session restore
  */
 
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, resource, Service, signal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { environment } from '@env';
-import { ApiError, Session, SignInRequest, SignUpRequest, User } from '@models/index';
+import { ApiError, SignInRequest, SignUpRequest, User } from '@models/index';
+import { throwIfAborted } from '@shared/utils/abort-signal';
+import { runResourceLoader } from '@shared/utils/resource-error';
 import {
     ApiAuthResponsePayload,
     ApiRefreshResponsePayload,
@@ -17,137 +19,81 @@ import {
 } from '@utils/api-mappers';
 import { getDeviceName } from '@utils/device-id.util';
 import { ignorePromise } from '@utils/form-display.util';
+import { filter, firstValueFrom, map, take } from 'rxjs';
 
 import { HttpClientService } from './http-client.service';
-import { OrganizationContextService } from './organization-context.service';
 import { TokenService } from './token.service';
 
-@Injectable({
-    providedIn: 'root',
-})
+@Service()
 export class AuthService {
-    private readonly httpClient = inject(HttpClientService);
-    private readonly tokenService = inject(TokenService);
-    private readonly organizationContext = inject(OrganizationContextService);
+    private readonly http = inject(HttpClientService);
+    private readonly tokens = inject(TokenService);
     private readonly router = inject(Router);
 
-    private readonly currentUserSignal = signal<User | null>(this.getUserFromStorage());
-    private readonly isAuthenticatedSignal = signal<boolean>(
-        this.tokenService.hasAccessToken() && !!this.getUserFromStorage(),
-    );
-    private readonly isLoadingSignal = signal<boolean>(false);
-    private readonly errorSignal = signal<string | null>(null);
-    private readonly sessionSignal = signal<Session | null>(null);
+    private readonly user = signal<User | null>(this.readStoredUser());
+    private readonly loading = signal(false);
+    private readonly errorMessage = signal<string | null>(null);
+    private readonly tokenVersion = signal(0);
 
-    readonly currentUser = computed(() => this.currentUserSignal());
-    readonly isAuthenticated = computed(() => this.isAuthenticatedSignal());
-    readonly isLoading = computed(() => this.isLoadingSignal());
-    readonly error = computed(() => this.errorSignal());
-    readonly session = computed(() => this.sessionSignal());
-    readonly userInitials = computed(() => {
-        const user = this.currentUserSignal();
-        if (!user) return '';
-        const first = user.firstName?.[0] || '';
-        const last = user.lastName?.[0] || '';
-        return (first + last).toUpperCase() || user.email[0].toUpperCase();
+    /** Restores session from storage / refresh token on first use. */
+    readonly sessionResource = resource({
+        loader: ({ abortSignal }) =>
+            runResourceLoader(() => this.restoreSession(abortSignal), {
+                fallback: null,
+                logMessage: 'Session restore failed:',
+            }),
     });
-    readonly mustChangePassword = computed(
-        () => this.currentUserSignal()?.mustChangePassword ?? false,
-    );
 
-    private sessionInitPromise: Promise<void> | null = null;
+    readonly currentUser = this.user.asReadonly();
+    readonly error = this.errorMessage.asReadonly();
+    readonly isLoading = computed(() => this.loading() || this.sessionResource.isLoading());
+    readonly isAuthenticated = computed(() => {
+        this.tokenVersion();
+        return this.tokens.hasAccessToken() && !!this.user();
+    });
+    readonly mustChangePassword = computed(() => this.user()?.mustChangePassword ?? false);
+    readonly userInitials = computed(() => {
+        const u = this.user();
+        if (!u) return '';
+        const initials = `${u.firstName?.[0] ?? ''}${u.lastName?.[0] ?? ''}`.toUpperCase();
+        return initials || u.email[0].toUpperCase();
+    });
+
+    private readonly sessionReady$ = toObservable(this.sessionResource.status).pipe(
+        filter((status) => status !== 'loading' && status !== 'reloading'),
+        take(1),
+        map(() => undefined),
+    );
 
     constructor() {
-        this.httpClient.registerUnauthorizedHandler(() => this.handleUnauthorized());
-
-        const accessToken = this.tokenService.getAccessToken();
+        this.http.registerUnauthorizedHandler(() => this.handleUnauthorized());
+        const accessToken = this.tokens.getAccessToken();
         if (accessToken) {
-            this.httpClient.setAuthToken(accessToken);
+            this.http.setAuthToken(accessToken);
         }
-
-        this.sessionInitPromise = this.bootstrapSession();
     }
 
+    /** Wait until session restore has finished (for route guards). */
     ensureSessionReady(): Promise<void> {
-        return this.sessionInitPromise ?? Promise.resolve();
+        return firstValueFrom(this.sessionReady$);
     }
 
-    private getErrorMessage(error: unknown, fallback: string): string {
-        if (typeof error === 'object' && error !== null && 'message' in error) {
-            return String((error as ApiError).message);
-        }
-        if (error instanceof Error) {
-            return error.message;
-        }
-        return fallback;
-    }
-
-    /**
-     * Restore session from storage or refresh token on app load
-     */
-    private async bootstrapSession(): Promise<void> {
-        const user = this.getUserFromStorage();
-        const accessToken = this.tokenService.getAccessToken();
-        const refreshToken = this.tokenService.getRefreshToken();
-
-        if (accessToken && user) {
-            this.httpClient.setAuthToken(accessToken);
-            this.currentUserSignal.set(user);
-            this.isAuthenticatedSignal.set(true);
-            if (!user.permissions?.length) {
-                await this.refreshProfile();
+    async signIn(request: SignInRequest): Promise<void> {
+        await this.run('Sign in failed. Please try again.', async () => {
+            const response = await this.http.post<ApiAuthResponsePayload>(
+                '/auth/login',
+                { ...request, deviceName: request.deviceName ?? getDeviceName() },
+                { skipAuth: true },
+            );
+            if (response.data) {
+                this.applyAuth(response.data);
             }
-            return;
-        }
-
-        if (refreshToken && user) {
-            try {
-                await this.refreshToken();
-                await this.refreshProfile();
-            } catch {
-                this.clearAuth();
-            }
-            return;
-        }
-
-        this.clearAuth();
-    }
-
-    /**
-     * Attempt session restore for route guards
-     */
-    async tryRestoreSession(): Promise<boolean> {
-        if (this.isAuthenticated()) {
-            return true;
-        }
-
-        if (!this.tokenService.hasRefreshToken()) {
-            return false;
-        }
-
-        try {
-            await this.refreshToken();
-            if (!this.currentUserSignal()) {
-                await this.refreshProfile();
-            }
-            return this.isAuthenticated();
-        } catch {
-            this.clearAuth();
-            return false;
-        }
-    }
-
-    handleUnauthorized(): void {
-        this.clearAuth();
-        ignorePromise(this.router.navigate(['/auth/signin']));
+        });
     }
 
     async signUp(request: SignUpRequest): Promise<void> {
-        this.isLoadingSignal.set(true);
-        this.errorSignal.set(null);
-
-        try {
-            const response = await this.httpClient.post<ApiAuthResponsePayload>(
+        await this.run('Sign up failed. Please try again.', async () => {
+            const response = await this.http.post<ApiAuthResponsePayload>(
                 '/auth/register',
                 {
                     email: request.email,
@@ -157,232 +103,207 @@ export class AuthService {
                 },
                 { skipAuth: true },
             );
-
             if (response.data) {
-                this.setAuthState(response.data);
+                this.applyAuth(response.data);
             }
-        } catch (error: unknown) {
-            this.errorSignal.set(this.getErrorMessage(error, 'Sign up failed. Please try again.'));
-            throw error;
-        } finally {
-            this.isLoadingSignal.set(false);
-        }
-    }
-
-    async signIn(request: SignInRequest): Promise<void> {
-        this.isLoadingSignal.set(true);
-        this.errorSignal.set(null);
-
-        try {
-            const response = await this.httpClient.post<ApiAuthResponsePayload>(
-                '/auth/login',
-                {
-                    ...request,
-                    deviceName: request.deviceName ?? getDeviceName(),
-                },
-                {
-                    skipAuth: true,
-                },
-            );
-
-            if (response.data) {
-                this.setAuthState(response.data);
-            }
-        } catch (error: unknown) {
-            this.errorSignal.set(this.getErrorMessage(error, 'Sign in failed. Please try again.'));
-            throw error;
-        } finally {
-            this.isLoadingSignal.set(false);
-        }
+        });
     }
 
     async signOut(): Promise<void> {
-        this.isLoadingSignal.set(true);
-
+        this.loading.set(true);
         try {
-            if (this.tokenService.hasAccessToken()) {
-                await this.httpClient.post('/auth/logout', {});
+            if (this.tokens.hasAccessToken()) {
+                await this.http.post('/auth/logout', {});
             }
         } catch (error) {
             console.error('Sign out error:', error);
         } finally {
             this.clearAuth();
-            this.isLoadingSignal.set(false);
+            this.loading.set(false);
         }
     }
 
     async signOutAll(): Promise<void> {
-        this.isLoadingSignal.set(true);
-
+        this.loading.set(true);
         try {
-            if (this.tokenService.hasAccessToken()) {
-                await this.httpClient.post('/auth/logout-all', {});
+            if (this.tokens.hasAccessToken()) {
+                await this.http.post('/auth/logout-all', {});
             }
         } catch (error) {
             console.error('Sign out all error:', error);
         } finally {
             this.clearAuth();
-            this.isLoadingSignal.set(false);
-        }
-    }
-
-    /**
-     * Refresh access token using stored refresh token
-     */
-    async refreshToken(): Promise<void> {
-        const refreshToken = this.tokenService.getRefreshToken();
-        if (!refreshToken) {
-            throw new Error('No refresh token available');
-        }
-
-        const response = await this.httpClient.post<ApiRefreshResponsePayload>(
-            '/auth/refresh',
-            { refreshToken },
-            { skipAuth: true },
-        );
-
-        if (response.data) {
-            this.applyTokens(mapApiRefreshResponse(response.data));
-        }
-    }
-
-    async verifyEmail(token: string): Promise<void> {
-        this.isLoadingSignal.set(true);
-
-        try {
-            await this.httpClient.post('/auth/email/verify', { token }, { skipAuth: true });
-            const user = this.currentUserSignal();
-            if (user) {
-                const updated = { ...user, emailVerified: true };
-                this.currentUserSignal.set(updated);
-                this.saveUserToStorage(updated);
-            }
-        } finally {
-            this.isLoadingSignal.set(false);
+            this.loading.set(false);
         }
     }
 
     async requestPasswordReset(email: string): Promise<void> {
-        this.isLoadingSignal.set(true);
-        this.errorSignal.set(null);
-
-        try {
-            await this.httpClient.post('/auth/password/forgot', { email }, { skipAuth: true });
-        } catch (error: unknown) {
-            const errorMessage =
-                error instanceof Error
-                    ? error.message
-                    : 'Password reset request failed. Please try again.';
-            this.errorSignal.set(errorMessage);
-            throw error;
-        } finally {
-            this.isLoadingSignal.set(false);
-        }
+        await this.run('Password reset request failed. Please try again.', () =>
+            this.http.post('/auth/password/forgot', { email }, { skipAuth: true }),
+        );
     }
 
-    async resetPassword(token: string, newPassword: string): Promise<void> {
-        this.isLoadingSignal.set(true);
-        this.errorSignal.set(null);
-
-        try {
-            await this.httpClient.post(
-                '/auth/password/reset',
-                { token, password: newPassword },
-                { skipAuth: true },
-            );
-        } catch (error: unknown) {
-            const errorMessage =
-                error instanceof Error ? error.message : 'Password reset failed. Please try again.';
-            this.errorSignal.set(errorMessage);
-            throw error;
-        } finally {
-            this.isLoadingSignal.set(false);
-        }
+    async resetPassword(token: string, password: string): Promise<void> {
+        await this.run('Password reset failed. Please try again.', () =>
+            this.http.post('/auth/password/reset', { token, password }, { skipAuth: true }),
+        );
     }
 
-    getCurrentToken(): string | null {
-        return this.tokenService.getAccessToken();
+    async verifyEmail(token: string): Promise<void> {
+        await this.run('Email verification failed.', async () => {
+            await this.http.post('/auth/email/verify', { token }, { skipAuth: true });
+            const current = this.user();
+            if (current) {
+                this.setUser({ ...current, emailVerified: true });
+            }
+        });
     }
 
-    updateCurrentUser(user: User): void {
-        this.currentUserSignal.set(user);
-        this.saveUserToStorage(user);
+    async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+        await this.run('Failed to change password.', async () => {
+            await this.http.post('/auth/password/change', { currentPassword, newPassword });
+            const current = this.user();
+            if (current) {
+                this.setUser({ ...current, mustChangePassword: false });
+            }
+        });
     }
 
-    private setAuthState(authResponse: ApiAuthResponsePayload): void {
-        const mapped = mapApiAuthResponse(authResponse);
-        this.applyTokens(mapped);
-
-        this.currentUserSignal.set(mapped.user);
-        this.isAuthenticatedSignal.set(true);
-        this.saveUserToStorage(mapped.user);
-        this.errorSignal.set(null);
-    }
-
-    private applyTokens(tokens: { accessToken: string; refreshToken: string }): void {
-        this.httpClient.setAuthToken(tokens.accessToken);
-        this.httpClient.setRefreshToken(tokens.refreshToken);
-    }
-
-    private clearAuth(): void {
-        this.httpClient.removeAuthToken();
-        this.organizationContext.clearActiveOrganization();
-        localStorage.removeItem(environment.userStorageKey);
-        this.currentUserSignal.set(null);
-        this.isAuthenticatedSignal.set(false);
-        this.sessionSignal.set(null);
-        this.errorSignal.set(null);
-    }
-
-    private getUserFromStorage(): User | null {
-        const user = localStorage.getItem(environment.userStorageKey);
-        return user ? JSON.parse(user) : null;
-    }
-
-    private saveUserToStorage(user: User): void {
-        localStorage.setItem(environment.userStorageKey, JSON.stringify(user));
+    async requestEmailVerification(): Promise<void> {
+        await this.http.post('/auth/email/request-verification', {});
     }
 
     async refreshProfile(): Promise<void> {
         try {
-            const response = await this.httpClient.get<ApiUserPayload>('/users/me');
+            const response = await this.http.get<ApiUserPayload>('/users/me');
             if (response.data) {
-                const user = mapApiUser(response.data);
-                this.currentUserSignal.set(user);
-                this.isAuthenticatedSignal.set(true);
-                this.saveUserToStorage(user);
+                this.setUser(mapApiUser(response.data));
             }
         } catch (error) {
             console.error('Failed to refresh profile:', error);
         }
     }
 
-    async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-        this.isLoadingSignal.set(true);
-        this.errorSignal.set(null);
+    async refreshToken(): Promise<void> {
+        const refreshToken = this.tokens.getRefreshToken();
+        if (!refreshToken) {
+            throw new Error('No refresh token available');
+        }
 
-        try {
-            await this.httpClient.post('/auth/password/change', {
-                currentPassword,
-                newPassword,
-            });
-            const user = this.currentUserSignal();
-            if (user) {
-                this.updateCurrentUser({ ...user, mustChangePassword: false });
-            }
-        } catch (error: unknown) {
-            this.errorSignal.set(this.getErrorMessage(error, 'Failed to change password.'));
-            throw error;
-        } finally {
-            this.isLoadingSignal.set(false);
+        const response = await this.http.post<ApiRefreshResponsePayload>(
+            '/auth/refresh',
+            { refreshToken },
+            { skipAuth: true },
+        );
+        if (response.data) {
+            this.applyTokens(mapApiRefreshResponse(response.data));
         }
     }
 
-    async requestEmailVerification(): Promise<void> {
-        await this.httpClient.post('/auth/email/request-verification', {});
+    handleUnauthorized(): void {
+        this.clearAuth();
+        ignorePromise(this.router.navigate(['/auth/signin']));
+    }
+
+    getCurrentToken(): string | null {
+        return this.tokens.getAccessToken();
+    }
+
+    updateCurrentUser(user: User): void {
+        this.setUser(user);
     }
 
     clearError(): void {
-        this.errorSignal.set(null);
+        this.errorMessage.set(null);
+    }
+
+    private async restoreSession(abortSignal: AbortSignal): Promise<User | null> {
+        throwIfAborted(abortSignal);
+
+        const storedUser = this.readStoredUser();
+        const accessToken = this.tokens.getAccessToken();
+        const refreshToken = this.tokens.getRefreshToken();
+
+        if (accessToken && storedUser) {
+            this.http.setAuthToken(accessToken);
+            this.user.set(storedUser);
+            this.tokenVersion.update((v) => v + 1);
+
+            if (!storedUser.permissions?.length) {
+                await this.refreshProfile();
+                throwIfAborted(abortSignal);
+            }
+            return this.user();
+        }
+
+        if (refreshToken && storedUser) {
+            try {
+                await this.refreshToken();
+                throwIfAborted(abortSignal);
+                await this.refreshProfile();
+                throwIfAborted(abortSignal);
+                return this.user();
+            } catch {
+                this.clearAuth();
+                return null;
+            }
+        }
+
+        this.clearAuth();
+        return null;
+    }
+
+    private async run(fallbackError: string, action: () => Promise<unknown>): Promise<void> {
+        this.loading.set(true);
+        this.errorMessage.set(null);
+        try {
+            await action();
+        } catch (error: unknown) {
+            this.errorMessage.set(this.toMessage(error, fallbackError));
+            throw error;
+        } finally {
+            this.loading.set(false);
+        }
+    }
+
+    private applyAuth(payload: ApiAuthResponsePayload): void {
+        const mapped = mapApiAuthResponse(payload);
+        this.applyTokens(mapped);
+        this.setUser(mapped.user);
+        this.errorMessage.set(null);
+    }
+
+    private applyTokens(tokens: { accessToken: string; refreshToken: string }): void {
+        this.http.setAuthToken(tokens.accessToken);
+        this.http.setRefreshToken(tokens.refreshToken);
+        this.tokenVersion.update((v) => v + 1);
+    }
+
+    private setUser(user: User): void {
+        this.user.set(user);
+        localStorage.setItem(environment.userStorageKey, JSON.stringify(user));
+    }
+
+    private clearAuth(): void {
+        this.http.removeAuthToken();
+        localStorage.removeItem(environment.userStorageKey);
+        this.user.set(null);
+        this.errorMessage.set(null);
+        this.tokenVersion.update((v) => v + 1);
+    }
+
+    private readStoredUser(): User | null {
+        const raw = localStorage.getItem(environment.userStorageKey);
+        return raw ? (JSON.parse(raw) as User) : null;
+    }
+
+    private toMessage(error: unknown, fallback: string): string {
+        if (typeof error === 'object' && error !== null && 'message' in error) {
+            return String((error as ApiError).message);
+        }
+        if (error instanceof Error) {
+            return error.message;
+        }
+        return fallback;
     }
 }

@@ -1,4 +1,3 @@
 export * from './auth.guard';
 export * from './guest.guard';
 export * from './must-change-password.guard';
-export * from './permission.guard';

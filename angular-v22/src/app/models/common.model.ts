@@ -49,5 +49,4 @@ export interface HttpConfig {
     timeout?: number;
     withCredentials?: boolean;
     skipAuth?: boolean;
-    skipOrganization?: boolean;
 }

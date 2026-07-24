@@ -3,20 +3,13 @@ import { inject, Injector } from '@angular/core';
 import { getOrCreateDeviceId } from '@utils/device-id.util';
 import { catchError, switchMap, throwError } from 'rxjs';
 
-import { OrganizationContextService } from '../organization-context.service';
 import { TokenService } from '../token.service';
-import {
-    isPublicAuthRequest,
-    RETRY_REQUEST,
-    SKIP_AUTH,
-    SKIP_ORGANIZATION,
-} from './http-context.tokens';
+import { isPublicAuthRequest, RETRY_REQUEST, SKIP_AUTH } from './http-context.tokens';
 import { HttpUnauthorizedRegistry } from './http-unauthorized.registry';
 import { TokenRefreshService } from './token-refresh.service';
 
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
     const tokenService = inject(TokenService);
-    const organizationContext = inject(OrganizationContextService);
     const tokenRefresh = inject(TokenRefreshService);
     const unauthorizedRegistry = inject(HttpUnauthorizedRegistry);
     const injector = inject(Injector);
@@ -30,13 +23,6 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
 
         if (token) {
             headers = headers.set('Authorization', `Bearer ${token}`);
-        }
-
-        if (!req.context.get(SKIP_ORGANIZATION)) {
-            const organizationId = organizationContext.activeOrganizationId();
-            if (organizationId) {
-                headers = headers.set('X-Organization-Id', organizationId);
-            }
         }
 
         authReq = req.clone({ headers });

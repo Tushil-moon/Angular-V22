@@ -1,7 +1,6 @@
 import { HttpContextToken } from '@angular/common/http';
 
 export const SKIP_AUTH = new HttpContextToken<boolean>(() => false);
-export const SKIP_ORGANIZATION = new HttpContextToken<boolean>(() => false);
 export const RETRY_REQUEST = new HttpContextToken<boolean>(() => false);
 
 export const PUBLIC_AUTH_PATHS = [

@@ -8,7 +8,7 @@ import { environment } from '@env';
 import { ApiError, ApiResponse, HttpConfig } from '@models/index';
 import { firstValueFrom, timeout, TimeoutError } from 'rxjs';
 
-import { SKIP_AUTH, SKIP_ORGANIZATION } from './http/http-context.tokens';
+import { SKIP_AUTH } from './http/http-context.tokens';
 import { HttpUnauthorizedRegistry } from './http/http-unauthorized.registry';
 import { TokenService } from './token.service';
 
@@ -127,10 +127,6 @@ export class HttpClientService {
 
         if (config?.skipAuth) {
             context = context.set(SKIP_AUTH, true);
-        }
-
-        if (config?.skipOrganization) {
-            context = context.set(SKIP_ORGANIZATION, true);
         }
 
         let params: HttpParams | undefined;

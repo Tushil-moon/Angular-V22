@@ -2,9 +2,9 @@
  * Reset Password Page
  */
 
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core'
+import { Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import { AlertComponent } from '@shared/components/alert.component';
@@ -20,7 +20,6 @@ import {
 import { passwordResetSchema, safeValidate } from '@utils/validators';
 
 @Component({
-    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-reset-password',
     imports: [
         RouterLink,
@@ -72,7 +71,7 @@ import { passwordResetSchema, safeValidate } from '@utils/validators';
                     <app-submit-button
                         label="Reset password"
                         loadingLabel="Updating..."
-                        [loading]="authService.isLoading()"
+                        [loading]="auth.isLoading()"
                     />
                 </form>
             }
@@ -83,11 +82,10 @@ import { passwordResetSchema, safeValidate } from '@utils/validators';
         </app-auth-card>
     `,
 })
-export class ResetPasswordComponent implements OnInit {
-    authService = inject(AuthService);
+export class ResetPasswordComponent {
+    readonly auth = inject(AuthService);
     private readonly route = inject(ActivatedRoute);
-    private readonly router = inject(Router);
-    private readonly toastService = inject(ToastService);
+    private readonly toast = inject(ToastService);
     private readonly fb = inject(NonNullableFormBuilder);
 
     form = this.fb.group({
@@ -95,15 +93,11 @@ export class ResetPasswordComponent implements OnInit {
         confirmPassword: ['', Validators.required],
     });
 
-    token = signal('');
+    readonly token = signal(this.route.snapshot.queryParamMap.get('token') ?? '');
     validationErrors = signal<Record<string, string[]>>({});
     readonly submitted = signal(false);
     readonly touchedFields = signal<Set<string>>(new Set());
-    success = signal(false);
-
-    ngOnInit(): void {
-        this.token.set(this.route.snapshot.queryParamMap.get('token') ?? '');
-    }
+    readonly success = signal(false);
 
     onFieldBlur(field: string): void {
         this.touchedFields.update((set) => addTouchedField(set, field));
@@ -125,14 +119,14 @@ export class ResetPasswordComponent implements OnInit {
         this.validationErrors.set({});
 
         try {
-            await this.authService.resetPassword(this.token(), validation.data.password);
+            await this.auth.resetPassword(this.token(), validation.data.password);
             this.success.set(true);
         } catch (err: unknown) {
             const message =
                 err && typeof err === 'object' && 'message' in err
                     ? String((err as { message: string }).message)
                     : 'Unable to reset password.';
-            this.toastService.error('Reset failed', message);
+            this.toast.error('Reset failed', message);
         }
     }
 

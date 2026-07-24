@@ -30,16 +30,17 @@ You are an expert in TypeScript, Angular 22, and scalable web application develo
 
 ## Angular v22 features
 
-- **`resource()`** — async reads with reactive `params`; use `runResourceLoader()` + `hasValue()` before `.value()`; pass `abortSignal` to axios calls
-- **`injectAsync()`** — lazy-load heavy services; prefetch with `onIdle` when appropriate
-- **`@defer`** — below-the-fold UI; always provide a single-root `@placeholder` / `@loading`
-- **Signal Forms** — new forms in signal-based features (`form`, `schema`, `FormField`, `submit`)
-- **Reactive Forms** — legacy screens until migrated
+- **`resource()`** — use for async *reads* (lists, session restore); pass `abortSignal` in loaders
+- **`inject()`** — prefer over constructor injection; use `injectAsync` only for heavy optional deps
+- **`@Service()`** — preferred for new root singletons
+- **Signal Forms** — prefer for new auth/forms screens
+- Keep code simple: plain `async` methods for mutations (sign-in, save, delete)
 
 ## HTTP & auth
 
-- Use `HttpClientService` (axios), not Angular `HttpClient`
-- Gate resources on `AuthService.isAuthenticated()`; await `ensureSessionReady()` in guards
+- Use `HttpClientService` for API calls
+- `AuthService`: signals for user/loading/error; `sessionResource` for bootstrap; `ensureSessionReady()` in guards
+- Gate list resources on `AuthService.isAuthenticated()`
 - API base: `/api/v1` (dev proxy to backend)
 
 ## UI / design

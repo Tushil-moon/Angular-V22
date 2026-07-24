@@ -2,11 +2,7 @@
  * Admin shell layout — lazy-loaded with dashboard routes
  */
 
-import { ChangeDetectionStrategy, Component,
-    computed,
-    DestroyRef,
-    inject,
-    signal, } from '@angular/core'
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { AuthService } from '@services/auth.service';
@@ -30,17 +26,13 @@ import {
     DropdownMenuComponent,
     DropdownSeparatorComponent,
 } from '../components/dropdown-menu.component';
-import { GlobalSearchComponent } from '../components/global-search.component';
 import { IconComponent } from '../components/icon.component';
 import { NavMenuComponent } from '../components/nav-menu.component';
-import { NotificationsPanelComponent } from '../components/notifications-panel.component';
-import { OrgSwitcherComponent } from '../components/org-switcher.component';
 import { SeparatorComponent } from '../components/separator.component';
 import { SheetComponent } from '../components/sheet.component';
 import { ThemeToggleComponent } from '../components/theme-toggle.component';
 
 @Component({
-    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-admin-layout',
     imports: [
         RouterOutlet,
@@ -54,9 +46,6 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
         SheetComponent,
         SeparatorComponent,
         ThemeToggleComponent,
-        GlobalSearchComponent,
-        OrgSwitcherComponent,
-        NotificationsPanelComponent,
     ],
     template: `
         <div
@@ -191,23 +180,10 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
                                 <span class="site-header-breadcrumb-current">{{ pageTitle() }}</span>
                             </nav>
                             <span class="site-header-mobile-title lg:hidden">{{ pageTitle() }}</span>
-                            <div class="site-header-tools hidden sm:flex">
-                                <app-org-switcher mode="header" />
-                                <app-global-search variant="header" />
-                            </div>
                         </div>
 
                         <div class="site-header-actions">
-                            <button
-                                type="button"
-                                class="site-header-icon-btn sm:hidden"
-                                (click)="mobileSearchOpen.set(true)"
-                                aria-label="Open search"
-                            >
-                                <app-icon name="search" [size]="16" />
-                            </button>
                             <app-theme-toggle class="hidden sm:inline-flex" />
-                            <app-notifications-panel />
 
                             <div class="md:hidden">
                                 <app-dropdown-menu #profileMenu align="end">
@@ -312,10 +288,6 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
                 </div>
 
                 <div class="sidebar-footer sidebar-mobile-footer">
-                    <div class="sidebar-group">
-                        <p class="sidebar-group-label">Organization</p>
-                        <app-org-switcher mode="drawer" />
-                    </div>
                     <nav class="sidebar-menu" aria-label="Workspace actions">
                         <app-theme-toggle [sidebar]="true" [showLabel]="true" />
                         <button type="button" class="sidebar-menu-button" (click)="logout()">
@@ -325,14 +297,6 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
                     </nav>
                 </div>
             </div>
-        </app-sheet>
-
-        <app-sheet
-            title="Search"
-            [isOpen]="mobileSearchOpen()"
-            (isOpenChange)="mobileSearchOpen.set($event)"
-        >
-            <app-global-search variant="drawer" placeholder="Search contacts, deals, companies..." />
         </app-sheet>
     `,
 })
@@ -353,7 +317,6 @@ export class AdminLayoutComponent {
     readonly profileMenuItems = PROFILE_MENU_ITEMS;
 
     mobileNavOpen = signal(false);
-    mobileSearchOpen = signal(false);
     pageTitle = signal('Dashboard');
 
     displayName = computed(() => {
@@ -379,7 +342,7 @@ export class AdminLayoutComponent {
     onProfileMenuAction(item: ProfileMenuItem, menu: DropdownMenuComponent): void {
         menu.close();
         if (item.action === 'logout') {
-            ignorePromise(this.logout());
+            void this.logout();
             return;
         }
         if (item.route) {

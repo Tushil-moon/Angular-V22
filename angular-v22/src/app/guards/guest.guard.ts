@@ -7,14 +7,9 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '@services/index';
 
 export const guestGuard: CanActivateFn = async () => {
-    const authService = inject(AuthService);
+    const auth = inject(AuthService);
     const router = inject(Router);
 
-    await authService.ensureSessionReady();
-
-    if (!authService.isAuthenticated()) {
-        return true;
-    }
-
-    return router.parseUrl('/dashboard');
+    await auth.ensureSessionReady();
+    return auth.isAuthenticated() ? router.parseUrl('/dashboard') : true;
 };

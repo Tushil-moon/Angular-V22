@@ -1,25 +1,22 @@
+/**
+ * Redirects users who must change their password to Settings → Security.
+ */
+
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '@services/auth.service';
 
-/**
- * Redirects users who must change their password to Settings → Security.
- */
 export const mustChangePasswordGuard: CanActivateFn = async () => {
-    const authService = inject(AuthService);
+    const auth = inject(AuthService);
     const router = inject(Router);
 
-    await authService.ensureSessionReady();
+    await auth.ensureSessionReady();
 
-    if (!authService.isAuthenticated()) {
+    if (!auth.isAuthenticated()) {
         return router.createUrlTree(['/auth/signin']);
     }
 
-    if (!authService.mustChangePassword()) {
-        return true;
-    }
-
-    if (router.url.includes('/dashboard/settings')) {
+    if (!auth.mustChangePassword() || router.url.includes('/dashboard/settings')) {
         return true;
     }
 

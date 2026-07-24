@@ -2,16 +2,14 @@
  * Email Verification Page
  */
 
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core'
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import { AuthCardComponent } from '@shared/components/auth-card.component';
 import { LoaderComponent } from '@shared/components/loader.component';
-import { ignorePromise } from '@utils/form-display.util';
 
 @Component({
-    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-verify-email',
     imports: [AuthCardComponent, LoaderComponent, RouterLink],
     template: `
@@ -40,17 +38,17 @@ import { ignorePromise } from '@utils/form-display.util';
 })
 export class VerifyEmailComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
-    private readonly authService = inject(AuthService);
-    private readonly toastService = inject(ToastService);
+    private readonly auth = inject(AuthService);
+    private readonly toast = inject(ToastService);
 
-    isLoading = signal(true);
-    error = signal<string | null>(null);
+    readonly isLoading = signal(true);
+    readonly error = signal<string | null>(null);
 
     ngOnInit(): void {
-        ignorePromise(this.verify());
+        void this.verify();
     }
 
-    async verify(): Promise<void> {
+    private async verify(): Promise<void> {
         const token = this.route.snapshot.queryParamMap.get('token');
         if (!token) {
             this.error.set('Invalid verification link.');
@@ -59,8 +57,8 @@ export class VerifyEmailComponent implements OnInit {
         }
 
         try {
-            await this.authService.verifyEmail(token);
-            this.toastService.success('Email verified', 'Your account is confirmed.');
+            await this.auth.verifyEmail(token);
+            this.toast.success('Email verified', 'Your account is confirmed.');
         } catch {
             this.error.set('Verification link is invalid or expired.');
         } finally {

@@ -1,14 +1,13 @@
 import swaggerJsdoc from "swagger-jsdoc";
 import { env } from "../config/env";
-import { crmSwaggerPaths } from "./swagger-crm.paths";
 
 export const swaggerSpec = swaggerJsdoc({
   definition: {
     openapi: "3.0.3",
     info: {
-      title: "Enterprise CRM API",
+      title: "Angular V22 Auth API",
       version: "1.0.0",
-      description: "Multi-tenant CRM API with authentication, RBAC, contacts, deals, companies, activities, and organizations.",
+      description: "Authentication, sessions, organizations, and health for the UI shell.",
     },
     servers: [{ url: `${env.API_BASE_URL}/api/v1` }],
     components: {
@@ -84,10 +83,6 @@ export const swaggerSpec = swaggerJsdoc({
       "/sessions": {
         get: { summary: "List current user's sessions", security: [{ bearerAuth: [] }], responses: { "200": { description: "Sessions" } } },
       },
-      "/roles": {
-        get: { summary: "List roles", security: [{ bearerAuth: [] }], responses: { "200": { description: "Roles" } } },
-      },
-      ...crmSwaggerPaths,
     },
   },
   apis: [],

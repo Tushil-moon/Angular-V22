@@ -2,7 +2,7 @@
  * Forgot Password Page
  */
 
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
+import { Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
@@ -20,7 +20,6 @@ import {
 import { forgotPasswordSchema, safeValidate } from '@utils/validators';
 
 @Component({
-    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-forgot-password',
     imports: [
         RouterLink,
@@ -58,7 +57,7 @@ import { forgotPasswordSchema, safeValidate } from '@utils/validators';
                     <app-submit-button
                         label="Send reset link"
                         loadingLabel="Sending..."
-                        [loading]="authService.isLoading()"
+                        [loading]="auth.isLoading()"
                     />
                 </form>
             }
@@ -70,9 +69,9 @@ import { forgotPasswordSchema, safeValidate } from '@utils/validators';
     `,
 })
 export class ForgotPasswordComponent {
-    authService = inject(AuthService);
+    readonly auth = inject(AuthService);
     private readonly fb = inject(NonNullableFormBuilder);
-    private readonly toastService = inject(ToastService);
+    private readonly toast = inject(ToastService);
 
     form = this.fb.group({
         email: ['', Validators.required],
@@ -81,7 +80,7 @@ export class ForgotPasswordComponent {
     validationErrors = signal<Record<string, string[]>>({});
     readonly submitted = signal(false);
     readonly touchedFields = signal<Set<string>>(new Set());
-    success = signal(false);
+    readonly success = signal(false);
 
     onFieldBlur(field: string): void {
         this.touchedFields.update((set) => addTouchedField(set, field));
@@ -103,14 +102,14 @@ export class ForgotPasswordComponent {
         this.validationErrors.set({});
 
         try {
-            await this.authService.requestPasswordReset(validation.data.email);
+            await this.auth.requestPasswordReset(validation.data.email);
             this.success.set(true);
         } catch (err: unknown) {
             const message =
                 err && typeof err === 'object' && 'message' in err
                     ? String((err as { message: string }).message)
                     : 'Unable to send reset email.';
-            this.toastService.error('Request failed', message);
+            this.toast.error('Request failed', message);
         }
     }
 

@@ -1,9 +1,9 @@
 /**
- * Sign In Page Component — Signal Forms (Angular v22)
+ * Sign In Page — Signal Forms
  */
 
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
-import { form, FormField, required, schema, submit } from '@angular/forms/signals';
+import { Component, inject, signal } from '@angular/core';
+import { form, FormField, required, schema } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -19,7 +19,6 @@ import {
 import { safeValidate, signInSchema } from '@utils/validators';
 
 @Component({
-    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-signin',
     imports: [
         RouterLink,
@@ -87,7 +86,7 @@ import { safeValidate, signInSchema } from '@utils/validators';
                 <app-submit-button
                     label="Login"
                     loadingLabel="Signing in..."
-                    [loading]="authService.isLoading()"
+                    [loading]="auth.isLoading()"
                 />
             </form>
 
@@ -99,28 +98,22 @@ import { safeValidate, signInSchema } from '@utils/validators';
     `,
 })
 export class SignInComponent {
-    authService = inject(AuthService);
+    readonly auth = inject(AuthService);
     private readonly router = inject(Router);
-    private readonly toastService = inject(ToastService);
+    private readonly toast = inject(ToastService);
 
-    private readonly signInModel = signal({
-        email: '',
-        password: '',
-        rememberMe: false,
-    });
-
+    private readonly model = signal({ email: '', password: '', rememberMe: false });
     readonly rememberMe = signal(false);
+    readonly submitted = signal(false);
+    readonly zodErrors = signal<Record<string, string[]>>({});
 
     readonly form = form(
-        this.signInModel,
+        this.model,
         schema((f) => {
             required(f.email, { message: 'Email is required' });
             required(f.password, { message: 'Password is required' });
         }),
     );
-
-    readonly submitted = signal(false);
-    readonly zodErrors = signal<Record<string, string[]>>({});
 
     fieldError(name: 'email' | 'password'): string | null {
         const field = this.form[name]();
@@ -128,9 +121,10 @@ export class SignInComponent {
             touched: field.touched(),
             submitted: this.submitted(),
         });
-        const zodMessage = this.zodErrors()[name]?.[0];
-        const signalMessage = field.errors()[0]?.message;
-        return resolveFieldError(zodMessage ?? signalMessage, show);
+        return resolveFieldError(
+            this.zodErrors()[name]?.[0] ?? field.errors()[0]?.message,
+            show,
+        );
     }
 
     onFieldInput(name: 'email' | 'password'): void {
@@ -138,48 +132,32 @@ export class SignInComponent {
     }
 
     onRememberChange(event: Event): void {
-        const target = event.target as HTMLInputElement;
-        this.rememberMe.set(target.checked);
+        this.rememberMe.set((event.target as HTMLInputElement).checked);
     }
 
     async onSubmit(event: Event): Promise<void> {
         event.preventDefault();
         this.submitted.set(true);
 
-        const validation = safeValidate(signInSchema, this.signInModel());
+        const validation = safeValidate(signInSchema, this.model());
         if (!validation.success) {
             this.zodErrors.set(validation.errors ?? {});
             return;
         }
         this.zodErrors.set({});
 
-        await submit(this.form, {
-            action: async (f) => {
-                try {
-                    const credentials = {
-                        ...f().value(),
-                        rememberMe: this.rememberMe(),
-                    };
-                    await this.authService.signIn(credentials);
-                    const destination = this.authService.mustChangePassword()
-                        ? ['/dashboard/settings']
-                        : ['/dashboard'];
-                    await this.router.navigate(destination, {
-                        queryParams: this.authService.mustChangePassword()
-                            ? { tab: 'security', forcePassword: '1' }
-                            : undefined,
-                    });
-                } catch {
-                    this.showAuthErrorToast('Sign in failed');
-                }
-            },
-        });
-    }
-
-    private showAuthErrorToast(title: string): void {
-        const message = this.authService.error();
-        if (!message) return;
-        this.toastService.error(title, message);
-        this.authService.clearError();
+        try {
+            await this.auth.signIn({ ...this.model(), rememberMe: this.rememberMe() });
+            const mustChange = this.auth.mustChangePassword();
+            await this.router.navigate(mustChange ? ['/dashboard/settings'] : ['/dashboard'], {
+                queryParams: mustChange ? { tab: 'security', forcePassword: '1' } : undefined,
+            });
+        } catch {
+            const message = this.auth.error();
+            if (message) {
+                this.toast.error('Sign in failed', message);
+                this.auth.clearError();
+            }
+        }
     }
 }

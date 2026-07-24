@@ -1,10 +1,4 @@
-// Re-export all models
+// Re-export shell / auth models
 export * from './auth.model';
 export * from './common.model';
-export * from './crm.model';
-export * from './enterprise.model';
-export * from './org-unit.model';
-export * from './organization.model';
 export * from './rbac.model';
-export * from './saved-view.model';
-export * from './sticky-note.model';

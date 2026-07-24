@@ -1,8 +1,8 @@
 /**
- * Sign Up Page Component
+ * Sign Up Page
  */
 
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
+import { Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
@@ -21,7 +21,6 @@ import {
 import { safeValidate, signUpSchema } from '@utils/validators';
 
 @Component({
-    changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-signup',
     imports: [
         RouterLink,
@@ -75,7 +74,7 @@ import { safeValidate, signUpSchema } from '@utils/validators';
                 <app-submit-button
                     label="Create account"
                     loadingLabel="Creating account..."
-                    [loading]="authService.isLoading()"
+                    [loading]="auth.isLoading()"
                 />
             </form>
 
@@ -87,9 +86,9 @@ import { safeValidate, signUpSchema } from '@utils/validators';
     `,
 })
 export class SignUpComponent {
-    authService = inject(AuthService);
+    readonly auth = inject(AuthService);
     private readonly router = inject(Router);
-    private readonly toastService = inject(ToastService);
+    private readonly toast = inject(ToastService);
     private readonly fb = inject(NonNullableFormBuilder);
 
     readonly nameFields = SIGN_UP_NAME_FIELDS;
@@ -135,19 +134,19 @@ export class SignUpComponent {
         this.validationErrors.set({});
 
         try {
-            await this.authService.signUp({
+            await this.auth.signUp({
                 email: raw.email,
                 password: raw.password,
                 confirmPassword: raw.confirmPassword,
                 firstName: raw.firstName || undefined,
                 lastName: raw.lastName || undefined,
             });
-            this.router.navigate(['/dashboard']);
+            await this.router.navigate(['/dashboard']);
         } catch {
-            const message = this.authService.error();
+            const message = this.auth.error();
             if (message) {
-                this.toastService.error('Sign up failed', message);
-                this.authService.clearError();
+                this.toast.error('Sign up failed', message);
+                this.auth.clearError();
             }
         }
     }
