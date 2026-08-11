@@ -121,14 +121,12 @@ export class CalendarRangeComponent {
 
     visibleMonths = computed(() => [this.viewMonth(), addMonths(this.viewMonth(), 1)]);
 
-    constructor() {
-        effect(() => {
-            const range = normalizeDateRange(this.from(), this.to());
-            if (range.from) {
-                this.syncViewToSelection(range.from);
-            }
-        });
-    }
+    private readonly syncViewToRange = effect(() => {
+        const range = normalizeDateRange(this.from(), this.to());
+        if (range.from) {
+            this.syncViewToSelection(range.from);
+        }
+    });
 
     syncViewToSelection(value: string): void {
         const parsed = parseIsoDate(value);

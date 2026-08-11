@@ -1,6 +1,6 @@
 import { prisma } from "../config/prisma";
 import { logger } from "../config/logger";
-import { Permissions } from "../shared/constants/permissions";
+import { ALL_PERMISSIONS, Permissions } from "../shared/constants/permissions";
 import { Roles } from "../shared/constants/roles";
 import { hashPassword } from "../shared/utils/crypto";
 import { formatPermissionCode } from "../shared/utils/permission";
@@ -14,24 +14,91 @@ if (!ADMIN_PASSWORD) {
   );
 }
 
-const PERMISSION_DEFINITIONS = [
-  { action: "manage", subject: "all" },
-  { action: "read", subject: "users" },
-  { action: "manage", subject: "users" },
-  { action: "read", subject: "roles" },
-  { action: "manage", subject: "roles" },
-  { action: "read", subject: "sessions" },
-  { action: "manage", subject: "sessions" },
-] as const;
+const PERMISSION_DEFINITIONS = ALL_PERMISSIONS.map((code) => {
+  const [action, subject] = code.split(":");
+  return { action, subject };
+});
 
 const ROLE_PERMISSIONS: Record<string, string[]> = {
-  [Roles.SuperAdmin]: PERMISSION_DEFINITIONS.map(({ action, subject }) =>
-    formatPermissionCode(action, subject),
-  ),
-  [Roles.Admin]: PERMISSION_DEFINITIONS.map(({ action, subject }) =>
-    formatPermissionCode(action, subject),
-  ),
-  [Roles.Manager]: [Permissions.ReadUsers, Permissions.ReadRoles, Permissions.ReadSessions],
+  [Roles.SuperAdmin]: [Permissions.ManageAll],
+  [Roles.Admin]: ALL_PERMISSIONS.filter((p) => p !== Permissions.ManageAll),
+  [Roles.Manager]: [
+    Permissions.ReadUsers,
+    Permissions.ReadRoles,
+    Permissions.ReadSessions,
+    Permissions.ReadProducts,
+    Permissions.ReadCategories,
+    Permissions.ReadBrands,
+    Permissions.ReadInventory,
+    Permissions.ReadOrders,
+    Permissions.ReadCustomers,
+    Permissions.ReadAnalytics,
+    Permissions.ReadReports,
+  ],
+  [Roles.ProductManager]: [
+    Permissions.ReadProducts,
+    Permissions.ManageProducts,
+    Permissions.ReadCategories,
+    Permissions.ManageCategories,
+    Permissions.ReadBrands,
+    Permissions.ManageBrands,
+    Permissions.ReadCollections,
+    Permissions.ManageCollections,
+    Permissions.ReadMedia,
+    Permissions.ManageMedia,
+    Permissions.ReadTags,
+    Permissions.ManageTags,
+  ],
+  [Roles.InventoryManager]: [
+    Permissions.ReadInventory,
+    Permissions.ManageInventory,
+    Permissions.ReadWarehouses,
+    Permissions.ManageWarehouses,
+    Permissions.ReadSuppliers,
+    Permissions.ManageSuppliers,
+    Permissions.ReadPurchaseOrders,
+    Permissions.ManagePurchaseOrders,
+    Permissions.ReadProducts,
+  ],
+  [Roles.OrderManager]: [
+    Permissions.ReadOrders,
+    Permissions.ManageOrders,
+    Permissions.CancelOrders,
+    Permissions.ReadCustomers,
+    Permissions.ReadPayments,
+    Permissions.ReadShipping,
+    Permissions.ManageShipping,
+    Permissions.ReadRefunds,
+    Permissions.ManageRefunds,
+  ],
+  [Roles.MarketingManager]: [
+    Permissions.ReadPromotions,
+    Permissions.ManagePromotions,
+    Permissions.ReadCoupons,
+    Permissions.ManageCoupons,
+    Permissions.ReadGiftCards,
+    Permissions.ManageGiftCards,
+    Permissions.ReadCms,
+    Permissions.ManageCms,
+    Permissions.ReadMedia,
+    Permissions.ManageMedia,
+  ],
+  [Roles.CustomerSupport]: [
+    Permissions.ReadCustomers,
+    Permissions.ManageCustomers,
+    Permissions.ReadOrders,
+    Permissions.ReadReviews,
+    Permissions.ManageReviews,
+    Permissions.ReadNotifications,
+  ],
+  [Roles.Accountant]: [
+    Permissions.ReadOrders,
+    Permissions.ReadPayments,
+    Permissions.ReadRefunds,
+    Permissions.ReadReports,
+    Permissions.ManageReports,
+    Permissions.ReadAnalytics,
+  ],
   [Roles.User]: [Permissions.ReadSessions],
 };
 
@@ -94,6 +161,8 @@ const seedAdminUser = async () => {
           deletedAt: null,
           failedLoginAttempts: 0,
           lockedUntil: null,
+          firstName: existing.firstName ?? "Admin",
+          lastName: existing.lastName ?? "User",
         },
       });
 
@@ -118,30 +187,165 @@ const seedAdminUser = async () => {
     });
 
     logger.info({ email: ADMIN_EMAIL }, "Admin account updated");
-    return;
+    return existing.id;
   }
 
-  await prisma.$transaction(async (tx) => {
-    const user = await tx.user.create({
+  const user = await prisma.$transaction(async (tx) => {
+    const created = await tx.user.create({
       data: {
         email: ADMIN_EMAIL,
         passwordHash,
         emailVerified: true,
         status: "ACTIVE",
+        firstName: "Admin",
+        lastName: "User",
         roles: { create: { roleId: adminRole.id } },
       },
     });
 
     await tx.account.create({
       data: {
-        userId: user.id,
+        userId: created.id,
         provider: "EMAIL",
         providerAccountId: ADMIN_EMAIL,
       },
     });
+
+    return created;
   });
 
   logger.info({ email: ADMIN_EMAIL }, "Admin account created");
+  return user.id;
+};
+
+const seedStoreCatalog = async (adminUserId: string) => {
+  const store = await prisma.store.upsert({
+    where: { slug: "default" },
+    update: {},
+    create: {
+      name: "Default Store",
+      slug: "default",
+      code: "DEFAULT",
+      status: "ACTIVE",
+      timezone: "UTC",
+      currencyCode: "USD",
+      settings: {
+        create: {
+          supportEmail: ADMIN_EMAIL,
+          orderNumberPrefix: "ORD",
+          lowStockThreshold: 5,
+        },
+      },
+    },
+  });
+
+  await prisma.storeUser.upsert({
+    where: { storeId_userId: { storeId: store.id, userId: adminUserId } },
+    update: { isDefault: true },
+    create: { storeId: store.id, userId: adminUserId, isDefault: true },
+  });
+
+  const warehouse = await prisma.warehouse.upsert({
+    where: { storeId_code: { storeId: store.id, code: "MAIN" } },
+    update: {},
+    create: {
+      storeId: store.id,
+      name: "Main Warehouse",
+      code: "MAIN",
+      isDefault: true,
+    },
+  });
+
+  const brand = await prisma.brand.upsert({
+    where: { storeId_slug: { storeId: store.id, slug: "acme" } },
+    update: {},
+    create: {
+      storeId: store.id,
+      name: "Acme",
+      slug: "acme",
+      description: "Sample brand",
+      status: "PUBLISHED",
+    },
+  });
+
+  const category = await prisma.category.upsert({
+    where: { storeId_slug: { storeId: store.id, slug: "apparel" } },
+    update: {},
+    create: {
+      storeId: store.id,
+      name: "Apparel",
+      slug: "apparel",
+      status: "PUBLISHED",
+      sortOrder: 1,
+    },
+  });
+
+  const existingProduct = await prisma.product.findFirst({
+    where: { storeId: store.id, slug: "classic-tee" },
+  });
+
+  if (!existingProduct) {
+    const product = await prisma.product.create({
+      data: {
+        storeId: store.id,
+        brandId: brand.id,
+        name: "Classic Tee",
+        slug: "classic-tee",
+        description: "A classic cotton t-shirt",
+        type: "VARIABLE",
+        status: "PUBLISHED",
+        visibility: "VISIBLE",
+        publishedAt: new Date(),
+        categories: { create: { categoryId: category.id } },
+        options: {
+          create: {
+            name: "Size",
+            position: 0,
+            values: {
+              create: [
+                { value: "S", position: 0 },
+                { value: "M", position: 1 },
+                { value: "L", position: 2 },
+              ],
+            },
+          },
+        },
+      },
+      include: { options: { include: { values: true } } },
+    });
+
+    const sizeOption = product.options[0];
+    for (const value of sizeOption.values) {
+      const variant = await prisma.productVariant.create({
+        data: {
+          storeId: store.id,
+          productId: product.id,
+          sku: `TEE-${value.value}`,
+          title: `Classic Tee / ${value.value}`,
+          price: 29.99,
+          compareAtPrice: 39.99,
+          costPrice: 12.0,
+          status: "PUBLISHED",
+          optionValues: { create: { optionValueId: value.id } },
+        },
+      });
+
+      await prisma.inventoryItem.create({
+        data: {
+          storeId: store.id,
+          warehouseId: warehouse.id,
+          variantId: variant.id,
+          quantityOnHand: 100,
+          quantityReserved: 0,
+          quantityAvailable: 100,
+        },
+      });
+    }
+
+    logger.info({ productId: product.id }, "Sample product seeded");
+  }
+
+  logger.info({ storeId: store.id, warehouseId: warehouse.id }, "Store catalog seeded");
 };
 
 const main = async () => {
@@ -151,23 +355,17 @@ const main = async () => {
 
   const permissionRecords = await seedPermissions();
   await seedRolePermissions(permissionRecords);
-  await seedAdminUser();
+  const adminUserId = await seedAdminUser();
+  await seedStoreCatalog(adminUserId);
 
-  logger.info(
-    {
-      email: ADMIN_EMAIL,
-      role: Roles.SuperAdmin,
-    },
-    "Seed complete — sign in with ADMIN_EMAIL / ADMIN_PASSWORD from your environment",
-  );
+  logger.info("E-commerce seed completed");
 };
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (error) => {
+  .catch((error) => {
     logger.error({ err: error }, "Seed failed");
+    process.exitCode = 1;
+  })
+  .finally(async () => {
     await prisma.$disconnect();
-    process.exit(1);
   });

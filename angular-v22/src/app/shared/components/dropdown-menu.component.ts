@@ -61,9 +61,7 @@ export class DropdownMenuComponent {
 
     open = signal(false);
 
-    constructor() {
-        this.destroyRef.onDestroy(() => this.close());
-    }
+    private readonly closeOnDestroy = this.destroyRef.onDestroy(() => this.close());
 
     toggle(event: Event): void {
         event.stopPropagation();

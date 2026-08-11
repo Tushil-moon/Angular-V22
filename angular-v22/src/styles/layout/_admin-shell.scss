@@ -35,7 +35,8 @@
 }
 
 .sidebar-inset-main {
-    @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background text-foreground shadow-sm;
+    @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden text-foreground shadow-sm;
+    background: var(--surface);
     border-radius: var(--inset-radius);
     box-shadow: 0 1px 1.5px 0 rgb(0 0 0 / 10%);
 }

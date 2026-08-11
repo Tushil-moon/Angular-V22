@@ -65,11 +65,11 @@ export class RichTextEditorComponent implements ControlValueAccessor {
 
     private onChange: (value: string) => void = () => undefined;
 
-    constructor() {
-        this.innerControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
+    private readonly valueChangesSubscription = this.innerControl.valueChanges
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((value) => {
             this.onChange(sanitizeRichHtml(value));
         });
-    }
 
     writeValue(value: string | null): void {
         this.innerControl.setValue(sanitizeRichHtml(value ?? ''), { emitEvent: false });

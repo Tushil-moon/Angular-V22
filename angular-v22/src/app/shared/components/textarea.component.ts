@@ -2,7 +2,16 @@
  * Textarea — shadcn Textarea
  */
 
-import { ChangeDetectionStrategy, Component, computed, forwardRef, input, output, signal } from '@angular/core'
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    effect,
+    forwardRef,
+    input,
+    output,
+    signal,
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
@@ -40,7 +49,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
                 <div class="form-error">{{ error() }}</div>
             }
             @if (hint() && !hasError()) {
-                <small class="text-muted-foreground block mt-1.5 text-sm">{{ hint() }}</small>
+                <small class="text-muted-foreground mt-1.5 block text-sm">{{ hint() }}</small>
             }
         </div>
     `,
@@ -53,8 +62,10 @@ export class TextareaComponent implements ControlValueAccessor {
     error = input<string | null>(null);
     hint = input('');
     rows = input(4);
+    modelValue = input<string | undefined>(undefined);
 
     blurred = output<void>();
+    valueChange = output<string>();
 
     value = signal('');
     isDisabled = signal(false);
@@ -64,10 +75,18 @@ export class TextareaComponent implements ControlValueAccessor {
     private onChange: (value: string) => void = () => undefined;
     private onTouched: () => void = () => undefined;
 
+    private readonly syncModelValue = effect(() => {
+        const next = this.modelValue();
+        if (next !== undefined) {
+            this.value.set(next);
+        }
+    });
+
     onInput(event: Event): void {
         const target = event.target as HTMLTextAreaElement;
         this.value.set(target.value);
         this.onChange(target.value);
+        this.valueChange.emit(target.value);
     }
 
     onBlur(): void {

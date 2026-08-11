@@ -201,7 +201,7 @@ export class AuthService {
     const orgName = input.email
       ? `${input.email.split("@")[0]}'s Workspace`
       : `${input.phone ?? "user"}'s Workspace`;
-    await authRepository.createOrganizationForUser(user.id, orgName, `user-${user.id.slice(0, 8)}`);
+    await authRepository.createStoreForUser(user.id, orgName, `user-${user.id.slice(0, 8)}`);
 
     await audit("REGISTER", meta, user.id);
 

@@ -2,15 +2,17 @@
  * Email Verification Page
  */
 
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import { AuthCardComponent } from '@shared/components/auth-card.component';
 import { LoaderComponent } from '@shared/components/loader.component';
+import { finalize } from 'rxjs';
 
 @Component({
     selector: 'app-verify-email',
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [AuthCardComponent, LoaderComponent, RouterLink],
     template: `
         <app-auth-card title="Email verification" description="Confirming your account address">
@@ -45,10 +47,10 @@ export class VerifyEmailComponent implements OnInit {
     readonly error = signal<string | null>(null);
 
     ngOnInit(): void {
-        void this.verify();
+        this.verify();
     }
 
-    private async verify(): Promise<void> {
+    private verify(): void {
         const token = this.route.snapshot.queryParamMap.get('token');
         if (!token) {
             this.error.set('Invalid verification link.');
@@ -56,13 +58,12 @@ export class VerifyEmailComponent implements OnInit {
             return;
         }
 
-        try {
-            await this.auth.verifyEmail(token);
-            this.toast.success('Email verified', 'Your account is confirmed.');
-        } catch {
-            this.error.set('Verification link is invalid or expired.');
-        } finally {
-            this.isLoading.set(false);
-        }
+        this.auth
+            .verifyEmail(token)
+            .pipe(finalize(() => this.isLoading.set(false)))
+            .subscribe({
+                next: () => this.toast.success('Email verified', 'Your account is confirmed.'),
+                error: () => this.error.set('Verification link is invalid or expired.'),
+            });
     }
 }

@@ -2,7 +2,7 @@
  * Sign In Page — Signal Forms
  */
 
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { form, FormField, required, schema } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
@@ -17,9 +17,11 @@ import {
     shouldShowFieldError,
 } from '@utils/form-display.util';
 import { safeValidate, signInSchema } from '@utils/validators';
+import { from, switchMap } from 'rxjs';
 
 @Component({
     selector: 'app-signin',
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         RouterLink,
         FormField,
@@ -135,7 +137,7 @@ export class SignInComponent {
         this.rememberMe.set((event.target as HTMLInputElement).checked);
     }
 
-    async onSubmit(event: Event): Promise<void> {
+    onSubmit(event: Event): void {
         event.preventDefault();
         this.submitted.set(true);
 
@@ -146,18 +148,26 @@ export class SignInComponent {
         }
         this.zodErrors.set({});
 
-        try {
-            await this.auth.signIn({ ...this.model(), rememberMe: this.rememberMe() });
-            const mustChange = this.auth.mustChangePassword();
-            await this.router.navigate(mustChange ? ['/dashboard/settings'] : ['/dashboard'], {
-                queryParams: mustChange ? { tab: 'security', forcePassword: '1' } : undefined,
+        this.auth
+            .signIn({ ...this.model(), rememberMe: this.rememberMe() })
+            .pipe(
+                switchMap(() => {
+                    const mustChange = this.auth.mustChangePassword();
+                    return from(
+                        this.router.navigate(mustChange ? ['/dashboard/settings'] : ['/dashboard'], {
+                            queryParams: mustChange ? { tab: 'security', forcePassword: '1' } : undefined,
+                        }),
+                    );
+                }),
+            )
+            .subscribe({
+                error: () => {
+                    const message = this.auth.error();
+                    if (message) {
+                        this.toast.error('Sign in failed', message);
+                        this.auth.clearError();
+                    }
+                },
             });
-        } catch {
-            const message = this.auth.error();
-            if (message) {
-                this.toast.error('Sign in failed', message);
-                this.auth.clearError();
-            }
-        }
     }
 }

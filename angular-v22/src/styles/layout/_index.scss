@@ -1,0 +1,427 @@
+/* Figma E-commerce Admin kit layout — mapped to our design tokens
+   Reference: https://www.figma.com/design/5BaKpvAQuYjEYp8ZKuefFc */
+
+.index-page {
+    @apply flex min-h-0 flex-1 flex-col gap-5;
+}
+
+.index-header {
+    @apply flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
+}
+
+.index-header-copy {
+    @apply min-w-0 space-y-1;
+}
+
+.index-title {
+    @apply text-2xl font-semibold tracking-tight text-foreground;
+}
+
+.index-subtitle {
+    @apply text-sm text-muted-foreground;
+}
+
+.index-actions {
+    @apply flex flex-wrap items-center gap-2;
+}
+
+/* White surface wrapping tabs + filters + table */
+.index-card {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 bg-card;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 16px rgb(0 0 0 / 4%);
+}
+
+.index-tabs {
+    @apply flex shrink-0 gap-0 overflow-x-auto border-b border-border px-2;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.index-tab {
+    @apply relative shrink-0 border-0 bg-transparent px-3.5 py-3 text-sm font-medium text-muted-foreground
+        transition-colors hover:text-foreground;
+    cursor: pointer;
+}
+
+.index-tab-active {
+    @apply text-foreground;
+
+    &::after {
+        content: '';
+        @apply absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-foreground;
+    }
+}
+
+.index-filters {
+    @apply flex shrink-0 flex-col gap-2 border-b border-border bg-card px-4 py-3 sm:flex-row sm:items-center
+        sm:justify-between;
+}
+
+.index-filters-leading {
+    @apply flex min-w-0 flex-1 flex-wrap items-center gap-2;
+}
+
+.index-filters-trailing {
+    @apply flex shrink-0 flex-wrap items-center gap-2;
+}
+
+.index-count {
+    @apply text-xs text-muted-foreground tabular-nums;
+}
+
+.index-body {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden;
+}
+
+.index-footer {
+    @apply shrink-0 border-t border-border bg-card px-3 py-2;
+}
+
+.index-empty {
+    @apply flex flex-col items-center justify-center gap-2 px-6 py-16 text-center;
+}
+
+.index-empty-title {
+    @apply text-sm font-semibold text-foreground;
+}
+
+.index-empty-desc {
+    @apply max-w-sm text-sm text-muted-foreground;
+}
+
+/* KPI strip — Figma Main Dashboard */
+.index-metrics {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4;
+}
+
+.index-metric {
+    @apply relative overflow-hidden rounded-2xl border border-border/80 bg-card p-5;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 16px rgb(0 0 0 / 4%);
+}
+
+.index-metric-top {
+    @apply flex items-start justify-between gap-3;
+}
+
+.index-metric-icon {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground;
+}
+
+.index-metric-label {
+    @apply text-sm font-medium text-muted-foreground;
+}
+
+.index-metric-value {
+    @apply mt-2 text-2xl font-semibold tracking-tight text-foreground tabular-nums;
+}
+
+.index-metric-hint {
+    @apply mt-2 text-xs text-muted-foreground;
+}
+
+.index-metric-trend {
+    @apply mt-2 inline-flex items-center gap-1 text-xs font-medium;
+}
+
+.index-metric-trend-up {
+    @apply text-emerald-700 dark:text-emerald-400;
+}
+
+.index-metric-trend-down {
+    @apply text-red-600 dark:text-red-400;
+}
+
+.index-sparkline {
+    @apply h-10 w-20 shrink-0 text-muted-foreground;
+    opacity: 0.7;
+}
+
+.index-sparkline path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.index-sparkline .spark-fill {
+    stroke: none;
+    fill: currentColor;
+    opacity: 0.12;
+}
+
+/* Home / analytics layout */
+.home-grid {
+    @apply grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(16rem,1fr)];
+}
+
+.home-panel {
+    @apply overflow-hidden rounded-2xl border border-border/80 bg-card;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 16px rgb(0 0 0 / 4%);
+}
+
+.home-panel-header {
+    @apply flex items-center justify-between gap-3 px-5 py-4;
+}
+
+.home-panel-title {
+    @apply text-base font-semibold text-foreground;
+}
+
+.home-panel-desc {
+    @apply mt-0.5 text-xs text-muted-foreground;
+}
+
+.home-panel-body {
+    @apply p-0;
+}
+
+.home-panel-pad {
+    @apply px-5 pb-5;
+}
+
+.home-link-list {
+    @apply divide-y divide-border;
+}
+
+.home-link {
+    @apply flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-muted/50;
+}
+
+.home-link-icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground;
+}
+
+.home-link-label {
+    @apply text-sm font-medium text-foreground;
+}
+
+.home-link-desc {
+    @apply text-xs text-muted-foreground;
+}
+
+.home-table-row {
+    @apply cursor-pointer;
+}
+
+/* Sales area chart */
+.home-chart {
+    @apply relative h-56 w-full overflow-hidden;
+}
+
+.home-chart svg {
+    @apply h-full w-full;
+}
+
+.home-chart-line {
+    fill: none;
+    stroke: var(--foreground);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+}
+
+.home-chart-area {
+    fill: var(--foreground);
+    opacity: 0.08;
+}
+
+.home-chart-grid line {
+    stroke: var(--border);
+    stroke-dasharray: 4 4;
+}
+
+.home-chart-labels {
+    @apply mt-3 flex justify-between text-[11px] text-muted-foreground;
+}
+
+/* Top products ranked list */
+.home-rank-list {
+    @apply flex flex-col gap-4 px-5 pb-5;
+}
+
+.home-rank-item {
+    @apply flex items-center gap-3;
+}
+
+.home-rank-avatar {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-sm font-semibold text-foreground;
+}
+
+.home-rank-body {
+    @apply min-w-0 flex-1;
+}
+
+.home-rank-title {
+    @apply truncate text-sm font-medium text-foreground;
+}
+
+.home-rank-meta {
+    @apply truncate text-xs text-muted-foreground;
+}
+
+.home-rank-bar {
+    @apply mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted;
+}
+
+.home-rank-bar-fill {
+    @apply h-full rounded-full bg-foreground;
+    opacity: 0.7;
+}
+
+.home-rank-value {
+    @apply shrink-0 text-sm font-semibold tabular-nums text-foreground;
+}
+
+/* Compact stock bar for inventory index */
+.index-stock {
+    @apply h-1.5 w-full max-w-[7rem] overflow-hidden rounded-full bg-muted;
+}
+
+.index-stock-fill {
+    @apply h-full rounded-full bg-emerald-600;
+}
+
+.index-stock-fill-warn {
+    @apply bg-amber-500;
+}
+
+.index-stock-fill-danger {
+    @apply bg-red-500;
+}
+
+.index-cell-primary {
+    @apply font-medium text-foreground;
+}
+
+.index-cell-muted {
+    @apply text-muted-foreground;
+}
+
+.index-cell-money {
+    @apply font-medium tabular-nums text-foreground;
+}
+
+/* Order Management — Figma node 5:2353 */
+.om-list-header {
+    @apply flex shrink-0 flex-col gap-3 border-b border-border px-5 py-4 sm:flex-row sm:items-center
+        sm:justify-between;
+}
+
+.om-list-title {
+    @apply text-base font-semibold text-foreground;
+}
+
+.om-payment {
+    @apply inline-flex items-center gap-2 text-sm text-foreground;
+}
+
+.om-payment-dot {
+    @apply size-2 shrink-0 rounded-full;
+}
+
+.om-payment-paid .om-payment-dot {
+    @apply bg-emerald-600;
+}
+
+.om-payment-unpaid .om-payment-dot {
+    @apply bg-amber-500;
+}
+
+.om-status {
+    @apply inline-flex items-center gap-1.5;
+}
+
+.om-row-num {
+    @apply text-sm tabular-nums text-muted-foreground;
+}
+
+.om-kpi-meta {
+    @apply mt-3 text-xs text-muted-foreground;
+}
+
+/* Legacy aliases */
+.ops-metric-grid {
+    @apply index-metrics;
+}
+
+.ops-metric {
+    @apply index-metric;
+}
+
+.ops-metric-label {
+    @apply index-metric-label;
+}
+
+.ops-metric-value {
+    @apply index-metric-value;
+}
+
+.ops-metric-hint {
+    @apply index-metric-hint;
+}
+
+.ops-panel {
+    @apply home-panel p-4;
+}
+
+.ops-section-title {
+    @apply home-panel-title;
+}
+
+.ops-section-desc {
+    @apply home-panel-desc;
+}
+
+.ops-split {
+    @apply home-grid;
+}
+
+.ops-shortcut-grid {
+    @apply grid grid-cols-2 gap-2;
+}
+
+.ops-shortcut {
+    @apply flex flex-col gap-2 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:bg-muted/60;
+}
+
+.ops-shortcut-icon {
+    @apply home-link-icon;
+}
+
+.ops-shortcut-label {
+    @apply home-link-label;
+}
+
+.ops-shortcut-desc {
+    @apply home-link-desc;
+}
+
+.ops-empty {
+    @apply index-empty;
+}
+
+.ops-empty-title {
+    @apply index-empty-title;
+}
+
+.ops-empty-desc {
+    @apply index-empty-desc;
+}
+
+.ops-attention {
+    @apply flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-4 sm:flex-row sm:items-center
+        sm:justify-between;
+}
+
+.ops-attention-title {
+    @apply text-sm font-semibold text-foreground;
+}
+
+.ops-attention-desc {
+    @apply mt-0.5 text-xs text-muted-foreground;
+}

@@ -1,14 +1,14 @@
 /**
- * Authentication Service — signals for state, resource for session restore
+ * Authentication Service — signals for state, rxResource for session restore
  */
 
-import { computed, inject, resource, Service, signal } from '@angular/core';
-import { toObservable } from '@angular/core/rxjs-interop';
+import { computed, inject, Service, signal } from '@angular/core';
+import { rxResource, toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { environment } from '@env';
 import { ApiError, SignInRequest, SignUpRequest, User } from '@models/index';
 import { throwIfAborted } from '@shared/utils/abort-signal';
-import { runResourceLoader } from '@shared/utils/resource-error';
+import { catchResourceStreamError } from '@shared/utils/resource-error';
 import {
     ApiAuthResponsePayload,
     ApiRefreshResponsePayload,
@@ -19,7 +19,18 @@ import {
 } from '@utils/api-mappers';
 import { getDeviceName } from '@utils/device-id.util';
 import { ignorePromise } from '@utils/form-display.util';
-import { filter, firstValueFrom, map, take } from 'rxjs';
+import {
+    catchError,
+    filter,
+    finalize,
+    map,
+    Observable,
+    of,
+    switchMap,
+    take,
+    tap,
+    throwError,
+} from 'rxjs';
 
 import { HttpClientService } from './http-client.service';
 import { TokenService } from './token.service';
@@ -36,12 +47,14 @@ export class AuthService {
     private readonly tokenVersion = signal(0);
 
     /** Restores session from storage / refresh token on first use. */
-    readonly sessionResource = resource({
-        loader: ({ abortSignal }) =>
-            runResourceLoader(() => this.restoreSession(abortSignal), {
-                fallback: null,
-                logMessage: 'Session restore failed:',
-            }),
+    readonly sessionResource = rxResource({
+        stream: ({ abortSignal }) =>
+            this.restoreSession(abortSignal).pipe(
+                catchResourceStreamError<User | null>({
+                    fallback: null,
+                    logMessage: 'Session restore failed:',
+                }),
+            ),
     });
 
     readonly currentUser = this.user.asReadonly();
@@ -65,139 +78,171 @@ export class AuthService {
         map(() => undefined),
     );
 
-    constructor() {
-        this.http.registerUnauthorizedHandler(() => this.handleUnauthorized());
-        const accessToken = this.tokens.getAccessToken();
-        if (accessToken) {
-            this.http.setAuthToken(accessToken);
-        }
-    }
+    private readonly bootstrapAuthSession = this.initializeAuthSession();
 
     /** Wait until session restore has finished (for route guards). */
-    ensureSessionReady(): Promise<void> {
-        return firstValueFrom(this.sessionReady$);
+    ensureSessionReady(): Observable<void> {
+        return this.sessionReady$;
     }
 
-    async signIn(request: SignInRequest): Promise<void> {
-        await this.run('Sign in failed. Please try again.', async () => {
-            const response = await this.http.post<ApiAuthResponsePayload>(
-                '/auth/login',
-                { ...request, deviceName: request.deviceName ?? getDeviceName() },
-                { skipAuth: true },
-            );
-            if (response.data) {
-                this.applyAuth(response.data);
-            }
-        });
+    signIn(request: SignInRequest): Observable<void> {
+        return this.run(
+            'Sign in failed. Please try again.',
+            this.http
+                .post<ApiAuthResponsePayload>(
+                    '/auth/login',
+                    { ...request, deviceName: request.deviceName ?? getDeviceName() },
+                    { skipAuth: true },
+                )
+                .pipe(
+                    tap((response) => {
+                        if (response.data) {
+                            this.applyAuth(response.data);
+                        }
+                    }),
+                ),
+        );
     }
 
-    async signUp(request: SignUpRequest): Promise<void> {
-        await this.run('Sign up failed. Please try again.', async () => {
-            const response = await this.http.post<ApiAuthResponsePayload>(
-                '/auth/register',
-                {
-                    email: request.email,
-                    password: request.password,
-                    firstName: request.firstName,
-                    lastName: request.lastName,
-                },
-                { skipAuth: true },
-            );
-            if (response.data) {
-                this.applyAuth(response.data);
-            }
-        });
+    signUp(request: SignUpRequest): Observable<void> {
+        return this.run(
+            'Sign up failed. Please try again.',
+            this.http
+                .post<ApiAuthResponsePayload>(
+                    '/auth/register',
+                    {
+                        email: request.email,
+                        password: request.password,
+                        firstName: request.firstName,
+                        lastName: request.lastName,
+                    },
+                    { skipAuth: true },
+                )
+                .pipe(
+                    tap((response) => {
+                        if (response.data) {
+                            this.applyAuth(response.data);
+                        }
+                    }),
+                ),
+        );
     }
 
-    async signOut(): Promise<void> {
+    signOut(): Observable<void> {
         this.loading.set(true);
-        try {
-            if (this.tokens.hasAccessToken()) {
-                await this.http.post('/auth/logout', {});
-            }
-        } catch (error) {
-            console.error('Sign out error:', error);
-        } finally {
-            this.clearAuth();
-            this.loading.set(false);
-        }
+
+        const logout$ = this.tokens.hasAccessToken()
+            ? this.http.post('/auth/logout', {}).pipe(
+                  catchError((error) => {
+                      console.error('Sign out error:', error);
+                      return of(undefined);
+                  }),
+              )
+            : of(undefined);
+
+        return logout$.pipe(
+            tap(() => this.clearAuth()),
+            map(() => undefined),
+            finalize(() => this.loading.set(false)),
+        );
     }
 
-    async signOutAll(): Promise<void> {
+    signOutAll(): Observable<void> {
         this.loading.set(true);
-        try {
-            if (this.tokens.hasAccessToken()) {
-                await this.http.post('/auth/logout-all', {});
-            }
-        } catch (error) {
-            console.error('Sign out all error:', error);
-        } finally {
-            this.clearAuth();
-            this.loading.set(false);
-        }
+
+        const logout$ = this.tokens.hasAccessToken()
+            ? this.http.post('/auth/logout-all', {}).pipe(
+                  catchError((error) => {
+                      console.error('Sign out all error:', error);
+                      return of(undefined);
+                  }),
+              )
+            : of(undefined);
+
+        return logout$.pipe(
+            tap(() => this.clearAuth()),
+            map(() => undefined),
+            finalize(() => this.loading.set(false)),
+        );
     }
 
-    async requestPasswordReset(email: string): Promise<void> {
-        await this.run('Password reset request failed. Please try again.', () =>
+    requestPasswordReset(email: string): Observable<void> {
+        return this.run(
+            'Password reset request failed. Please try again.',
             this.http.post('/auth/password/forgot', { email }, { skipAuth: true }),
         );
     }
 
-    async resetPassword(token: string, password: string): Promise<void> {
-        await this.run('Password reset failed. Please try again.', () =>
+    resetPassword(token: string, password: string): Observable<void> {
+        return this.run(
+            'Password reset failed. Please try again.',
             this.http.post('/auth/password/reset', { token, password }, { skipAuth: true }),
         );
     }
 
-    async verifyEmail(token: string): Promise<void> {
-        await this.run('Email verification failed.', async () => {
-            await this.http.post('/auth/email/verify', { token }, { skipAuth: true });
-            const current = this.user();
-            if (current) {
-                this.setUser({ ...current, emailVerified: true });
-            }
-        });
+    verifyEmail(token: string): Observable<void> {
+        return this.run(
+            'Email verification failed.',
+            this.http.post('/auth/email/verify', { token }, { skipAuth: true }).pipe(
+                tap(() => {
+                    const current = this.user();
+                    if (current) {
+                        this.setUser({ ...current, emailVerified: true });
+                    }
+                }),
+            ),
+        );
     }
 
-    async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-        await this.run('Failed to change password.', async () => {
-            await this.http.post('/auth/password/change', { currentPassword, newPassword });
-            const current = this.user();
-            if (current) {
-                this.setUser({ ...current, mustChangePassword: false });
-            }
-        });
+    changePassword(currentPassword: string, newPassword: string): Observable<void> {
+        return this.run(
+            'Failed to change password.',
+            this.http.post('/auth/password/change', { currentPassword, newPassword }).pipe(
+                tap(() => {
+                    const current = this.user();
+                    if (current) {
+                        this.setUser({ ...current, mustChangePassword: false });
+                    }
+                }),
+            ),
+        );
     }
 
-    async requestEmailVerification(): Promise<void> {
-        await this.http.post('/auth/email/request-verification', {});
+    requestEmailVerification(): Observable<void> {
+        return this.http.post('/auth/email/request-verification', {}).pipe(map(() => undefined));
     }
 
-    async refreshProfile(): Promise<void> {
-        try {
-            const response = await this.http.get<ApiUserPayload>('/users/me');
-            if (response.data) {
-                this.setUser(mapApiUser(response.data));
-            }
-        } catch (error) {
-            console.error('Failed to refresh profile:', error);
-        }
+    refreshProfile(): Observable<void> {
+        return this.http.get<ApiUserPayload>('/users/me').pipe(
+            tap((response) => {
+                if (response.data) {
+                    this.setUser(mapApiUser(response.data));
+                }
+            }),
+            map(() => undefined),
+            catchError((error) => {
+                console.error('Failed to refresh profile:', error);
+                return of(undefined);
+            }),
+        );
     }
 
-    async refreshToken(): Promise<void> {
+    refreshToken(): Observable<void> {
         const refreshToken = this.tokens.getRefreshToken();
         if (!refreshToken) {
-            throw new Error('No refresh token available');
+            return throwError(() => new Error('No refresh token available'));
         }
 
-        const response = await this.http.post<ApiRefreshResponsePayload>(
-            '/auth/refresh',
-            { refreshToken },
-            { skipAuth: true },
-        );
-        if (response.data) {
-            this.applyTokens(mapApiRefreshResponse(response.data));
-        }
+        return this.http
+            .post<ApiRefreshResponsePayload>('/auth/refresh', { refreshToken }, { skipAuth: true })
+            .pipe(
+                tap((response) => {
+                    if (response.data) {
+                        this.applyTokens(mapApiRefreshResponse(response.data));
+                    }
+                }),
+                map(() => undefined),
+            );
     }
 
     handleUnauthorized(): void {
@@ -217,7 +262,15 @@ export class AuthService {
         this.errorMessage.set(null);
     }
 
-    private async restoreSession(abortSignal: AbortSignal): Promise<User | null> {
+    private initializeAuthSession(): void {
+        this.http.registerUnauthorizedHandler(() => this.handleUnauthorized());
+        const accessToken = this.tokens.getAccessToken();
+        if (accessToken) {
+            this.http.setAuthToken(accessToken);
+        }
+    }
+
+    private restoreSession(abortSignal: AbortSignal): Observable<User | null> {
         throwIfAborted(abortSignal);
 
         const storedUser = this.readStoredUser();
@@ -230,40 +283,38 @@ export class AuthService {
             this.tokenVersion.update((v) => v + 1);
 
             if (!storedUser.permissions?.length) {
-                await this.refreshProfile();
-                throwIfAborted(abortSignal);
+                return this.refreshProfile().pipe(map(() => this.user()));
             }
-            return this.user();
+            return of(this.user());
         }
 
         if (refreshToken && storedUser) {
-            try {
-                await this.refreshToken();
-                throwIfAborted(abortSignal);
-                await this.refreshProfile();
-                throwIfAborted(abortSignal);
-                return this.user();
-            } catch {
-                this.clearAuth();
-                return null;
-            }
+            return this.refreshToken().pipe(
+                switchMap(() => this.refreshProfile()),
+                map(() => this.user()),
+                catchError(() => {
+                    this.clearAuth();
+                    return of(null);
+                }),
+            );
         }
 
         this.clearAuth();
-        return null;
+        return of(null);
     }
 
-    private async run(fallbackError: string, action: () => Promise<unknown>): Promise<void> {
+    private run(fallbackError: string, action$: Observable<unknown>): Observable<void> {
         this.loading.set(true);
         this.errorMessage.set(null);
-        try {
-            await action();
-        } catch (error: unknown) {
-            this.errorMessage.set(this.toMessage(error, fallbackError));
-            throw error;
-        } finally {
-            this.loading.set(false);
-        }
+
+        return action$.pipe(
+            map(() => undefined),
+            catchError((error: unknown) => {
+                this.errorMessage.set(this.toMessage(error, fallbackError));
+                return throwError(() => error);
+            }),
+            finalize(() => this.loading.set(false)),
+        );
     }
 
     private applyAuth(payload: ApiAuthResponsePayload): void {

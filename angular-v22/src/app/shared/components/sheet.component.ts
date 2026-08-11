@@ -52,16 +52,14 @@ export class SheetComponent {
 
     open = signal(false);
 
-    constructor() {
-        effect(() => {
-            this.open.set(this.isOpen());
-        });
+    private readonly syncOpenInput = effect(() => {
+        this.open.set(this.isOpen());
+    });
 
-        effect(() => {
-            if (!isPlatformBrowser(this.platformId)) return;
-            document.body.style.overflow = this.open() ? 'hidden' : '';
-        });
-    }
+    private readonly syncBodyOverflow = effect(() => {
+        if (!isPlatformBrowser(this.platformId)) return;
+        document.body.style.overflow = this.open() ? 'hidden' : '';
+    });
 
     close(): void {
         this.open.set(false);

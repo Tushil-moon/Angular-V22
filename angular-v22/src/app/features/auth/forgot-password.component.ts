@@ -2,7 +2,7 @@
  * Forgot Password Page
  */
 
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
@@ -21,6 +21,7 @@ import { forgotPasswordSchema, safeValidate } from '@utils/validators';
 
 @Component({
     selector: 'app-forgot-password',
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         RouterLink,
         ReactiveFormsModule,
@@ -90,7 +91,7 @@ export class ForgotPasswordComponent {
         this.validationErrors.update((errors) => clearFieldFromErrors(errors, field));
     }
 
-    async onSubmit(): Promise<void> {
+    onSubmit(): void {
         this.submitted.set(true);
 
         const validation = safeValidate(forgotPasswordSchema, this.form.getRawValue());
@@ -101,16 +102,16 @@ export class ForgotPasswordComponent {
 
         this.validationErrors.set({});
 
-        try {
-            await this.auth.requestPasswordReset(validation.data.email);
-            this.success.set(true);
-        } catch (err: unknown) {
-            const message =
-                err && typeof err === 'object' && 'message' in err
-                    ? String((err as { message: string }).message)
-                    : 'Unable to send reset email.';
-            this.toast.error('Request failed', message);
-        }
+        this.auth.requestPasswordReset(validation.data.email).subscribe({
+            next: () => this.success.set(true),
+            error: (err: unknown) => {
+                const message =
+                    err && typeof err === 'object' && 'message' in err
+                        ? String((err as { message: string }).message)
+                        : 'Unable to send reset email.';
+                this.toast.error('Request failed', message);
+            },
+        });
     }
 
     fieldError(field: string): string | null {

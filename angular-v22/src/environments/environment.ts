@@ -4,7 +4,8 @@
 
 export const environment = {
     production: false,
-    apiBaseUrl: '/api/v1',
+    /** Direct backend URL in local dev (avoids relying on ng-serve proxy / wrong app port). */
+    apiBaseUrl: 'http://localhost:3000/api/v1',
     apiTimeout: 30000,
     tokenStorageKey: 'auth_token',
     refreshTokenStorageKey: 'refresh_token',

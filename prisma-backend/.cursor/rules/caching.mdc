@@ -1,30 +1,12 @@
----
-description: Caching strategy — only when explicitly requested
-globs: src/**/*.ts
-alwaysApply: false
----
-
 # Caching
 
-**This project does not use Redis or in-memory cache by default.**
+Redis **is used** for rate limiting helpers, BullMQ job queues, optional settings/catalog cache, and idempotency keys.
+
+See root [`docs/caching.md`](../../docs/caching.md) for key patterns and invalidation rules.
 
 ## Rules
 
-- Do not introduce caching layers unless explicitly requested
-- Do not cache auth/session data in shared cache without invalidation strategy
-- Never cache per-user data in global cache without user-scoped keys
-
-## When caching is added
-
-- Define TTL and invalidation on every write path
-- Cache keys: `{entity}:{id}` or `{entity}:list:{hash}`
-- Prefer cache-aside pattern
-- Document in module README comment
-
-## Never cache
-
-- JWT validation results bypassing DB session check
-- Password hashes or tokens
-- Non-idempotent POST responses
-
-Until requested, rely on PostgreSQL query optimization and pagination.
+- Do not cache passwords, refresh tokens, or payment secrets
+- Do not treat cached inventory as source of truth
+- Invalidate catalog/settings caches on write
+- REDIS_URL is optional in local development; API remains usable without Redis (queues disabled)

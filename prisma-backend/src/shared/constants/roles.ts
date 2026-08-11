@@ -2,10 +2,12 @@ export const Roles = {
   SuperAdmin: "Super Admin",
   Admin: "Admin",
   Manager: "Manager",
-  Sales: "Sales",
-  Support: "Support",
-  Finance: "Finance",
-  Marketing: "Marketing",
+  ProductManager: "Product Manager",
+  InventoryManager: "Inventory Manager",
+  OrderManager: "Order Manager",
+  MarketingManager: "Marketing Manager",
+  CustomerSupport: "Customer Support",
+  Accountant: "Accountant",
   User: "User",
 } as const;
 

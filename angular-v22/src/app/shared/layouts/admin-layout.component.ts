@@ -2,7 +2,7 @@
  * Admin shell layout — lazy-loaded with dashboard routes
  */
 
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { AuthService } from '@services/auth.service';
@@ -17,6 +17,7 @@ import {
     SIDEBAR_NAV_GROUPS,
 } from '@shared/config/navigation.config';
 import { ignorePromise } from '@utils/form-display.util';
+import { from, switchMap } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
 import { AvatarComponent } from '../components/avatar.component';
@@ -34,6 +35,7 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
 
 @Component({
     selector: 'app-admin-layout',
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         RouterOutlet,
         AvatarComponent,
@@ -70,8 +72,8 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
                                 </svg>
                             </div>
                             <div class="sidebar-brand-text sidebar-collapsible-text">
-                                <span class="sidebar-brand-title">Angular V22</span>
-                                <span class="sidebar-brand-subtitle">Workspace</span>
+                                <span class="sidebar-brand-title">Store Admin</span>
+                                <span class="sidebar-brand-subtitle">Commerce console</span>
                             </div>
                         </div>
                     </div>
@@ -329,7 +331,7 @@ export class AdminLayoutComponent {
     userEmail = computed(() => this.authService.currentUser()?.email ?? '');
     userInitials = computed(() => this.authService.userInitials() || 'U');
 
-    constructor() {
+    private readonly syncPageTitle = (() => {
         this.pageTitle.set(resolvePageTitle(this.router.url));
         this.router.events
             .pipe(
@@ -337,12 +339,12 @@ export class AdminLayoutComponent {
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe((e) => this.pageTitle.set(resolvePageTitle(e.urlAfterRedirects)));
-    }
+    })();
 
     onProfileMenuAction(item: ProfileMenuItem, menu: DropdownMenuComponent): void {
         menu.close();
         if (item.action === 'logout') {
-            void this.logout();
+            this.logout();
             return;
         }
         if (item.route) {
@@ -350,10 +352,20 @@ export class AdminLayoutComponent {
         }
     }
 
-    async logout(): Promise<void> {
+    logout(): void {
         this.mobileNavOpen.set(false);
-        await this.authService.signOut();
-        this.toastService.success('Signed out', 'You have been logged out successfully.');
-        ignorePromise(this.router.navigate(['/auth/signin']));
+        this.authService
+            .signOut()
+            .pipe(
+                switchMap(() => {
+                    this.toastService.success('Signed out', 'You have been logged out successfully.');
+                    return from(this.router.navigate(['/auth/signin']));
+                }),
+            )
+            .subscribe({
+                error: () => {
+                    ignorePromise(this.router.navigate(['/auth/signin']));
+                },
+            });
     }
 }

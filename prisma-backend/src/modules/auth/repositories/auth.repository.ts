@@ -83,14 +83,14 @@ export const authRepository = {
     });
   },
 
-  createOrganizationForUser(userId: string, name: string, slug: string) {
-    return prisma.organization.create({
+  createStoreForUser(userId: string, name: string, slug: string) {
+    return prisma.store.create({
       data: {
         name,
         slug,
         timezone: "UTC",
-        currency: "USD",
-        members: { create: { userId, role: "OWNER" } },
+        currencyCode: "USD",
+        users: { create: { userId, isDefault: true } },
       },
     });
   },

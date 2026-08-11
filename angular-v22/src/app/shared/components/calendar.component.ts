@@ -123,14 +123,12 @@ export class CalendarComponent {
         });
     });
 
-    constructor() {
-        effect(() => {
-            const selected = this.selected();
-            if (selected) {
-                this.syncViewToSelection(selected);
-            }
-        });
-    }
+    private readonly syncViewToSelected = effect(() => {
+        const selected = this.selected();
+        if (selected) {
+            this.syncViewToSelection(selected);
+        }
+    });
 
     syncViewToSelection(value: string): void {
         const parsed = this.parseBoundary(value);

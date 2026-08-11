@@ -45,7 +45,7 @@ export function asOptionalString(value: unknown): string | undefined {
     return typeof value === 'string' ? value : undefined;
 }
 
-/** Fire-and-forget async work without floating-promise or `void` operator warnings. */
+/** Fire-and-forget detached work without floating-promise warnings. */
 export function ignorePromise(result: PromiseLike<unknown> | null | undefined | void | boolean): void {
     if (result != null && typeof result === 'object' && 'then' in result) {
         Promise.resolve(result).catch(() => undefined);

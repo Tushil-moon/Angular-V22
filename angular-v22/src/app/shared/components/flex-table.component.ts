@@ -164,23 +164,23 @@ export class FlexTableComponent {
         return Array.from({ length: count }, (_, index) => index);
     });
 
-    constructor() {
-        const injector = inject(Injector);
+    private readonly injector = inject(Injector);
 
-        effect(() => {
-            if (this.fill() && this.loading()) {
-                afterNextRender(() => this.updateDynamicSkeletonCount(), { injector });
-            } else {
-                this.dynamicSkeletonCount.set(null);
-            }
-        });
+    private readonly fillSkeletonEffect = effect(() => {
+        if (this.fill() && this.loading()) {
+            afterNextRender(() => this.updateDynamicSkeletonCount(), { injector: this.injector });
+        } else {
+            this.dynamicSkeletonCount.set(null);
+        }
+    });
 
-        this.destroyRef.onDestroy(() => this.resizeObserver?.disconnect());
+    private readonly disconnectOnDestroy = this.destroyRef.onDestroy(() =>
+        this.resizeObserver?.disconnect(),
+    );
 
-        fromEvent(window, 'resize')
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => this.onWindowResize());
-    }
+    private readonly windowResizeSubscription = fromEvent(window, 'resize')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.onWindowResize());
 
     onWindowResize(): void {
         this.updateDynamicSkeletonCount();

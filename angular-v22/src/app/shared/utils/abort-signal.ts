@@ -1,5 +1,5 @@
 /**
- * AbortSignal helpers for Angular resource() loaders
+ * AbortSignal helpers for Angular rxResource() streams
  */
 
 export function throwIfAborted(signal: AbortSignal): void {

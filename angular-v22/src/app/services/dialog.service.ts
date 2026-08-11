@@ -4,6 +4,7 @@ import { inject, Injectable, Injector, NgZone } from '@angular/core';
 import { DIALOG_CLOSE, DIALOG_CONFIG, DIALOG_DATA } from '@shared/dialog/dialog.tokens';
 import type { DialogConfig } from '@shared/dialog/dialog.types';
 import { DialogRef } from '@shared/dialog/dialog-ref';
+import { from, map, Observable } from 'rxjs';
 
 @Injectable({
     providedIn: 'root',
@@ -20,12 +21,11 @@ export class DialogService {
         return this.activeRef !== null;
     }
 
-    async openLazy<T, D = unknown, R = unknown>(
+    openLazy<T, D = unknown, R = unknown>(
         loader: () => Promise<ComponentType<T>>,
         config: DialogConfig<D> = {},
-    ): Promise<DialogRef<T, R>> {
-        const component = await loader();
-        return this.open(component, config);
+    ): Observable<DialogRef<T, R>> {
+        return from(loader()).pipe(map((component) => this.open(component, config)));
     }
 
     open<T, D = unknown, R = unknown>(

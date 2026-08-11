@@ -5,11 +5,13 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '@services/index';
+import { map } from 'rxjs';
 
-export const guestGuard: CanActivateFn = async () => {
+export const guestGuard: CanActivateFn = () => {
     const auth = inject(AuthService);
     const router = inject(Router);
 
-    await auth.ensureSessionReady();
-    return auth.isAuthenticated() ? router.parseUrl('/dashboard') : true;
+    return auth.ensureSessionReady().pipe(
+        map(() => (auth.isAuthenticated() ? router.parseUrl('/dashboard') : true)),
+    );
 };

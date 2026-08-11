@@ -1,36 +1,39 @@
-# Angular V22 Full Stack
+# Angular V22 Full Stack — E-Commerce Admin
 
-Monorepo with Angular 22 frontend and Express + Prisma backend.
+Monorepo for a production-oriented **e-commerce admin panel**:
 
-## Structure
-
-```
-angular-v22/      → Angular 22 dashboard (frontend)
-prisma-backend/   → Express API + Prisma (backend)
+```text
+angular-v22/      → Angular 22 admin UI
+prisma-backend/   → Express + Prisma + PostgreSQL API
+docs/             → Architecture, database, API, lifecycles
 ```
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 - npm
-- PostgreSQL (or Supabase) for the backend
+- PostgreSQL (local Docker or managed)
+- Redis (optional for local; required for workers/queues)
 
-## Backend setup
+## Quick start
+
+### Backend
 
 ```bash
 cd prisma-backend
 cp .env.example .env
-# Edit .env with your database URL and JWT secrets
+# Set DATABASE_URL, DIRECT_URL, JWT secrets, ADMIN_PASSWORD
 npm install
-npm run prisma:generate
-npm run prisma:migrate
+npx prisma migrate deploy
 npm run seed
 npm run dev
+# optional worker:
+npm run worker
 ```
 
-API runs at `http://localhost:3000`.
+API: `http://localhost:3000` — docs at `/docs`
 
-## Frontend setup
+### Frontend
 
 ```bash
 cd angular-v22
@@ -38,17 +41,35 @@ npm install
 npm start
 ```
 
-App runs at `http://localhost:4200` and proxies `/api` to the backend.
+App: `http://localhost:4200` (proxies `/api` → backend)
 
-## Scripts
+### Docker (API + Postgres + Redis + MinIO + worker)
 
-| Location | Command | Description |
-|----------|---------|-------------|
-| `angular-v22` | `npm start` | Dev server |
-| `angular-v22` | `npm run build` | Production build |
-| `prisma-backend` | `npm run dev` | API dev server |
-| `prisma-backend` | `npm test` | Run tests |
+```bash
+cd prisma-backend
+docker compose up --build
+```
+
+## Implemented domains (API)
+
+- Auth, users, sessions, roles, permissions, audit logs
+- Catalog: products (+ variants), categories, brands
+- Inventory + warehouses (adjustments, low/out of stock)
+- Customers + orders (create/confirm/cancel/ship/complete)
+- Settings (store)
+- Analytics dashboard aggregates
+
+Frontend: auth flows, admin shell, settings, products list/create/edit, dashboard KPIs, coming-soon placeholders for remaining nav items.
+
+## Conventions
+
+- Backend: modular Express services, Zod validation, snake_case HTTP payloads
+- Frontend: signals, `rxResource`, Observables (no `async/await` in app code), OnPush
+- Money: `Decimal(15,4)`; order line snapshots are immutable
+- Multi-store ready via `storeId`
+
+See [`docs/architecture.md`](./docs/architecture.md) and [`docs/database.md`](./docs/database.md).
 
 ## Environment
 
-Never commit `.env` files. Use `prisma-backend/.env.example` as a template.
+Never commit `.env`. Use `prisma-backend/.env.example`.

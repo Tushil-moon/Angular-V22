@@ -1,9 +1,10 @@
 /**
- * Normalize thrown values for Angular resource() loaders.
+ * Normalize thrown values for Angular rxResource() streams.
  * Resource requires Error instances when rejecting; API layer throws plain ApiError objects.
  */
 
 import type { ApiError } from '@models/index';
+import { catchError, Observable, of, throwError } from 'rxjs';
 
 export function toResourceError(error: unknown, fallback = 'Request failed'): Error {
     if (error instanceof DOMException && error.name === 'AbortError') {
@@ -23,31 +24,28 @@ export function toResourceError(error: unknown, fallback = 'Request failed'): Er
 }
 
 /**
- * Run an async loader and map failures to Error instances for resource().
- * Returns the fallback value instead of throwing when returnFallbackOnError is true.
+ * Map stream failures to Error instances for rxResource(), or emit a fallback value.
  */
-export async function runResourceLoader<T>(
-    execute: () => Promise<T>,
-    options?: {
-        fallback?: T;
-        logMessage?: string;
-    },
-): Promise<T> {
-    try {
-        return await execute();
-    } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-            throw error;
-        }
+export function catchResourceStreamError<T>(options?: {
+    fallback?: T;
+    logMessage?: string;
+}): (source: Observable<T>) => Observable<T> {
+    return (source) =>
+        source.pipe(
+            catchError((error) => {
+                if (error instanceof DOMException && error.name === 'AbortError') {
+                    return throwError(() => error);
+                }
 
-        if (options?.logMessage) {
-            console.error(options.logMessage, error);
-        }
+                if (options?.logMessage) {
+                    console.error(options.logMessage, error);
+                }
 
-        if (options && 'fallback' in options) {
-            return options.fallback as T;
-        }
+                if (options && 'fallback' in options) {
+                    return of(options.fallback as T);
+                }
 
-        throw toResourceError(error);
-    }
+                return throwError(() => toResourceError(error));
+            }),
+        );
 }

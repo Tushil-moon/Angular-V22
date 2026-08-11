@@ -2,7 +2,7 @@
  * Sign Up Page
  */
 
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
@@ -19,9 +19,11 @@ import {
     shouldShowFieldError,
 } from '@utils/form-display.util';
 import { safeValidate, signUpSchema } from '@utils/validators';
+import { from, switchMap } from 'rxjs';
 
 @Component({
     selector: 'app-signup',
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         RouterLink,
         ReactiveFormsModule,
@@ -114,7 +116,7 @@ export class SignUpComponent {
         this.validationErrors.update((errors) => clearFieldFromErrors(errors, field));
     }
 
-    async onSubmit(): Promise<void> {
+    onSubmit(): void {
         this.submitted.set(true);
 
         const raw = this.form.getRawValue();
@@ -133,22 +135,24 @@ export class SignUpComponent {
 
         this.validationErrors.set({});
 
-        try {
-            await this.auth.signUp({
+        this.auth
+            .signUp({
                 email: raw.email,
                 password: raw.password,
                 confirmPassword: raw.confirmPassword,
                 firstName: raw.firstName || undefined,
                 lastName: raw.lastName || undefined,
+            })
+            .pipe(switchMap(() => from(this.router.navigate(['/dashboard']))))
+            .subscribe({
+                error: () => {
+                    const message = this.auth.error();
+                    if (message) {
+                        this.toast.error('Sign up failed', message);
+                        this.auth.clearError();
+                    }
+                },
             });
-            await this.router.navigate(['/dashboard']);
-        } catch {
-            const message = this.auth.error();
-            if (message) {
-                this.toast.error('Sign up failed', message);
-                this.auth.clearError();
-            }
-        }
     }
 
     getFieldError(field: string): string | null {

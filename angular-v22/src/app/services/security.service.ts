@@ -1,6 +1,8 @@
-import { inject, Injectable, resource } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { throwIfAborted } from '@shared/utils/abort-signal';
-import { runResourceLoader } from '@shared/utils/resource-error';
+import { catchResourceStreamError } from '@shared/utils/resource-error';
+import { map, Observable } from 'rxjs';
 
 import { HttpClientService } from './http-client.service';
 
@@ -64,23 +66,24 @@ const mapStatus = (payload: ApiSecurityStatusPayload): SecurityStatus => ({
 export class SecurityService {
     private readonly http = inject(HttpClientService);
 
-    readonly policyResource = resource({
-        loader: async ({ abortSignal }) =>
-            runResourceLoader(
-                async () => {
-                    throwIfAborted(abortSignal);
-                    const response = await this.http.get<ApiSecurityPolicyPayload>(
-                        '/auth/security-policy',
-                        { skipAuth: true },
-                    );
-                    return response.data ? mapPolicy(response.data) : null;
-                },
-                { fallback: null, logMessage: 'Failed to load security policy:' },
-            ),
+    readonly policyResource = rxResource({
+        stream: ({ abortSignal }) => {
+            throwIfAborted(abortSignal);
+            return this.http
+                .get<ApiSecurityPolicyPayload>('/auth/security-policy', { skipAuth: true })
+                .pipe(
+                    map((response) => (response.data ? mapPolicy(response.data) : null)),
+                    catchResourceStreamError<SecurityPolicy | null>({
+                        fallback: null,
+                        logMessage: 'Failed to load security policy:',
+                    }),
+                );
+        },
     });
 
-    async fetchSecurityStatus(): Promise<SecurityStatus | null> {
-        const response = await this.http.get<ApiSecurityStatusPayload>('/auth/security-status');
-        return response.data ? mapStatus(response.data) : null;
+    fetchSecurityStatus(): Observable<SecurityStatus | null> {
+        return this.http
+            .get<ApiSecurityStatusPayload>('/auth/security-status')
+            .pipe(map((response) => (response.data ? mapStatus(response.data) : null)));
     }
 }

@@ -12,6 +12,20 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+## Coding conventions (Angular v22)
+
+This codebase follows current Angular v22 patterns:
+
+- **Standalone components** — no NgModules; `standalone: true` is omitted (default)
+- **Signals** — local state via `signal()` / `computed()`; templates use `@if`, `@for`, `@switch`
+- **RxJS Observables** — no `async`/`await` in application code; HTTP and mutations return `Observable`
+- **`rxResource`** — async reads (lists, session restore) via `@angular/core/rxjs-interop`
+- **`inject()`** — preferred over constructor injection; use field initializers for setup
+- **`ChangeDetectionStrategy.OnPush`** — on all components (CLI schematic default in `angular.json`)
+- **Signal Forms** — used on auth screens; Zod validation via `@utils/validators`
+
+See **[API_INTEGRATION.md](./API_INTEGRATION.md)** for HTTP/service/guard patterns and **[.agent/rules/frontend.md](./.agent/rules/frontend.md)** for agent/team rules.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
@@ -57,3 +71,5 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+For RxJS + signals interop (`rxResource`, `toSignal`, `toObservable`), see [Angular RxJS interop](https://angular.dev/ecosystem/rxjs-interop).

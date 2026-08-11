@@ -6,7 +6,7 @@ import { HttpClient, HttpContext, HttpErrorResponse, HttpHeaders, HttpParams } f
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@env';
 import { ApiError, ApiResponse, HttpConfig } from '@models/index';
-import { firstValueFrom, timeout, TimeoutError } from 'rxjs';
+import { catchError, Observable, throwError, timeout, TimeoutError } from 'rxjs';
 
 import { SKIP_AUTH } from './http/http-context.tokens';
 import { HttpUnauthorizedRegistry } from './http/http-unauthorized.registry';
@@ -24,39 +24,34 @@ export class HttpClientService {
         this.unauthorizedRegistry.register(handler);
     }
 
-    async get<T>(url: string, config?: HttpConfig): Promise<ApiResponse<T>> {
+    get<T>(url: string, config?: HttpConfig): Observable<ApiResponse<T>> {
         return this.request<T>('GET', url, undefined, config);
     }
 
-    async getText(url: string, config?: HttpConfig): Promise<string> {
+    getText(url: string, config?: HttpConfig): Observable<string> {
         const endpoint = `${environment.apiBaseUrl}${url}`;
         const options = this.buildRequestOptions(config);
         const requestTimeout = config?.timeout ?? environment.apiTimeout;
 
-        try {
-            return await firstValueFrom(
-                this.http
-                    .get(endpoint, { ...options, responseType: 'text' })
-                    .pipe(timeout(requestTimeout)),
-            );
-        } catch (error) {
-            throw this.handleError(error);
-        }
+        return this.http.get(endpoint, { ...options, responseType: 'text' }).pipe(
+            timeout(requestTimeout),
+            catchError((error) => throwError(() => this.handleError(error))),
+        );
     }
 
-    async post<T>(url: string, data?: unknown, config?: HttpConfig): Promise<ApiResponse<T>> {
+    post<T>(url: string, data?: unknown, config?: HttpConfig): Observable<ApiResponse<T>> {
         return this.request<T>('POST', url, data, config);
     }
 
-    async put<T>(url: string, data?: unknown, config?: HttpConfig): Promise<ApiResponse<T>> {
+    put<T>(url: string, data?: unknown, config?: HttpConfig): Observable<ApiResponse<T>> {
         return this.request<T>('PUT', url, data, config);
     }
 
-    async patch<T>(url: string, data?: unknown, config?: HttpConfig): Promise<ApiResponse<T>> {
+    patch<T>(url: string, data?: unknown, config?: HttpConfig): Observable<ApiResponse<T>> {
         return this.request<T>('PATCH', url, data, config);
     }
 
-    async delete<T>(url: string, data?: unknown, config?: HttpConfig): Promise<ApiResponse<T>> {
+    delete<T>(url: string, data?: unknown, config?: HttpConfig): Observable<ApiResponse<T>> {
         return this.request<T>('DELETE', url, data, config);
     }
 
@@ -80,41 +75,40 @@ export class HttpClientService {
         this.tokenService.clearTokens();
     }
 
-    private async request<T>(
+    private request<T>(
         method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
         url: string,
         body?: unknown,
         config?: HttpConfig,
-    ): Promise<ApiResponse<T>> {
+    ): Observable<ApiResponse<T>> {
         const endpoint = `${environment.apiBaseUrl}${url}`;
         const options = this.buildRequestOptions(config);
         const requestTimeout = config?.timeout ?? environment.apiTimeout;
 
-        try {
-            const request$ = (() => {
-                switch (method) {
-                    case 'GET':
-                        return this.http.get<ApiResponse<T>>(endpoint, options);
-                    case 'POST':
-                        return this.http.post<ApiResponse<T>>(endpoint, body, options);
-                    case 'PUT':
-                        return this.http.put<ApiResponse<T>>(endpoint, body, options);
-                    case 'PATCH':
-                        return this.http.patch<ApiResponse<T>>(endpoint, body, options);
-                    case 'DELETE':
-                        return body !== undefined
-                            ? this.http.request<ApiResponse<T>>('DELETE', endpoint, {
-                                  ...options,
-                                  body,
-                              })
-                            : this.http.delete<ApiResponse<T>>(endpoint, options);
-                }
-            })();
+        const request$ = (() => {
+            switch (method) {
+                case 'GET':
+                    return this.http.get<ApiResponse<T>>(endpoint, options);
+                case 'POST':
+                    return this.http.post<ApiResponse<T>>(endpoint, body, options);
+                case 'PUT':
+                    return this.http.put<ApiResponse<T>>(endpoint, body, options);
+                case 'PATCH':
+                    return this.http.patch<ApiResponse<T>>(endpoint, body, options);
+                case 'DELETE':
+                    return body !== undefined
+                        ? this.http.request<ApiResponse<T>>('DELETE', endpoint, {
+                              ...options,
+                              body,
+                          })
+                        : this.http.delete<ApiResponse<T>>(endpoint, options);
+            }
+        })();
 
-            return await firstValueFrom(request$.pipe(timeout(requestTimeout)));
-        } catch (error) {
-            throw this.handleError(error);
-        }
+        return request$.pipe(
+            timeout(requestTimeout),
+            catchError((error) => throwError(() => this.handleError(error))),
+        );
     }
 
     private buildRequestOptions(config?: HttpConfig): {

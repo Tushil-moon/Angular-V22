@@ -7,7 +7,11 @@ export class DialogRef<T = unknown, R = unknown> {
 
     componentInstance?: T;
 
-    constructor(private readonly overlayRef: OverlayRef) {}
+    readonly overlayRef: OverlayRef;
+
+    constructor(overlayRef: OverlayRef) {
+        this.overlayRef = overlayRef;
+    }
 
     close(result?: R): void {
         if (this.disposed) return;

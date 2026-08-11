@@ -124,6 +124,25 @@
     display: none;
 }
 
+.dialog-form {
+    @apply flex flex-col gap-4;
+}
+
+.dialog-form-actions {
+    @apply grid shrink-0 grid-cols-1 gap-2 border-t border-border pt-4 sm:flex sm:flex-row sm:flex-wrap
+        sm:justify-end;
+}
+
+.dialog-form-actions app-button,
+.dialog-form-actions app-submit-button {
+    @apply flex w-full min-w-0 sm:w-auto;
+}
+
+.dialog-form-actions app-button .btn,
+.dialog-form-actions app-submit-button .btn {
+    @apply w-full justify-center sm:w-auto;
+}
+
 .dialog-detail-header {
     @apply flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between;
 }

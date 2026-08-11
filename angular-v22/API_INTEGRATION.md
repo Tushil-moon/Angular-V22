@@ -16,13 +16,13 @@ Complete guide for integrating your Angular v22 frontend with the Prisma backend
 │         └─────────────────┼──────────────────┘                  │
 │                           │                                      │
 │                    ┌──────────────┐                             │
-│                    │  Signals     │                             │
-│                    │ (State Mgmt) │                             │
+│                    │  rxResource  │                             │
+│                    │  + Signals   │                             │
 │                    └──────────────┘                             │
 │                           │                                      │
 │                    ┌──────────────┐                             │
-│                    │ HTTP Client  │                             │
-│                    │  (Axios)     │                             │
+│                    │ HttpClient   │                             │
+│                    │  + RxJS      │                             │
 │                    └──────────────┘                             │
 │                           │                                      │
 └───────────────────────────┼──────────────────────────────────────┘
@@ -401,58 +401,146 @@ Response:
 
 ## Implementation Patterns
 
+This project uses **RxJS Observables** end-to-end. Do **not** use `async`/`await` or `firstValueFrom` in application code.
+
 ### Using the HTTP Client Service
 
-```typescript
-// In a component or service
-constructor(private httpClient: HttpClientService) {}
-
-async loadData(): Promise<void> {
-  try {
-    const response = await this.httpClient.get<MyDataType>('/endpoint', {
-      params: { page: 1, limit: 10 }
-    });
-    
-    if (response.data) {
-      // Use the data
-    }
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-```
-
-### Creating Services for API Resources
+`HttpClientService` wraps Angular `HttpClient` and returns `Observable<ApiResponse<T>>`.
 
 ```typescript
+import { inject, Injectable } from '@angular/core';
+import { catchError, finalize, map, of, tap } from 'rxjs';
+import { HttpClientService } from '@services/http-client.service';
+
 @Injectable({ providedIn: 'root' })
 export class MyResourceService {
-  private readonly dataSignal = signal<MyType[]>([]);
-  readonly data = computed(() => this.dataSignal());
+  private readonly httpClient = inject(HttpClientService);
+  private readonly isLoadingSignal = signal(false);
 
-  constructor(private httpClient: HttpClientService) {}
+  readonly isLoading = computed(() => this.isLoadingSignal());
 
-  async fetch(): Promise<void> {
-    try {
-      const response = await this.httpClient.get<MyType[]>('/endpoint');
-      if (response.data) {
-        this.dataSignal.set(response.data);
-      }
-    } catch (error) {
-      console.error('Fetch error:', error);
-    }
+  loadData(): void {
+    this.isLoadingSignal.set(true);
+
+    this.httpClient
+      .get<MyDataType>('/endpoint', { params: { page: 1, limit: 10 } })
+      .pipe(
+        tap((response) => {
+          if (response.data) {
+            // Use the data
+          }
+        }),
+        map(() => undefined),
+        catchError((error) => {
+          console.error('Error:', error);
+          return of(undefined);
+        }),
+        finalize(() => this.isLoadingSignal.set(false)),
+      )
+      .subscribe();
   }
 }
 ```
 
-### Using Data in Components
+### Async reads with `rxResource`
+
+Use **`rxResource`** from `@angular/core/rxjs-interop` for signal-driven data loading (lists, session restore, policy fetch).
+
+```typescript
+import { computed, inject, Injectable } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
+import { catchResourceStreamError } from '@shared/utils/resource-error';
+import { HttpClientService } from '@services/http-client.service';
+import { AuthService } from '@services/auth.service';
+
+@Injectable({ providedIn: 'root' })
+export class MyListService {
+  private readonly http = inject(HttpClientService);
+  private readonly auth = inject(AuthService);
+
+  readonly listResource = rxResource({
+    params: () => (this.auth.isAuthenticated() ? { page: 1 } : undefined),
+    stream: ({ params, abortSignal }) => {
+      if (!params) return of([]);
+
+      return this.http.get<MyType[]>('/endpoint', { params }).pipe(
+        map((response) => response.data ?? []),
+        catchResourceStreamError<MyType[]>({
+          fallback: [],
+          logMessage: 'Failed to load list:',
+        }),
+      );
+    },
+  });
+
+  readonly items = computed(() => this.listResource.value() ?? []);
+  readonly isLoading = computed(() => this.listResource.isLoading());
+
+  reload(): void {
+    this.listResource.reload();
+  }
+}
+```
+
+### Mutations (sign-in, save, delete)
+
+Service methods return `Observable<void>` (or the created entity). Components subscribe — no `async` handlers.
+
+```typescript
+// Service
+signIn(request: SignInRequest): Observable<void> {
+  return this.http.post<ApiAuthResponsePayload>('/auth/login', request, { skipAuth: true }).pipe(
+    tap((response) => {
+      if (response.data) this.applyAuth(response.data);
+    }),
+    map(() => undefined),
+    catchError((error) => {
+      this.errorMessage.set(this.toMessage(error, 'Sign in failed.'));
+      return throwError(() => error);
+    }),
+    finalize(() => this.loading.set(false)),
+  );
+}
+
+// Component
+onSubmit(): void {
+  this.auth.signIn(this.model()).pipe(
+    switchMap(() => from(this.router.navigate(['/dashboard']))),
+  ).subscribe({
+    error: () => this.toast.error('Sign in failed', this.auth.error() ?? ''),
+  });
+}
+```
+
+### Route guards
+
+Guards return `Observable<boolean | UrlTree>`. Wait for session bootstrap with `ensureSessionReady()`:
+
+```typescript
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
+import { map } from 'rxjs';
+import { AuthService } from '@services/index';
+
+export const authGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  return auth.ensureSessionReady().pipe(
+    map(() => (auth.isAuthenticated() ? true : router.parseUrl('/auth/signin'))),
+  );
+};
+```
+
+### Using data in components
 
 ```typescript
 export class MyComponent {
-  myResourceService = inject(MyResourceService);
+  myResourceService = inject(MyListService);
 
-  // Access in template: {{ myResourceService.data() }}
-  // Reactively updates when signal changes
+  // Template: {{ myResourceService.items() }}
+  // Loading: myResourceService.isLoading()
 }
 ```
 
@@ -471,17 +559,24 @@ The HTTP client automatically handles errors and provides error objects:
 }
 ```
 
-### Handling Validation Errors
+### Handling validation errors
+
+Handle errors in the Observable chain or in `subscribe({ error })`:
 
 ```typescript
-try {
-  await this.authService.signUp(data);
-} catch (error: unknown) {
-  if (error instanceof Error && error.message.includes('validation')) {
-    // Handle validation errors
-  }
-}
+this.auth.signUp(data).subscribe({
+  next: () => this.router.navigate(['/dashboard']),
+  error: (err: unknown) => {
+    const message =
+      err && typeof err === 'object' && 'message' in err
+        ? String((err as { message: string }).message)
+        : 'Sign up failed.';
+    this.toast.error('Sign up failed', message);
+  },
+});
 ```
+
+For `rxResource` streams, use `catchResourceStreamError<T>()` from `@shared/utils/resource-error` to map API errors to `Error` instances or emit a fallback value.
 
 ## Authentication Flow
 
@@ -523,14 +618,16 @@ Use Postman or similar tool:
 
 ## Best Practices
 
-1. **Type Safety**: Always specify response types in HTTP calls
-2. **Error Handling**: Always wrap API calls in try-catch
-3. **Loading States**: Use service signals for loading state
-4. **Signal-Driven**: Keep all data in signals for reactivity
-5. **Separation**: Keep API logic in services, UI in components
-6. **Validation**: Validate data before sending to API
-7. **Documentation**: Document custom endpoints in your code
+1. **Type safety** — Always specify response types in HTTP calls
+2. **Observables only** — No `async`/`await` or `firstValueFrom` in app code; use RxJS operators (`pipe`, `tap`, `map`, `switchMap`, `catchError`, `finalize`)
+3. **Reads vs writes** — Use `rxResource` for reads; return `Observable` from service mutation methods
+4. **Loading state** — Derive from `resource.isLoading()` or service signals updated in `finalize`
+5. **Signal-driven UI** — Expose data via signals/computed; templates call `signal()` functions
+6. **Separation** — API logic in services, UI in components
+7. **Validation** — Validate with Zod + `safeValidate()` before calling the API
+8. **Guards** — Return Observables from `CanActivateFn`; use `ensureSessionReady()` before auth checks
+9. **Enterprise lists** — Pass `Observable`-returning callbacks to `EnterpriseListShellComponent` (`listFn`, `createFn`, `deleteFn`)
 
 ---
 
-For more information, see [DEVELOPMENT.md](./DEVELOPMENT.md)
+For agent conventions, see [`.agent/rules/frontend.md`](./.agent/rules/frontend.md).

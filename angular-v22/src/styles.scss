@@ -68,6 +68,7 @@
     @include meta.load-css('styles/components/badge');
     @include meta.load-css('styles/components/alert');
     @include meta.load-css('styles/layout/page');
+    @include meta.load-css('styles/layout/index');
     @include meta.load-css('styles/data/data-table');
     @include meta.load-css('styles/data/flex-table');
     @include meta.load-css('styles/layout/admin-shell');

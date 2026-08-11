@@ -156,9 +156,7 @@ export class DateRangePickerComponent implements ControlValueAccessor {
     private onChange: (value: DateRangeValue) => void = () => undefined;
     private onTouched: () => void = () => undefined;
 
-    constructor() {
-        this.destroyRef.onDestroy(() => this.close());
-    }
+    private readonly closeOnDestroy = this.destroyRef.onDestroy(() => this.close());
 
     onTriggerClick(event: MouseEvent): void {
         event.preventDefault();

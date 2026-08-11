@@ -1,30 +1,16 @@
----
-description: Background jobs and queues — not in project by default
-globs: src/**/*
-alwaysApply: false
----
-
 # Background Jobs
 
-**This project does not use Bull, Agenda, or queue workers by default.**
+This project uses **BullMQ + Redis** for async work.
 
-Email/OTP sending is synchronous or stubbed in services until a queue is added.
+Queues: `email`, `notifications`, `reports`, `webhooks`, `image-processing`, `analytics`, `inventory`, `order-processing`, `abandoned-cart`.
 
-## Do not add unless requested
+Worker entry: `src/worker.ts` (`npm run worker`).
 
-- Redis + BullMQ
-- Cron schedulers
-- Separate worker processes
+## Rules
 
-## When jobs are introduced
-
-- Idempotent job handlers
-- Dead letter queue for failures
+- Handlers must be idempotent
 - Retry with exponential backoff
-- Never process payment/auth-critical flows only in memory without persistence
+- Dead-letter / failed job visibility via BullMQ
+- Prefer outbox pattern for critical post-commit side effects
 
-## Current pattern
-
-Audit logs and token writes happen synchronously in `$transaction` with the main operation.
-
-If async email is needed later, outbox pattern preferred over fire-and-forget.
+Do not process payment capture solely in-memory without durable records.

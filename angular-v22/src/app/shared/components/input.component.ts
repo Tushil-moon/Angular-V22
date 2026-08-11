@@ -2,7 +2,16 @@
  * Input Field Component — reactive forms compatible
  */
 
-import { ChangeDetectionStrategy, Component, computed, forwardRef, input, output, signal } from '@angular/core'
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    effect,
+    forwardRef,
+    input,
+    output,
+    signal,
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
@@ -33,6 +42,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
                     [class.border-destructive]="hasError()"
                     [placeholder]="placeholder()"
                     [disabled]="isDisabled()"
+                    [attr.autocomplete]="autocomplete() || null"
                     [value]="value()"
                     (input)="onInput($event)"
                     (blur)="onBlur()"
@@ -42,7 +52,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
                 <div class="form-error">{{ error() }}</div>
             }
             @if (hint() && !hasError()) {
-                <small class="text-muted-foreground block mt-1.5 text-sm">{{ hint() }}</small>
+                <small class="text-muted-foreground mt-1.5 block text-sm">{{ hint() }}</small>
             }
         </div>
     `,
@@ -55,6 +65,9 @@ export class InputComponent implements ControlValueAccessor {
     required = input(false);
     error = input<string | null>(null);
     hint = input('');
+    autocomplete = input('');
+    /** One-way value for non-CVA usage (e.g. record dialogs). */
+    modelValue = input<string | undefined>(undefined);
 
     blurred = output<void>();
     valueChange = output<string>();
@@ -64,9 +77,15 @@ export class InputComponent implements ControlValueAccessor {
 
     hasError = computed(() => !!this.error());
 
-    // ControlValueAccessor defaults until Angular forms registers handlers.
     private onChange: (value: string) => void = () => undefined;
     private onTouched: () => void = () => undefined;
+
+    private readonly syncModelValue = effect(() => {
+        const next = this.modelValue();
+        if (next !== undefined) {
+            this.value.set(next);
+        }
+    });
 
     onInput(event: Event): void {
         const target = event.target as HTMLInputElement;

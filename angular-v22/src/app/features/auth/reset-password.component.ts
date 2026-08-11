@@ -2,7 +2,7 @@
  * Reset Password Page
  */
 
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '@services/index';
@@ -21,6 +21,7 @@ import { passwordResetSchema, safeValidate } from '@utils/validators';
 
 @Component({
     selector: 'app-reset-password',
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         RouterLink,
         ReactiveFormsModule,
@@ -107,7 +108,7 @@ export class ResetPasswordComponent {
         this.validationErrors.update((errors) => clearFieldFromErrors(errors, field));
     }
 
-    async onSubmit(): Promise<void> {
+    onSubmit(): void {
         this.submitted.set(true);
 
         const validation = safeValidate(passwordResetSchema, this.form.getRawValue());
@@ -118,16 +119,16 @@ export class ResetPasswordComponent {
 
         this.validationErrors.set({});
 
-        try {
-            await this.auth.resetPassword(this.token(), validation.data.password);
-            this.success.set(true);
-        } catch (err: unknown) {
-            const message =
-                err && typeof err === 'object' && 'message' in err
-                    ? String((err as { message: string }).message)
-                    : 'Unable to reset password.';
-            this.toast.error('Reset failed', message);
-        }
+        this.auth.resetPassword(this.token(), validation.data.password).subscribe({
+            next: () => this.success.set(true),
+            error: (err: unknown) => {
+                const message =
+                    err && typeof err === 'object' && 'message' in err
+                        ? String((err as { message: string }).message)
+                        : 'Unable to reset password.';
+                this.toast.error('Reset failed', message);
+            },
+        });
     }
 
     fieldError(field: string): string | null {

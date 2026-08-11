@@ -157,16 +157,14 @@ export class SelectComponent implements ControlValueAccessor {
 
     isEffectivelyDisabled = computed(() => this.disabled() || this.cvaDisabled());
 
-    constructor() {
-        effect(() => {
-            const external = this.value();
-            if (external !== undefined) {
-                this.selectedValue.set(external);
-            }
-        });
+    private readonly syncExternalValue = effect(() => {
+        const external = this.value();
+        if (external !== undefined) {
+            this.selectedValue.set(external);
+        }
+    });
 
-        this.destroyRef.onDestroy(() => this.close());
-    }
+    private readonly closeOnDestroy = this.destroyRef.onDestroy(() => this.close());
 
     onTriggerClick(event: MouseEvent): void {
         event.preventDefault();
