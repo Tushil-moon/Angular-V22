@@ -17,6 +17,28 @@ export interface Category {
     updatedAt: string;
 }
 
+export interface CategoryTreeNode {
+    id: string;
+    parentId: string | null;
+    name: string;
+    slug: string;
+    status: CategoryStatus;
+    sortOrder: number;
+    children: CategoryTreeNode[];
+}
+
+export interface ApiCategoryTreeNode {
+    id: string;
+    parent_id?: string | null;
+    parentId?: string | null;
+    name: string;
+    slug: string;
+    status?: string;
+    sort_order?: number;
+    sortOrder?: number;
+    children?: ApiCategoryTreeNode[];
+}
+
 export interface CreateCategoryRequest {
     name: string;
     slug: string;

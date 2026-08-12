@@ -14,6 +14,7 @@ import type {
     ApiOrderAddressPayload,
     ApiOrderDetailPayload,
     ApiOrderItemPayload,
+    ApiOrderListItemPayload,
     ApiOrderPayload,
     ApiOrderStatusHistoryPayload,
     Order,
@@ -21,9 +22,21 @@ import type {
     OrderDetail,
     OrderItem,
     OrderListFilters,
+    OrderPrimaryItem,
     OrderStatus,
     OrderStatusHistoryEntry,
 } from '../models/order.model';
+
+function mapPrimaryItem(payload: ApiOrderListItemPayload | undefined): OrderPrimaryItem | null {
+    if (!payload?.product_name) return null;
+    const image = payload.variant?.product?.images?.[0];
+    return {
+        productName: payload.product_name,
+        variantTitle: payload.variant_title ?? null,
+        imageUrl: image?.url ?? null,
+        imageAlt: image?.alt_text ?? null,
+    };
+}
 
 export function mapApiOrder(payload: ApiOrderPayload): Order {
     return {
@@ -47,6 +60,8 @@ export function mapApiOrder(payload: ApiOrderPayload): Order {
         completedAt: payload.completed_at ?? null,
         createdAt: payload.created_at ?? '',
         updatedAt: payload.updated_at ?? '',
+        primaryItem: mapPrimaryItem(payload.items?.[0]),
+        itemCount: payload._count?.items ?? payload.items?.length ?? 0,
     };
 }
 

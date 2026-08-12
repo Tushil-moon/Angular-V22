@@ -10,6 +10,13 @@ export type OrderStatus =
     | 'REFUNDED'
     | 'PARTIALLY_REFUNDED';
 
+export interface OrderPrimaryItem {
+    productName: string;
+    variantTitle: string | null;
+    imageUrl: string | null;
+    imageAlt: string | null;
+}
+
 export interface Order {
     id: string;
     orderNumber: string;
@@ -31,6 +38,8 @@ export interface Order {
     completedAt: string | null;
     createdAt: string;
     updatedAt: string;
+    primaryItem: OrderPrimaryItem | null;
+    itemCount: number;
 }
 
 export interface OrderItem {
@@ -98,6 +107,18 @@ export interface ApiOrderPayload {
     completed_at?: string | null;
     created_at?: string;
     updated_at?: string;
+    items?: ApiOrderListItemPayload[];
+    _count?: { items?: number };
+}
+
+export interface ApiOrderListItemPayload {
+    product_name?: string | null;
+    variant_title?: string | null;
+    variant?: {
+        product?: {
+            images?: Array<{ url?: string | null; alt_text?: string | null }>;
+        };
+    };
 }
 
 export interface ApiOrderItemPayload {

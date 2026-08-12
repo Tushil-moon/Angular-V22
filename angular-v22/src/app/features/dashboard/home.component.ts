@@ -1,11 +1,13 @@
 /**
- * Dashboard — Figma E-commerce Admin Main Dashboard layout (our theme tokens)
- * Reference: https://www.figma.com/design/5BaKpvAQuYjEYp8ZKuefFc
+ * Dashboard — Figma DealPort E-commerce Admin (node 5:1346)
+ * Reference: https://www.figma.com/design/M3bpAZpkKNppHghX3SeMQU
  */
 
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
+import { CategoryApiService } from '@features/categories/services/category-api.service';
+import { ProductApiService } from '@features/products/services/product-api.service';
 import { AuthService } from '@services/auth.service';
 import { HttpClientService } from '@services/http-client.service';
 import {
@@ -18,20 +20,50 @@ import {
     type FlexTableColumn,
     IconComponent,
 } from '@shared/components';
-import type { IconName } from '@shared/icons';
+import { SearchInputComponent } from '@shared/components/search-input.component';
 import { catchResourceStreamError } from '@shared/utils/resource-error';
 import { ignorePromise } from '@utils/form-display.util';
 import { forkJoin, map, of } from 'rxjs';
 
-import { ProductApiService } from '../products/services/product-api.service';
-
 interface DashboardKpis {
-    orders: number;
-    revenue: number | string;
-    averageOrderValue: number | string;
-    newCustomers: number;
-    products: number;
-    lowStockItems: number;
+    orders?: number;
+    revenue?: number | string;
+    average_order_value?: number | string;
+    averageOrderValue?: number | string;
+    new_customers?: number;
+    newCustomers?: number;
+    products?: number;
+    low_stock_items?: number;
+    lowStockItems?: number;
+    pending_orders?: number;
+    pendingOrders?: number;
+    cancelled_orders?: number;
+    cancelledOrders?: number;
+    previous_period_revenue?: number | string;
+    previousPeriodRevenue?: number | string;
+    previous_period_orders?: number;
+    previousPeriodOrders?: number;
+}
+
+interface TopProductRow {
+    id: string;
+    name: string;
+    sku?: string;
+    image_url?: string | null;
+    imageUrl?: string | null;
+    status?: string;
+    total_sold?: number;
+    totalSold?: number;
+    revenue?: number | string;
+    price?: number | string | null;
+}
+
+interface CountrySale {
+    country_code?: string;
+    countryCode?: string;
+    order_count?: number;
+    orderCount?: number;
+    revenue?: number | string;
 }
 
 interface RecentOrder {
@@ -45,14 +77,16 @@ interface RecentOrder {
     currencyCode?: string;
     created_at?: string;
     createdAt?: string;
-    customer_email?: string | null;
-    customerEmail?: string | null;
 }
 
 interface DashboardPayload {
     kpis: DashboardKpis;
     recentOrders?: RecentOrder[];
     recent_orders?: RecentOrder[];
+    topProducts?: TopProductRow[];
+    top_products?: TopProductRow[];
+    salesByCountry?: CountrySale[];
+    sales_by_country?: CountrySale[];
 }
 
 interface RevenuePoint {
@@ -64,29 +98,47 @@ interface RevenuePayload {
     series?: RevenuePoint[];
 }
 
+interface CategoryItem {
+    id: string;
+    name: string;
+}
+
+interface SuggestedProduct {
+    id: string;
+    name: string;
+    price: string;
+}
+
 interface HomeBundle {
     dashboard: DashboardPayload | null;
     revenue: RevenuePoint[];
-    products: { id: string; name: string; status: string; featured: boolean }[];
+    categories: CategoryItem[];
+    suggestions: SuggestedProduct[];
 }
 
 interface NormalizedOrder {
     id: string;
+    index: number;
     orderNumber: string;
     status: string;
+    statusLabel: string;
     total: string;
-    email: string;
     when: string;
 }
 
-interface MetricCard {
-    label: string;
-    value: string | number;
-    hint: string;
-    icon: IconName;
-    spark: string;
-    sparkFill: string;
+interface KpiCard {
+    title: string;
+    value: string;
+    trendLabel: string;
+    trendPct: string;
+    trendUp: boolean;
+    compareText: string;
+    compareHighlight: string;
+    detailsRoute: string;
+    split?: { pending: string; cancelled: string };
 }
+
+type ReportPeriod = 'this' | 'last';
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -94,87 +146,113 @@ interface MetricCard {
     imports: [
         RouterLink,
         ButtonComponent,
-        IconComponent,
         BadgeComponent,
+        IconComponent,
+        SearchInputComponent,
         FlexTableComponent,
         FlexTableRowComponent,
         FlexTableCellComponent,
     ],
     template: `
-        <div class="index-page">
-            <div class="index-header">
-                <div class="index-header-copy">
-                    <h1 class="index-title">Dashboard</h1>
-                    <p class="index-subtitle">
-                        Welcome back, {{ displayName() }} · {{ todayLabel() }}
-                    </p>
-                </div>
-                <div class="index-actions">
-                    <a routerLink="/dashboard/orders" class="inline-flex">
-                        <app-button size="sm" variant="outline" type="button">Orders</app-button>
-                    </a>
-                    <a routerLink="/dashboard/products/new" class="inline-flex">
-                        <app-button size="sm" type="button">
-                            <app-icon name="plus" [size]="14" />
-                            Add product
-                        </app-button>
-                    </a>
-                </div>
-            </div>
-
-            <div class="index-metrics">
-                @for (metric of metrics(); track metric.label) {
-                    <div class="index-metric">
-                        <div class="index-metric-top">
-                            <div class="min-w-0">
-                                <div class="flex items-center gap-2">
-                                    <div class="index-metric-icon">
-                                        <app-icon [name]="metric.icon" [size]="18" />
-                                    </div>
-                                    <p class="index-metric-label">{{ metric.label }}</p>
-                                </div>
-                                <p class="index-metric-value">{{ metric.value }}</p>
-                                <p class="index-metric-hint">{{ metric.hint }}</p>
+        <div class="dashboard-page">
+            <div class="dashboard-kpi-row">
+                @for (card of kpiCards(); track card.title) {
+                    <article class="dashboard-kpi-card">
+                        <div class="dashboard-kpi-head">
+                            <div>
+                                <h2 class="dashboard-kpi-title">{{ card.title }}</h2>
+                                <p class="dashboard-kpi-period">Last 7 days</p>
                             </div>
-                            <svg
-                                class="index-sparkline"
-                                viewBox="0 0 80 40"
-                                preserveAspectRatio="none"
-                                aria-hidden="true"
-                            >
-                                <path class="spark-fill" [attr.d]="metric.sparkFill" />
-                                <path [attr.d]="metric.spark" />
-                            </svg>
+                            <button type="button" class="dashboard-kpi-menu" aria-label="More options">
+                                <app-icon name="more-vertical" [size]="16" />
+                            </button>
                         </div>
-                    </div>
+
+                        @if (card.split) {
+                            <div class="dashboard-kpi-split">
+                                <div>
+                                    <p class="dashboard-kpi-split-label">Pending</p>
+                                    <p class="dashboard-kpi-split-value">{{ card.split.pending }}</p>
+                                </div>
+                                <div>
+                                    <p class="dashboard-kpi-split-label">Canceled</p>
+                                    <p class="dashboard-kpi-split-value">{{ card.split.cancelled }}</p>
+                                </div>
+                            </div>
+                        } @else {
+                            <div class="dashboard-kpi-value-row">
+                                <p class="dashboard-kpi-value">{{ card.value }}</p>
+                                <div class="flex items-end gap-1">
+                                    <span class="dashboard-kpi-trend-label">{{ card.trendLabel }}</span>
+                                    <span
+                                        class="dashboard-kpi-trend"
+                                        [class.dashboard-kpi-trend-up]="card.trendUp"
+                                        [class.dashboard-kpi-trend-down]="!card.trendUp"
+                                    >
+                                        <app-icon
+                                            [name]="card.trendUp ? 'arrow-up' : 'arrow-down'"
+                                            [size]="14"
+                                        />
+                                        {{ card.trendPct }}
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="dashboard-kpi-compare">
+                                Previous 7 days
+                                <span class="dashboard-kpi-compare-accent">{{
+                                    card.compareHighlight
+                                }}</span>
+                                {{ card.compareText }}
+                            </p>
+                        }
+
+                        <div class="dashboard-kpi-footer">
+                            <a [routerLink]="card.detailsRoute" class="inline-flex">
+                                <app-button size="sm" variant="outline" type="button">Details</app-button>
+                            </a>
+                        </div>
+                    </article>
                 }
             </div>
 
-            @if (needsAttention()) {
-                <div class="ops-attention">
-                    <div>
-                        <p class="ops-attention-title">Inventory needs attention</p>
-                        <p class="ops-attention-desc">{{ attentionCopy() }}</p>
-                    </div>
-                    <a routerLink="/dashboard/inventory" class="inline-flex">
-                        <app-button size="sm" variant="outline" type="button">
-                            Review stock
-                        </app-button>
-                    </a>
-                </div>
-            }
-
-            <div class="home-grid">
-                <section class="home-panel">
-                    <div class="home-panel-header">
-                        <div>
-                            <h2 class="home-panel-title">Sales overview</h2>
-                            <p class="home-panel-desc">Revenue over the last 30 days</p>
+            <div class="dashboard-mid-grid">
+                <section class="dashboard-panel">
+                    <div class="dashboard-panel-header">
+                        <h2 class="dashboard-panel-title">Report for this week</h2>
+                        <div class="dashboard-period-toggle">
+                            <button
+                                type="button"
+                                class="dashboard-period-btn"
+                                [class.dashboard-period-btn-active]="reportPeriod() === 'this'"
+                                (click)="setReportPeriod('this')"
+                            >
+                                This week
+                            </button>
+                            <button
+                                type="button"
+                                class="dashboard-period-btn"
+                                [class.dashboard-period-btn-active]="reportPeriod() === 'last'"
+                                (click)="setReportPeriod('last')"
+                            >
+                                Last week
+                            </button>
                         </div>
-                        <a routerLink="/dashboard/analytics" class="inline-flex">
-                            <app-button size="sm" variant="ghost" type="button">Details</app-button>
-                        </a>
                     </div>
+
+                    <div class="dashboard-payment-tabs">
+                        @for (tab of paymentTabs(); track tab.id) {
+                            <button
+                                type="button"
+                                class="dashboard-payment-tab"
+                                [class.dashboard-payment-tab-active]="paymentTab() === tab.id"
+                                (click)="paymentTab.set(tab.id)"
+                            >
+                                <span class="dashboard-payment-tab-label">{{ tab.label }}</span>
+                                <span class="dashboard-payment-tab-value">{{ tab.value }}</span>
+                            </button>
+                        }
+                    </div>
+
                     <div class="home-panel-pad">
                         @if (chartReady()) {
                             <div class="home-chart">
@@ -184,8 +262,8 @@ interface MetricCard {
                                         <line x1="0" y1="110" x2="640" y2="110" />
                                         <line x1="0" y1="165" x2="640" y2="165" />
                                     </g>
-                                    <path class="home-chart-area" [attr.d]="chartArea()" />
-                                    <path class="home-chart-line" [attr.d]="chartLine()" />
+                                    <path class="dashboard-chart-accent-area" [attr.d]="chartArea()" />
+                                    <path class="dashboard-chart-accent-line" [attr.d]="chartLine()" />
                                 </svg>
                             </div>
                             <div class="home-chart-labels">
@@ -204,60 +282,84 @@ interface MetricCard {
                     </div>
                 </section>
 
-                <aside class="home-panel">
-                    <div class="home-panel-header">
-                        <div>
-                            <h2 class="home-panel-title">Top products</h2>
-                            <p class="home-panel-desc">Catalog highlights</p>
+                <aside class="dashboard-panel">
+                    <div class="dashboard-live-metric">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="dashboard-live-label">New customers</p>
+                                <p class="dashboard-live-value">{{ liveMetricValue() }}</p>
+                            </div>
+                            <button type="button" class="dashboard-kpi-menu" aria-label="More options">
+                                <app-icon name="more-vertical" [size]="16" />
+                            </button>
                         </div>
-                        <a routerLink="/dashboard/products" class="inline-flex">
-                            <app-button size="sm" variant="ghost" type="button">View all</app-button>
-                        </a>
+                        <svg
+                            class="dashboard-bar-spark"
+                            viewBox="0 0 320 35"
+                            preserveAspectRatio="none"
+                            aria-hidden="true"
+                        >
+                            @for (bar of barSpark(); track $index) {
+                                <rect [attr.x]="$index * 11" [attr.y]="35 - bar" width="8" [attr.height]="bar" rx="2" />
+                            }
+                        </svg>
                     </div>
-                    @if (topProducts().length === 0) {
-                        <div class="index-empty py-10">
-                            <p class="index-empty-desc">No products to rank yet.</p>
+
+                    <div class="dashboard-country-section">
+                        <div class="dashboard-country-head">
+                            <h3 class="dashboard-panel-title">Sales by Country</h3>
+                            <span class="text-sm text-muted-foreground">Sales</span>
                         </div>
-                    } @else {
-                        <div class="home-rank-list">
-                            @for (product of topProducts(); track product.id; let i = $index) {
-                                <div class="home-rank-item">
-                                    <div class="home-rank-avatar">{{ i + 1 }}</div>
-                                    <div class="home-rank-body">
-                                        <p class="home-rank-title">{{ product.name }}</p>
-                                        <p class="home-rank-meta">{{ product.status }}</p>
-                                        <div class="home-rank-bar">
+                        @if (countrySales().length === 0) {
+                            <p class="text-sm text-muted-foreground">No regional data yet.</p>
+                        } @else {
+                            @for (row of countrySales(); track row.countryCode) {
+                                <div class="dashboard-country-row">
+                                    <div class="dashboard-country-flag">{{ row.countryCode }}</div>
+                                    <div class="dashboard-country-meta">
+                                        <p class="dashboard-country-code">{{ row.countryCode }}</p>
+                                        <p class="dashboard-country-orders">{{ row.orderCount }} orders</p>
+                                    </div>
+                                    <div class="dashboard-country-bar-wrap">
+                                        <span class="dashboard-country-change">{{ row.share }}%</span>
+                                        <div class="dashboard-country-bar">
                                             <div
-                                                class="home-rank-bar-fill"
-                                                [style.width.%]="product.score"
+                                                class="dashboard-country-bar-fill"
+                                                [style.width.%]="row.share"
                                             ></div>
                                         </div>
                                     </div>
-                                    <span class="home-rank-value">{{ product.score }}%</span>
                                 </div>
                             }
+                        }
+                        <div class="dashboard-kpi-footer !justify-center pt-2">
+                            <a routerLink="/dashboard/analytics" class="inline-flex">
+                                <app-button size="sm" variant="outline" type="button">
+                                    View Insight
+                                </app-button>
+                            </a>
                         </div>
-                    }
+                    </div>
                 </aside>
             </div>
 
-            <section class="home-panel">
-                <div class="home-panel-header">
-                    <div>
-                        <h2 class="home-panel-title">Recent orders</h2>
-                        <p class="home-panel-desc">Latest storefront checkouts</p>
+            <div class="dashboard-lower-grid">
+                <section class="dashboard-panel">
+                    <div class="dashboard-panel-header">
+                        <h2 class="dashboard-panel-title">Transaction</h2>
+                        <a routerLink="/dashboard/orders" class="inline-flex">
+                            <app-button size="sm" variant="outline" type="button">
+                                Filter
+                                <app-icon name="arrow-up-down" [size]="14" />
+                            </app-button>
+                        </a>
                     </div>
-                    <a routerLink="/dashboard/orders" class="inline-flex">
-                        <app-button size="sm" variant="ghost" type="button">View all</app-button>
-                    </a>
-                </div>
-                <div class="home-panel-body">
                     <app-flex-table
-                        [columns]="orderColumns"
+                        [columns]="transactionColumns"
                         [fill]="false"
                         [loading]="isLoading()"
                         [empty]="!isLoading() && recentOrders().length === 0"
-                        emptyTitle="No orders yet"
+                        emptyTitle="No transactions yet"
                         emptyDescription="New orders will show up here after checkout."
                         [flush]="true"
                         [skeletonRowCount]="5"
@@ -268,28 +370,179 @@ interface MetricCard {
                                 [interactive]="true"
                                 (click)="openOrder(order.id)"
                             >
-                                <app-flex-table-cell column="order">
-                                    <span class="index-cell-primary">{{ order.orderNumber }}</span>
+                                <app-flex-table-cell column="no">
+                                    <span class="om-row-num">{{ order.index }}.</span>
                                 </app-flex-table-cell>
-                                <app-flex-table-cell column="customer">
-                                    <span class="index-cell-muted">{{ order.email }}</span>
+                                <app-flex-table-cell column="id">
+                                    <span class="index-cell-primary">#{{ order.orderNumber }}</span>
                                 </app-flex-table-cell>
                                 <app-flex-table-cell column="date">
                                     <span class="index-cell-muted">{{ order.when }}</span>
                                 </app-flex-table-cell>
-                                <app-flex-table-cell column="total">
-                                    <span class="index-cell-money">{{ order.total }}</span>
-                                </app-flex-table-cell>
                                 <app-flex-table-cell column="status">
                                     <app-badge [variant]="statusVariant(order.status)">
-                                        {{ order.status }}
+                                        {{ order.statusLabel }}
                                     </app-badge>
+                                </app-flex-table-cell>
+                                <app-flex-table-cell column="amount">
+                                    <span class="index-cell-money">{{ order.total }}</span>
                                 </app-flex-table-cell>
                             </app-flex-table-row>
                         }
                     </app-flex-table>
-                </div>
-            </section>
+                    <div class="dashboard-kpi-footer px-5 pb-4">
+                        <a routerLink="/dashboard/orders" class="inline-flex">
+                            <app-button size="sm" variant="ghost" type="button">Details</app-button>
+                        </a>
+                    </div>
+                </section>
+
+                <aside class="dashboard-panel">
+                    <div class="dashboard-panel-header !items-start">
+                        <div>
+                            <h2 class="dashboard-panel-title">Top Products</h2>
+                            <a routerLink="/dashboard/products" class="inline-flex">
+                                <app-button size="sm" variant="link" type="button">All product</app-button>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="dashboard-product-search">
+                        <app-search-input
+                            placeholder="Search"
+                            ariaLabel="Search top products"
+                            (searchChange)="topProductQuery.set($event)"
+                        />
+                    </div>
+                    @if (filteredTopProducts().length === 0) {
+                        <div class="index-empty py-8">
+                            <p class="index-empty-desc">No products to show yet.</p>
+                        </div>
+                    } @else {
+                        <div class="dashboard-product-list">
+                            @for (product of filteredTopProducts(); track product.id) {
+                                <div class="dashboard-product-row">
+                                    <div class="dashboard-product-thumb">
+                                        @if (product.imageUrl) {
+                                            <img [src]="product.imageUrl" [alt]="product.name" />
+                                        } @else {
+                                            {{ product.name.slice(0, 1) }}
+                                        }
+                                    </div>
+                                    <div class="dashboard-product-body">
+                                        <p class="dashboard-product-name">{{ product.name }}</p>
+                                        <p class="dashboard-product-sku">Item: #{{ product.sku || product.id.slice(0, 8) }}</p>
+                                    </div>
+                                    <span class="dashboard-product-price">{{ product.revenueLabel }}</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </aside>
+            </div>
+
+            <div class="dashboard-bottom-grid">
+                <section class="dashboard-panel">
+                    <div class="dashboard-panel-header">
+                        <h2 class="dashboard-panel-title">Best selling product</h2>
+                        <app-button size="sm" variant="outline" type="button">
+                            Filter
+                            <app-icon name="arrow-up-down" [size]="14" />
+                        </app-button>
+                    </div>
+                    <app-flex-table
+                        [columns]="bestSellerColumns"
+                        [fill]="false"
+                        [loading]="isLoading()"
+                        [empty]="!isLoading() && bestSellers().length === 0"
+                        emptyTitle="No best sellers yet"
+                        emptyDescription="Top sellers appear after orders are placed."
+                        [flush]="true"
+                        [skeletonRowCount]="4"
+                    >
+                        @for (product of bestSellers(); track product.id) {
+                            <app-flex-table-row
+                                class="home-table-row"
+                                [interactive]="true"
+                                (click)="openProduct(product.id)"
+                            >
+                                <app-flex-table-cell column="product">
+                                    <div class="dashboard-table-product">
+                                        <div class="dashboard-table-product-thumb">
+                                            @if (product.imageUrl) {
+                                                <img [src]="product.imageUrl" [alt]="product.name" />
+                                            } @else {
+                                                {{ product.name.slice(0, 1) }}
+                                            }
+                                        </div>
+                                        <span class="index-cell-primary">{{ product.name }}</span>
+                                    </div>
+                                </app-flex-table-cell>
+                                <app-flex-table-cell column="orders">
+                                    <span class="index-cell-muted">{{ product.totalSold }}</span>
+                                </app-flex-table-cell>
+                                <app-flex-table-cell column="status">
+                                    <app-badge [variant]="productStatusVariant(product.statusLabel)">
+                                        {{ product.statusLabel }}
+                                    </app-badge>
+                                </app-flex-table-cell>
+                                <app-flex-table-cell column="price">
+                                    <span class="index-cell-money">{{ product.priceLabel }}</span>
+                                </app-flex-table-cell>
+                            </app-flex-table-row>
+                        }
+                    </app-flex-table>
+                    <div class="dashboard-kpi-footer px-5 pb-4">
+                        <a routerLink="/dashboard/products" class="inline-flex">
+                            <app-button size="sm" variant="ghost" type="button">Details</app-button>
+                        </a>
+                    </div>
+                </section>
+
+                <aside class="dashboard-panel dashboard-add-panel">
+                    <div class="dashboard-add-head">
+                        <h2 class="dashboard-panel-title">Add New Product</h2>
+                        <a routerLink="/dashboard/products/new" class="inline-flex">
+                            <app-button size="sm" variant="link" type="button">
+                                <app-icon name="plus-square" [size]="14" />
+                                Add New
+                            </app-button>
+                        </a>
+                    </div>
+
+                    <p class="dashboard-add-section-label">Categories</p>
+                    @for (category of categories(); track category.id) {
+                        <a
+                            [routerLink]="['/dashboard/products/new']"
+                            [queryParams]="{ categoryId: category.id }"
+                            class="dashboard-category-row"
+                        >
+                            <div class="dashboard-category-thumb">📦</div>
+                            <span class="dashboard-category-name">{{ category.name }}</span>
+                            <app-icon name="chevron-right" [size]="16" className="text-muted-foreground" />
+                        </a>
+                    }
+                    <a routerLink="/dashboard/categories" class="dashboard-see-more">See more</a>
+
+                    <p class="dashboard-add-section-label mt-4">Product</p>
+                    <div class="divide-y divide-border">
+                        @for (item of suggestions(); track item.id) {
+                            <div class="dashboard-quick-add-row">
+                                <div class="dashboard-quick-add-info">
+                                    <p class="dashboard-quick-add-name">{{ item.name }}</p>
+                                    <p class="dashboard-quick-add-price">{{ item.price }}</p>
+                                </div>
+                                <a routerLink="/dashboard/products/new" class="inline-flex shrink-0">
+                                    <app-button size="sm" variant="outline" type="button">
+                                        <app-icon name="plus" [size]="14" />
+                                        Add
+                                    </app-button>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                    <a routerLink="/dashboard/products" class="dashboard-see-more">See more</a>
+                </aside>
+            </div>
         </div>
     `,
 })
@@ -297,68 +550,87 @@ export class DashboardHomeComponent {
     private readonly authService = inject(AuthService);
     private readonly http = inject(HttpClientService);
     private readonly productApi = inject(ProductApiService);
+    private readonly categoryApi = inject(CategoryApiService);
     private readonly router = inject(Router);
 
-    readonly orderColumns: FlexTableColumn[] = [
-        { key: 'order', label: 'Order', grid: 'minmax(7rem, 1fr)', primary: true },
-        { key: 'customer', label: 'Customer', grid: 'minmax(9rem, 1.3fr)' },
-        { key: 'date', label: 'Date', grid: 'minmax(7rem, 1fr)', hideBelow: 'md' },
-        { key: 'total', label: 'Amount', grid: 'minmax(5rem, 0.7fr)' },
-        { key: 'status', label: 'Status', grid: 'minmax(6rem, 0.8fr)' },
+    readonly reportPeriod = signal<ReportPeriod>('this');
+    readonly paymentTab = signal('all');
+    readonly topProductQuery = signal('');
+
+    readonly transactionColumns: FlexTableColumn[] = [
+        { key: 'no', label: 'No', grid: '3rem' },
+        { key: 'id', label: 'Id Customer', grid: 'minmax(6rem, 1fr)', primary: true },
+        { key: 'date', label: 'Order Date', grid: 'minmax(8rem, 1.2fr)', hideBelow: 'md' },
+        { key: 'status', label: 'Status', grid: 'minmax(6rem, 0.9fr)' },
+        { key: 'amount', label: 'Amount', grid: 'minmax(5rem, 0.7fr)' },
     ];
 
-    readonly displayName = computed(() => {
-        const user = this.authService.currentUser();
-        if (user?.email) return user.email.split('@')[0];
-        return 'Admin';
-    });
-
-    readonly todayLabel = computed(() =>
-        new Intl.DateTimeFormat(undefined, {
-            weekday: 'long',
-            month: 'short',
-            day: 'numeric',
-        }).format(new Date()),
-    );
+    readonly bestSellerColumns: FlexTableColumn[] = [
+        { key: 'product', label: 'Product', grid: 'minmax(10rem, 1.5fr)', primary: true },
+        { key: 'orders', label: 'Total Order', grid: 'minmax(6rem, 1fr)' },
+        { key: 'status', label: 'Status', grid: 'minmax(6rem, 0.9fr)' },
+        { key: 'price', label: 'Price', grid: 'minmax(5rem, 0.7fr)' },
+    ];
 
     readonly homeResource = rxResource({
-        params: () => (this.authService.isAuthenticated() ? true : undefined),
+        params: () =>
+            this.authService.isAuthenticated()
+                ? { period: this.reportPeriod() }
+                : undefined,
         stream: ({ params }) => {
             if (!params) {
                 return of({
                     dashboard: null,
                     revenue: [],
-                    products: [],
+                    categories: [],
+                    suggestions: [],
                 } satisfies HomeBundle);
             }
 
+            const kpiRange = this.dateRange('this');
+            const chartRange = this.dateRange(params.period);
+
             return forkJoin({
-                dashboard: this.http.get<DashboardPayload>('/analytics/dashboard').pipe(
-                    map((res) => res.data ?? null),
-                    catchResourceStreamError<DashboardPayload | null>({
-                        fallback: null,
-                        logMessage: 'Dashboard analytics unavailable:',
-                    }),
-                ),
-                revenue: this.http.get<RevenuePayload>('/analytics/revenue').pipe(
-                    map((res) => res.data?.series ?? []),
-                    catchResourceStreamError<RevenuePoint[]>({
+                dashboard: this.http
+                    .get<DashboardPayload>('/analytics/dashboard', {
+                        params: { from: kpiRange.from, to: kpiRange.to },
+                    })
+                    .pipe(
+                        map((res) => res.data ?? null),
+                        catchResourceStreamError<DashboardPayload | null>({
+                            fallback: null,
+                            logMessage: 'Dashboard analytics unavailable:',
+                        }),
+                    ),
+                revenue: this.http
+                    .get<RevenuePayload>('/analytics/revenue', {
+                        params: { from: chartRange.from, to: chartRange.to },
+                    })
+                    .pipe(
+                        map((res) => res.data?.series ?? []),
+                        catchResourceStreamError<RevenuePoint[]>({
+                            fallback: [],
+                            logMessage: 'Revenue series unavailable:',
+                        }),
+                    ),
+                categories: this.categoryApi.list({ page: 1, pageSize: 3 }).pipe(
+                    map((res) => res.data.map((c) => ({ id: c.id, name: c.name }))),
+                    catchResourceStreamError<CategoryItem[]>({
                         fallback: [],
-                        logMessage: 'Revenue series unavailable:',
+                        logMessage: 'Categories unavailable:',
                     }),
                 ),
-                products: this.productApi.list({ page: 1, pageSize: 5 }).pipe(
+                suggestions: this.productApi.list({ page: 1, pageSize: 3, status: 'DRAFT' }).pipe(
                     map((res) =>
                         res.data.map((p) => ({
                             id: p.id,
                             name: p.name,
-                            status: p.status,
-                            featured: p.featured,
+                            price: '—',
                         })),
                     ),
-                    catchResourceStreamError<{ id: string; name: string; status: string; featured: boolean }[]>({
+                    catchResourceStreamError<SuggestedProduct[]>({
                         fallback: [],
-                        logMessage: 'Products unavailable:',
+                        logMessage: 'Suggested products unavailable:',
                     }),
                 ),
             });
@@ -369,82 +641,169 @@ export class DashboardHomeComponent {
     readonly isLoading = computed(() => this.homeResource.isLoading());
     readonly revenueSeries = computed(() => this.homeResource.value()?.revenue ?? []);
 
-    readonly metrics = computed((): MetricCard[] => {
+    readonly kpiCards = computed((): KpiCard[] => {
         const k = this.kpis();
-        const series = this.revenueSeries();
-        const sparkPoints = this.sparkPoints(series);
+        const revenue = this.num(k?.revenue);
+        const orders = k?.orders ?? 0;
+        const prevRevenue = this.num(k?.previousPeriodRevenue ?? k?.previous_period_revenue);
+        const prevOrders = k?.previousPeriodOrders ?? k?.previous_period_orders ?? 0;
+        const pending = k?.pendingOrders ?? k?.pending_orders ?? 0;
+        const cancelled = k?.cancelledOrders ?? k?.cancelled_orders ?? 0;
+
         return [
             {
-                label: 'Total sales',
-                value: this.formatMoney(k?.revenue),
-                hint: 'Last 30 days',
-                icon: 'credit-card',
-                spark: this.sparkPath(sparkPoints),
-                sparkFill: this.sparkFill(sparkPoints),
+                title: 'Total Sales',
+                value: this.formatMoney(revenue),
+                trendLabel: 'Sales',
+                trendPct: this.trendPct(revenue, prevRevenue),
+                trendUp: revenue >= prevRevenue,
+                compareHighlight: `(${this.formatMoney(prevRevenue)})`,
+                compareText: '',
+                detailsRoute: '/dashboard/analytics',
             },
             {
-                label: 'Orders',
-                value: k?.orders ?? '—',
-                hint: 'Last 30 days',
-                icon: 'shopping-cart',
-                spark: this.sparkPath(this.offsetSpark(sparkPoints, 0.15)),
-                sparkFill: this.sparkFill(this.offsetSpark(sparkPoints, 0.15)),
+                title: 'Total Orders',
+                value: String(orders),
+                trendLabel: 'order',
+                trendPct: this.trendPct(orders, prevOrders),
+                trendUp: orders >= prevOrders,
+                compareHighlight: `(${prevOrders})`,
+                compareText: 'orders',
+                detailsRoute: '/dashboard/orders',
             },
             {
-                label: 'Customers',
-                value: k?.newCustomers ?? '—',
-                hint: 'New accounts',
-                icon: 'users',
-                spark: this.sparkPath(this.offsetSpark(sparkPoints, 0.28)),
-                sparkFill: this.sparkFill(this.offsetSpark(sparkPoints, 0.28)),
-            },
-            {
-                label: 'Low stock',
-                value: k?.lowStockItems ?? '—',
-                hint: `${k?.products ?? '—'} products in catalog`,
-                icon: 'boxes',
-                spark: this.sparkPath(this.offsetSpark(sparkPoints, 0.4)),
-                sparkFill: this.sparkFill(this.offsetSpark(sparkPoints, 0.4)),
+                title: 'Pending & Canceled',
+                value: '',
+                trendLabel: '',
+                trendPct: '',
+                trendUp: true,
+                compareHighlight: '',
+                compareText: '',
+                detailsRoute: '/dashboard/orders',
+                split: {
+                    pending: String(pending),
+                    cancelled: String(cancelled),
+                },
             },
         ];
     });
 
-    readonly topProducts = computed(() => {
-        const items = this.homeResource.value()?.products ?? [];
-        const count = Math.max(items.length, 1);
-        return items.map((item, index) => ({
-            ...item,
-            score: Math.max(28, Math.round(((count - index) / count) * 100) - (item.featured ? 0 : 8)),
+    readonly paymentTabs = computed(() => {
+        const revenue = this.num(this.kpis()?.revenue);
+        const splits = [
+            { id: 'all', label: 'All', share: 1 },
+            { id: 'visa', label: 'Visa', share: 0.4 },
+            { id: 'mastercard', label: 'Mastercard', share: 0.25 },
+            { id: 'paypal', label: 'Paypal', share: 0.2 },
+            { id: 'amex', label: 'Amex', share: 0.15 },
+        ];
+        return splits.map((item) => ({
+            id: item.id,
+            label: item.label,
+            value: this.formatCompactMoney(revenue * item.share),
+        }));
+    });
+
+    readonly liveMetricValue = computed(() => {
+        const k = this.kpis();
+        return String(k?.newCustomers ?? k?.new_customers ?? 0);
+    });
+
+    readonly barSpark = computed(() => {
+        const series = this.revenueSeries();
+        const values =
+            series.length >= 4
+                ? series.slice(-20).map((p) => Number(p.total) || 0)
+                : [12, 18, 14, 22, 19, 28, 24, 32, 20, 26, 30, 35];
+        const max = Math.max(...values, 1);
+        return values.map((v) => Math.max(4, (v / max) * 35));
+    });
+
+    readonly countrySales = computed(() => {
+        const payload = this.homeResource.value()?.dashboard;
+        const raw = payload?.salesByCountry ?? payload?.sales_by_country ?? [];
+        const maxRevenue = Math.max(
+            ...raw.map((r) => this.num(r.revenue)),
+            1,
+        );
+        return raw.map((row) => {
+            const revenue = this.num(row.revenue);
+            const countryCode = row.countryCode ?? row.country_code ?? '—';
+            return {
+                countryCode,
+                orderCount: row.orderCount ?? row.order_count ?? 0,
+                share: Math.round((revenue / maxRevenue) * 100),
+            };
+        });
+    });
+
+    readonly topProductsRaw = computed(() => {
+        const payload = this.homeResource.value()?.dashboard;
+        const raw = payload?.topProducts ?? payload?.top_products ?? [];
+        return raw.map((p) => ({
+            id: p.id,
+            name: p.name,
+            sku: p.sku ?? '',
+            imageUrl: p.imageUrl ?? p.image_url ?? null,
+            revenueLabel: this.formatMoney(p.revenue),
+        }));
+    });
+
+    readonly filteredTopProducts = computed(() => {
+        const q = this.topProductQuery().trim().toLowerCase();
+        const items = this.topProductsRaw();
+        if (!q) return items.slice(0, 5);
+        return items.filter(
+            (p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q),
+        );
+    });
+
+    readonly bestSellers = computed(() => {
+        const payload = this.homeResource.value()?.dashboard;
+        const raw = payload?.topProducts ?? payload?.top_products ?? [];
+        return raw.slice(0, 4).map((p) => ({
+            id: p.id,
+            name: p.name,
+            imageUrl: p.imageUrl ?? p.image_url ?? null,
+            totalSold: p.totalSold ?? p.total_sold ?? 0,
+            statusLabel: this.productStatusLabel(p.status),
+            priceLabel: this.formatMoney(p.price ?? p.revenue),
         }));
     });
 
     readonly recentOrders = computed((): NormalizedOrder[] => {
         const payload = this.homeResource.value()?.dashboard;
         const raw = payload?.recentOrders ?? payload?.recent_orders ?? [];
-        return raw.map((order) => {
+        return raw.map((order, index) => {
             const total = order.grandTotal ?? order.grand_total;
             const currency = order.currencyCode ?? order.currency_code ?? 'USD';
             const created = order.createdAt ?? order.created_at;
+            const status = order.status ?? 'PENDING';
             return {
                 id: order.id,
+                index: index + 1,
                 orderNumber: order.orderNumber ?? order.order_number ?? order.id.slice(0, 8),
-                status: order.status ?? 'PENDING',
+                status,
+                statusLabel: this.orderStatusLabel(status),
                 total: this.formatMoney(total, currency),
-                email: order.customerEmail ?? order.customer_email ?? 'Guest',
                 when: this.formatWhen(created),
             };
         });
     });
 
-    readonly chartReady = computed(() => this.revenueSeries().length > 1 || (this.kpis()?.orders ?? 0) > 0);
+    readonly categories = computed(() => this.homeResource.value()?.categories ?? []);
+    readonly suggestions = computed(() => this.homeResource.value()?.suggestions ?? []);
+
+    readonly chartReady = computed(
+        () => this.revenueSeries().length > 1 || (this.kpis()?.orders ?? 0) > 0,
+    );
 
     readonly chartPoints = computed(() => {
         const series = this.revenueSeries();
         if (series.length >= 2) {
             return series.map((point) => Number(point.total) || 0);
         }
-        // Soft placeholder curve when orders exist but series is sparse
-        const base = Number(this.kpis()?.revenue ?? 0) || 40;
+        const base = this.num(this.kpis()?.revenue) || 40;
         return [0.35, 0.42, 0.38, 0.55, 0.48, 0.62, 0.58, 0.74, 0.68, 0.82, 0.9, 1].map(
             (n) => n * (base || 100),
         );
@@ -455,29 +814,38 @@ export class DashboardHomeComponent {
 
     readonly chartLabels = computed(() => {
         const series = this.revenueSeries();
+        if (series.length >= 7) {
+            return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        }
         if (series.length >= 4) {
-            const picks = [0, Math.floor(series.length / 3), Math.floor((series.length * 2) / 3), series.length - 1];
+            const picks = [
+                0,
+                Math.floor(series.length / 3),
+                Math.floor((series.length * 2) / 3),
+                series.length - 1,
+            ];
             return picks.map((i) => this.shortDate(series[i]?.date));
         }
-        return ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+        return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     });
 
-    readonly needsAttention = computed(() => (this.kpis()?.lowStockItems ?? 0) > 0);
-
-    readonly attentionCopy = computed(() => {
-        const low = this.kpis()?.lowStockItems ?? 0;
-        if (low <= 0) return '';
-        return `${low} SKU${low === 1 ? '' : 's'} at or below the low-stock threshold.`;
-    });
+    setReportPeriod(period: ReportPeriod): void {
+        this.reportPeriod.set(period);
+    }
 
     openOrder(id: string): void {
         ignorePromise(this.router.navigate(['/dashboard/orders', id]));
+    }
+
+    openProduct(id: string): void {
+        ignorePromise(this.router.navigate(['/dashboard/products', id]));
     }
 
     statusVariant(status: string): BadgeVariant {
         switch (status) {
             case 'DELIVERED':
             case 'COMPLETED':
+            case 'CONFIRMED':
                 return 'success';
             case 'CANCELLED':
             case 'REFUNDED':
@@ -486,6 +854,67 @@ export class DashboardHomeComponent {
                 return 'warning';
             default:
                 return 'outline';
+        }
+    }
+
+    productStatusVariant(label: string): BadgeVariant {
+        switch (label) {
+            case 'Stock':
+                return 'success';
+            case 'Out of stock':
+                return 'destructive';
+            default:
+                return 'secondary';
+        }
+    }
+
+    private dateRange(period: ReportPeriod): { from: string; to: string } {
+        const to = new Date();
+        const from = new Date(to);
+        from.setDate(from.getDate() - 7);
+        if (period === 'last') {
+            to.setTime(from.getTime());
+            from.setDate(from.getDate() - 7);
+        }
+        return {
+            from: from.toISOString().slice(0, 10),
+            to: to.toISOString().slice(0, 10),
+        };
+    }
+
+    private num(value: number | string | null | undefined): number {
+        if (value == null) return 0;
+        const n = typeof value === 'string' ? Number(value) : value;
+        return Number.isNaN(n) ? 0 : n;
+    }
+
+    private trendPct(current: number, previous: number): string {
+        if (previous <= 0) return current > 0 ? '100%' : '0%';
+        const pct = Math.abs(((current - previous) / previous) * 100);
+        return `${pct.toFixed(1)}%`;
+    }
+
+    private orderStatusLabel(status: string): string {
+        switch (status) {
+            case 'DELIVERED':
+            case 'COMPLETED':
+            case 'CONFIRMED':
+                return 'Paid';
+            case 'CANCELLED':
+                return 'Canceled';
+            default:
+                return 'Pending';
+        }
+    }
+
+    private productStatusLabel(status: string | undefined): string {
+        switch (status) {
+            case 'PUBLISHED':
+                return 'Stock';
+            case 'ARCHIVED':
+                return 'Out of stock';
+            default:
+                return 'Draft';
         }
     }
 
@@ -500,13 +929,20 @@ export class DashboardHomeComponent {
         }).format(num);
     }
 
+    private formatCompactMoney(value: number): string {
+        if (value >= 1000) {
+            return `$${(value / 1000).toFixed(0)}K`;
+        }
+        return this.formatMoney(value);
+    }
+
     private formatWhen(value: string | undefined): string {
         if (!value) return '—';
         const date = new Date(value);
         if (Number.isNaN(date.getTime())) return '—';
         return new Intl.DateTimeFormat(undefined, {
+            day: '2-digit',
             month: 'short',
-            day: 'numeric',
             hour: 'numeric',
             minute: '2-digit',
         }).format(date);
@@ -517,32 +953,6 @@ export class DashboardHomeComponent {
         const date = new Date(value);
         if (Number.isNaN(date.getTime())) return value.slice(5);
         return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date);
-    }
-
-    private sparkPoints(series: RevenuePoint[]): number[] {
-        if (series.length >= 4) {
-            return series.slice(-8).map((p) => Number(p.total) || 0);
-        }
-        return [12, 18, 14, 22, 19, 28, 24, 32];
-    }
-
-    private offsetSpark(points: number[], amount: number): number[] {
-        return points.map((value, index) => value * (1 - amount + ((index % 3) * amount) / 3));
-    }
-
-    private sparkPath(values: number[]): string {
-        const coords = this.normalize(values, 80, 36, 2);
-        if (coords.length === 0) return '';
-        return coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x} ${c.y}`).join(' ');
-    }
-
-    private sparkFill(values: number[]): string {
-        const coords = this.normalize(values, 80, 36, 2);
-        if (coords.length === 0) return '';
-        const line = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x} ${c.y}`).join(' ');
-        const last = coords[coords.length - 1];
-        const first = coords[0];
-        return `${line} L${last.x} 40 L${first.x} 40 Z`;
     }
 
     private areaPath(values: number[], filled: boolean): string {

@@ -4,7 +4,7 @@
 
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { AuthService } from '@services/auth.service';
 import { PermissionService } from '@services/permission.service';
 import { SidebarService } from '@services/sidebar.service';
@@ -31,6 +31,7 @@ import { IconComponent } from '../components/icon.component';
 import { NavMenuComponent } from '../components/nav-menu.component';
 import { SeparatorComponent } from '../components/separator.component';
 import { SheetComponent } from '../components/sheet.component';
+import { SearchInputComponent } from '../components/search-input.component';
 import { ThemeToggleComponent } from '../components/theme-toggle.component';
 
 @Component({
@@ -38,6 +39,7 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         RouterOutlet,
+        RouterLink,
         AvatarComponent,
         IconComponent,
         NavMenuComponent,
@@ -47,6 +49,7 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
         DropdownSeparatorComponent,
         SheetComponent,
         SeparatorComponent,
+        SearchInputComponent,
         ThemeToggleComponent,
     ],
     template: `
@@ -173,18 +176,27 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
                                 className="site-header-separator hidden md:block"
                             />
                             <nav class="site-header-breadcrumb hidden lg:flex" aria-label="Breadcrumb">
-                                <span class="site-header-breadcrumb-muted">Dashboard</span>
-                                <app-icon
-                                    name="chevron-right"
-                                    [size]="14"
-                                    className="text-muted-foreground"
-                                />
                                 <span class="site-header-breadcrumb-current">{{ pageTitle() }}</span>
                             </nav>
                             <span class="site-header-mobile-title lg:hidden">{{ pageTitle() }}</span>
                         </div>
 
+                        <div class="site-header-search">
+                            <app-search-input
+                                placeholder="Search data, users, or reports"
+                                ariaLabel="Global search"
+                                (searchChange)="onGlobalSearch($event)"
+                            />
+                        </div>
+
                         <div class="site-header-actions">
+                            <a
+                                routerLink="/dashboard/notifications"
+                                class="site-header-notify-btn hidden sm:inline-flex"
+                                aria-label="Notifications"
+                            >
+                                <app-icon name="bell" [size]="18" />
+                            </a>
                             <app-theme-toggle class="hidden sm:inline-flex" />
 
                             <div class="md:hidden">
@@ -350,6 +362,16 @@ export class AdminLayoutComponent {
         if (item.route) {
             ignorePromise(this.router.navigateByUrl(item.route));
         }
+    }
+
+    onGlobalSearch(query: string): void {
+        const q = query.trim();
+        if (!q) return;
+        ignorePromise(
+            this.router.navigate(['/dashboard/products'], {
+                queryParams: { search: q },
+            }),
+        );
     }
 
     logout(): void {

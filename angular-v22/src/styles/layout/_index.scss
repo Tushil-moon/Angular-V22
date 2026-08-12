@@ -1,5 +1,327 @@
 /* Figma E-commerce Admin kit layout — mapped to our design tokens
-   Reference: https://www.figma.com/design/5BaKpvAQuYjEYp8ZKuefFc */
+   Reference: https://www.figma.com/design/M3bpAZpkKNppHghX3SeMQU */
+
+.dashboard-page {
+    @apply flex min-h-0 flex-1 flex-col gap-5;
+}
+
+.dashboard-kpi-row {
+    @apply grid grid-cols-1 gap-4 lg:grid-cols-3;
+}
+
+.dashboard-kpi-card {
+    @apply index-metric relative flex min-h-[13.875rem] flex-col;
+}
+
+.dashboard-kpi-head {
+    @apply flex items-start justify-between gap-2;
+}
+
+.dashboard-kpi-title {
+    @apply text-lg font-bold text-foreground;
+}
+
+.dashboard-kpi-period {
+    @apply mt-1 text-sm text-muted-foreground;
+}
+
+.dashboard-kpi-menu {
+    @apply site-header-icon-btn size-8;
+}
+
+.dashboard-kpi-value-row {
+    @apply mt-4 flex flex-wrap items-end gap-3;
+}
+
+.dashboard-kpi-value {
+    @apply text-[2rem] font-bold leading-none tabular-nums text-foreground;
+}
+
+.dashboard-kpi-trend-label {
+    @apply text-base text-foreground;
+}
+
+.dashboard-kpi-trend {
+    @apply index-metric-trend;
+}
+
+.dashboard-kpi-trend-up {
+    @apply index-metric-trend-up;
+}
+
+.dashboard-kpi-trend-down {
+    @apply index-metric-trend-down;
+}
+
+.dashboard-kpi-compare {
+    @apply mt-3 text-sm text-muted-foreground;
+}
+
+.dashboard-kpi-compare-accent {
+    @apply font-semibold text-primary;
+}
+
+.dashboard-kpi-footer {
+    @apply mt-auto flex justify-end pt-4;
+}
+
+.dashboard-kpi-split {
+    @apply mt-4 grid grid-cols-2 gap-4;
+}
+
+.dashboard-kpi-split-label {
+    @apply text-sm text-muted-foreground;
+}
+
+.dashboard-kpi-split-value {
+    @apply mt-1 text-xl font-bold tabular-nums text-foreground;
+}
+
+.dashboard-mid-grid {
+    @apply grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(16rem,1fr)];
+}
+
+.dashboard-lower-grid {
+    @apply grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(16rem,1fr)];
+}
+
+.dashboard-bottom-grid {
+    @apply grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(16rem,1fr)];
+}
+
+.dashboard-panel {
+    @apply home-panel;
+}
+
+.dashboard-panel-header {
+    @apply home-panel-header;
+}
+
+.dashboard-panel-title {
+    @apply home-panel-title;
+}
+
+.dashboard-panel-subtitle {
+    @apply home-panel-desc;
+}
+
+.dashboard-period-toggle {
+    @apply inline-flex rounded-md border border-border bg-muted/30 p-1;
+}
+
+.dashboard-period-btn {
+    @apply rounded px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground;
+    cursor: pointer;
+
+    &.dashboard-period-btn-active {
+        @apply bg-card text-foreground shadow-sm;
+    }
+}
+
+.dashboard-payment-tabs {
+    @apply flex gap-3 overflow-x-auto border-b border-border px-5 pb-0 pt-3;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.dashboard-payment-tab {
+    @apply shrink-0 border-0 border-b-2 border-transparent bg-transparent px-2 pb-3 text-left text-muted-foreground transition-colors hover:text-foreground;
+    cursor: pointer;
+
+    &.dashboard-payment-tab-active {
+        @apply border-primary text-foreground;
+    }
+}
+
+.dashboard-payment-tab-label {
+    @apply block text-sm font-semibold;
+}
+
+.dashboard-payment-tab-value {
+    @apply mt-1 block text-xs text-muted-foreground tabular-nums;
+}
+
+.dashboard-live-metric {
+    @apply px-5 pt-5;
+}
+
+.dashboard-live-label {
+    @apply text-sm text-muted-foreground;
+}
+
+.dashboard-live-value {
+    @apply mt-1 text-[2rem] font-bold tabular-nums text-foreground;
+}
+
+.dashboard-bar-spark {
+    @apply mx-5 mt-4 h-9 w-auto overflow-hidden text-primary;
+}
+
+.dashboard-bar-spark rect {
+    fill: currentColor;
+    opacity: 0.75;
+}
+
+.dashboard-country-section {
+    @apply border-t border-border px-5 py-4;
+}
+
+.dashboard-country-head {
+    @apply mb-4 flex items-center justify-between;
+}
+
+.dashboard-country-row {
+    @apply flex items-center gap-3 py-2;
+}
+
+.dashboard-country-flag {
+    @apply flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold uppercase text-foreground;
+}
+
+.dashboard-country-meta {
+    @apply min-w-0 flex-1;
+}
+
+.dashboard-country-code {
+    @apply text-sm font-semibold text-foreground;
+}
+
+.dashboard-country-orders {
+    @apply text-xs text-muted-foreground;
+}
+
+.dashboard-country-bar-wrap {
+    @apply min-w-0 flex-1;
+}
+
+.dashboard-country-bar {
+    @apply mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted;
+}
+
+.dashboard-country-bar-fill {
+    @apply h-full rounded-full bg-primary;
+}
+
+.dashboard-country-change {
+    @apply shrink-0 text-xs font-medium text-success-foreground;
+}
+
+.dashboard-product-search {
+    @apply mx-4 mb-3 mt-1;
+}
+
+.dashboard-product-list {
+    @apply flex flex-col divide-y divide-border px-4 pb-4;
+}
+
+.dashboard-product-row {
+    @apply flex items-center gap-3 py-3;
+}
+
+.dashboard-product-thumb {
+    @apply flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-xs font-semibold text-muted-foreground;
+}
+
+.dashboard-product-thumb img {
+    @apply size-full object-cover;
+}
+
+.dashboard-product-body {
+    @apply min-w-0 flex-1;
+}
+
+.dashboard-product-name {
+    @apply truncate text-sm font-medium text-foreground;
+}
+
+.dashboard-product-sku {
+    @apply truncate text-xs text-muted-foreground;
+}
+
+.dashboard-product-price {
+    @apply shrink-0 text-sm font-semibold tabular-nums text-foreground;
+}
+
+.dashboard-add-panel {
+    @apply flex flex-col;
+}
+
+.dashboard-add-head {
+    @apply flex items-center justify-between px-5 py-4;
+}
+
+.dashboard-add-section-label {
+    @apply px-5 text-sm text-muted-foreground;
+}
+
+.dashboard-category-row {
+    @apply mx-5 mb-2 flex items-center gap-3 rounded-lg border border-border p-1.5 transition-colors hover:bg-muted/40;
+    cursor: pointer;
+}
+
+.dashboard-category-thumb {
+    @apply flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-lg;
+}
+
+.dashboard-category-name {
+    @apply min-w-0 flex-1 text-base font-medium text-foreground;
+}
+
+.dashboard-see-more {
+    @apply block py-3 text-center text-sm text-muted-foreground transition-colors hover:text-foreground;
+}
+
+.dashboard-quick-add-row {
+    @apply flex items-center gap-3 px-5 py-3;
+}
+
+.dashboard-quick-add-info {
+    @apply min-w-0 flex-1;
+}
+
+.dashboard-quick-add-name {
+    @apply truncate text-sm font-medium text-foreground;
+}
+
+.dashboard-quick-add-price {
+    @apply text-xs text-muted-foreground tabular-nums;
+}
+
+.dashboard-table-product {
+    @apply flex items-center gap-3;
+}
+
+.dashboard-table-product-thumb {
+    @apply flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-xs font-semibold text-muted-foreground;
+}
+
+.dashboard-table-product-thumb img {
+    @apply size-full object-cover;
+}
+
+.dashboard-chart-accent-line {
+    fill: none;
+    stroke: var(--chart-1);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.dashboard-chart-accent-area {
+    fill: var(--chart-1);
+    opacity: 0.12;
+}
+
+.site-header-search {
+    @apply hidden min-w-0 flex-1 lg:flex lg:max-w-md lg:px-4;
+}
+
+.site-header-notify-btn {
+    @apply site-header-icon-btn relative;
+}
 
 .index-page {
     @apply flex min-h-0 flex-1 flex-col gap-5;
@@ -307,13 +629,129 @@
 }
 
 /* Order Management — Figma node 5:2353 */
+.om-page {
+    @apply gap-5;
+}
+
+.om-kpi-row {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4;
+}
+
+.om-kpi-card {
+    @apply index-metric flex min-h-[10.5rem] flex-col p-5;
+}
+
+.om-kpi-head {
+    @apply flex items-start justify-between gap-2;
+}
+
+.om-kpi-title {
+    @apply text-base font-bold text-foreground;
+}
+
+.om-kpi-period {
+    @apply mt-1 text-sm text-muted-foreground;
+}
+
+.om-kpi-menu {
+    @apply site-header-icon-btn size-8;
+}
+
+.om-kpi-value-row {
+    @apply mt-4 flex flex-wrap items-end gap-2;
+}
+
+.om-kpi-value {
+    @apply text-[2rem] font-bold leading-none tabular-nums text-foreground;
+}
+
+.om-kpi-trend-wrap {
+    @apply flex items-end gap-1;
+}
+
+.om-kpi-trend-label {
+    @apply text-sm text-foreground;
+}
+
+.om-kpi-trend {
+    @apply index-metric-trend text-sm;
+}
+
+.om-kpi-trend-up {
+    @apply index-metric-trend-up;
+}
+
+.om-kpi-trend-down {
+    @apply index-metric-trend-down;
+}
+
 .om-list-header {
     @apply flex shrink-0 flex-col gap-3 border-b border-border px-5 py-4 sm:flex-row sm:items-center
         sm:justify-between;
 }
 
 .om-list-title {
-    @apply text-base font-semibold text-foreground;
+    @apply text-xl font-bold text-foreground;
+}
+
+.om-toolbar {
+    @apply flex shrink-0 flex-col gap-3 border-b border-border px-4 py-3 lg:flex-row lg:items-center
+        lg:justify-between;
+}
+
+.om-pill-tabs {
+    @apply flex flex-wrap items-center gap-2;
+}
+
+.om-pill-tab {
+    @apply inline-flex items-center rounded-full border border-transparent px-4 py-2 text-sm font-medium
+        text-muted-foreground transition-colors hover:text-foreground;
+    cursor: pointer;
+}
+
+.om-pill-tab-active {
+    @apply border-primary/20 bg-primary text-primary-foreground hover:text-primary-foreground;
+}
+
+.om-toolbar-actions {
+    @apply flex flex-wrap items-center gap-2 lg:justify-end;
+}
+
+.om-toolbar-search {
+    @apply w-full min-w-[12rem] sm:w-56;
+}
+
+.om-icon-btn {
+    @apply site-header-icon-btn size-9 shrink-0;
+}
+
+.om-table-wrap {
+    @apply min-h-0 flex-1;
+}
+
+.om-table .flex-table-header {
+    @apply bg-primary/5;
+}
+
+.om-table .flex-table-cell-header {
+    @apply text-foreground;
+}
+
+.om-product {
+    @apply flex min-w-0 items-center gap-3;
+}
+
+.om-product-thumb {
+    @apply size-10 shrink-0 overflow-hidden rounded-lg border border-border bg-muted object-cover;
+}
+
+.om-product-thumb-fallback {
+    @apply flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-muted
+        text-muted-foreground;
+}
+
+.om-product-name {
+    @apply truncate text-sm font-medium text-foreground;
 }
 
 .om-payment {
@@ -329,7 +767,7 @@
 }
 
 .om-payment-unpaid .om-payment-dot {
-    @apply bg-amber-500;
+    @apply bg-destructive;
 }
 
 .om-status {
@@ -338,6 +776,10 @@
 
 .om-row-num {
     @apply text-sm tabular-nums text-muted-foreground;
+}
+
+.om-row-check {
+    @apply flex items-center;
 }
 
 .om-kpi-meta {

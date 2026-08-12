@@ -37,6 +37,43 @@ export const createProductSchema = z.object({
   compareAtPrice: z.number().nonnegative().optional(),
   sku: z.string().max(100).optional(),
   trackInventory: z.boolean().optional(),
+  initialStock: z.number().int().nonnegative().optional(),
+  primaryImage: z
+    .object({
+      url: z.string().min(1).max(2048),
+      altText: z.string().max(255).optional(),
+      mediaId: z.string().uuid().optional(),
+    })
+    .optional(),
+  images: z
+    .array(
+      z.object({
+        url: z.string().min(1).max(2048),
+        altText: z.string().max(255).optional(),
+        mediaId: z.string().uuid().optional(),
+        position: z.number().int().nonnegative().optional(),
+      }),
+    )
+    .max(20)
+    .optional(),
+});
+
+export const productImageIdParamSchema = z.object({
+  id: z.string().uuid(),
+  imageId: z.string().uuid(),
+});
+
+export const addProductImageSchema = z.object({
+  url: z.string().min(1).max(2048),
+  altText: z.string().max(255).optional(),
+  mediaId: z.string().uuid().optional(),
+  position: z.number().int().nonnegative().optional(),
+});
+
+export const updateProductImageSchema = addProductImageSchema.partial();
+
+export const reorderProductImagesSchema = z.object({
+  imageIds: z.array(z.string().uuid()).min(1),
 });
 
 export const updateProductSchema = createProductSchema.partial();
@@ -60,3 +97,6 @@ export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type CreateVariantInput = z.infer<typeof createVariantSchema>;
 export type UpdateVariantInput = z.infer<typeof updateVariantSchema>;
+export type AddProductImageInput = z.infer<typeof addProductImageSchema>;
+export type UpdateProductImageInput = z.infer<typeof updateProductImageSchema>;
+export type ReorderProductImagesInput = z.infer<typeof reorderProductImagesSchema>;

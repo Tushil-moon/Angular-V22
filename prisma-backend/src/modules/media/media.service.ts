@@ -1,9 +1,14 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../config/prisma";
 import { AppError } from "../../shared/errors/app-error";
+import {
+  buildMediaStorageKey,
+  sanitizeUploadFileName,
+  uploadObject,
+} from "../../shared/storage/object-storage";
 import { buildPaginationMeta } from "../../shared/validation/pagination";
 import { getDefaultStoreId } from "../../shared/utils/store";
-import type { CreateMediaInput, ListMediaQuery } from "./media.validation";
+import type { CreateMediaInput, ListMediaQuery, UploadMediaInput } from "./media.validation";
 
 const mediaSelect = {
   id: true,
@@ -95,6 +100,28 @@ export const mediaService = {
         originalName: input.originalName ?? input.fileName,
         width: input.width ?? null,
         height: input.height ?? null,
+        altText: input.altText ?? null,
+      },
+      select: mediaSelect,
+    });
+  },
+
+  async upload(input: UploadMediaInput) {
+    const storeId = await getDefaultStoreId();
+    const storageKey = buildMediaStorageKey(input.originalName);
+    const fileName = sanitizeUploadFileName(input.originalName);
+
+    const { url } = await uploadObject(storageKey, input.buffer, input.mimeType);
+
+    return prisma.mediaAsset.create({
+      data: {
+        storeId,
+        url,
+        storageKey,
+        mimeType: input.mimeType,
+        sizeBytes: input.size,
+        filename: fileName,
+        originalName: input.originalName,
         altText: input.altText ?? null,
       },
       select: mediaSelect,

@@ -62,6 +62,18 @@ export class MediaApiService {
             .pipe(map((response) => (response.data ? mapApiMediaAsset(response.data) : null)));
     }
 
+    upload(file: File, altText?: string | null): Observable<MediaAsset | null> {
+        const formData = new FormData();
+        formData.append('file', file);
+        if (altText?.trim()) {
+            formData.append('altText', altText.trim());
+        }
+
+        return this.http
+            .post<ApiMediaPayload>('/media/upload', formData)
+            .pipe(map((response) => (response.data ? mapApiMediaAsset(response.data) : null)));
+    }
+
     delete(id: string): Observable<void> {
         return this.http.delete(`/media/${id}`).pipe(map(() => undefined));
     }

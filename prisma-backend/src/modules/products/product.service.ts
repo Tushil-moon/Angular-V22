@@ -4,10 +4,13 @@ import { AppError } from "../../shared/errors/app-error";
 import { buildPaginationMeta } from "../../shared/validation/pagination";
 import { getDefaultStoreId } from "../../shared/utils/store";
 import type {
+  AddProductImageInput,
   CreateProductInput,
   CreateVariantInput,
   ListProductsQuery,
+  ReorderProductImagesInput,
   UpdateProductInput,
+  UpdateProductImageInput,
   UpdateVariantInput,
 } from "./product.validation";
 
@@ -43,13 +46,14 @@ const productSelect = {
       compareAtPrice: true,
       status: true,
       barcode: true,
+      trackInventory: true,
     },
     take: 50,
   },
   images: {
-    select: { id: true, url: true, altText: true, position: true },
+    select: { id: true, url: true, altText: true, position: true, mediaId: true },
     orderBy: { position: "asc" as const },
-    take: 10,
+    take: 20,
   },
 } satisfies Prisma.ProductSelect;
 
@@ -59,6 +63,201 @@ const mapProduct = (product: Prisma.ProductGetPayload<{ select: typeof productSe
   price: product.variants[0]?.price ?? null,
   sku: product.variants[0]?.sku ?? null,
 });
+
+const findDefaultWarehouse = async (tx: Prisma.TransactionClient, storeId: string) =>
+  tx.warehouse.findFirst({
+    where: { storeId, deletedAt: null },
+    orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+  });
+
+const seedInventoryForVariant = async (
+  tx: Prisma.TransactionClient,
+  storeId: string,
+  variantId: string,
+  quantity: number,
+) => {
+  if (quantity <= 0) return;
+
+  const warehouse = await findDefaultWarehouse(tx, storeId);
+  if (!warehouse) return;
+
+  await tx.inventoryItem.upsert({
+    where: {
+      warehouseId_variantId: {
+        warehouseId: warehouse.id,
+        variantId,
+      },
+    },
+    create: {
+      storeId,
+      warehouseId: warehouse.id,
+      variantId,
+      quantityOnHand: quantity,
+      quantityReserved: 0,
+      quantityAvailable: quantity,
+    },
+    update: {
+      quantityOnHand: { increment: quantity },
+      quantityAvailable: { increment: quantity },
+    },
+  });
+};
+
+const syncPrimaryImage = async (
+  tx: Prisma.TransactionClient,
+  productId: string,
+  image: NonNullable<CreateProductInput["primaryImage"]>,
+) => {
+  const existing = await tx.productImage.findFirst({
+    where: { productId },
+    orderBy: { position: "asc" },
+  });
+
+  if (existing) {
+    await tx.productImage.update({
+      where: { id: existing.id },
+      data: {
+        url: image.url,
+        altText: image.altText,
+        mediaId: image.mediaId ?? null,
+      },
+    });
+    return;
+  }
+
+  await tx.productImage.create({
+    data: {
+      productId,
+      url: image.url,
+      altText: image.altText,
+      mediaId: image.mediaId ?? null,
+      position: 0,
+    },
+  });
+};
+
+const syncDefaultVariant = async (
+  tx: Prisma.TransactionClient,
+  productId: string,
+  storeId: string,
+  input: UpdateProductInput,
+  productName?: string,
+) => {
+  const hasVariantChanges =
+    input.price !== undefined ||
+    input.compareAtPrice !== undefined ||
+    input.sku !== undefined ||
+    input.trackInventory !== undefined ||
+    productName !== undefined;
+
+  if (!hasVariantChanges) return null;
+
+  const variant = await tx.productVariant.findFirst({
+    where: { productId, storeId, deletedAt: null },
+    orderBy: { position: "asc" },
+  });
+  if (!variant) return null;
+
+  return tx.productVariant.update({
+    where: { id: variant.id },
+    data: {
+      sku: input.sku,
+      price: input.price,
+      compareAtPrice: input.compareAtPrice,
+      trackInventory: input.trackInventory,
+      title: productName,
+    },
+  });
+};
+
+const resolveTrackInventoryDefault = (type: CreateProductInput["type"], explicit?: boolean) => {
+  if (explicit !== undefined) return explicit;
+  if (type === "DIGITAL" || type === "SUBSCRIPTION") return false;
+  return true;
+};
+
+const normalizeCreateInput = (input: CreateProductInput): CreateProductInput => ({
+  ...input,
+  trackInventory: resolveTrackInventoryDefault(input.type, input.trackInventory),
+});
+
+const buildImageCreates = (input: CreateProductInput) => {
+  if (input.images?.length) {
+    return input.images.map((image, index) => ({
+      url: image.url,
+      altText: image.altText,
+      mediaId: image.mediaId ?? null,
+      position: image.position ?? index,
+    }));
+  }
+  if (input.primaryImage) {
+    return [
+      {
+        url: input.primaryImage.url,
+        altText: input.primaryImage.altText,
+        mediaId: input.primaryImage.mediaId ?? null,
+        position: 0,
+      },
+    ];
+  }
+  return [];
+};
+
+const validateCategoryIds = async (storeId: string, categoryIds?: string[]) => {
+  if (!categoryIds?.length) return;
+  const count = await prisma.category.count({
+    where: {
+      id: { in: categoryIds },
+      storeId,
+      deletedAt: null,
+      status: "PUBLISHED",
+    },
+  });
+  if (count !== categoryIds.length) {
+    throw new AppError(
+      400,
+      "One or more categories are invalid or not published",
+      "INVALID_CATEGORIES",
+    );
+  }
+};
+
+const ensurePublishReady = async (
+  storeId: string,
+  status: string | undefined,
+  categoryIds: string[] | undefined,
+  productId?: string,
+) => {
+  if (status !== "PUBLISHED") return;
+
+  let ids = categoryIds;
+  if (ids === undefined && productId) {
+    const links = await prisma.productCategory.findMany({
+      where: { productId },
+      select: { categoryId: true },
+    });
+    ids = links.map((link) => link.categoryId);
+  }
+
+  if (!ids?.length) {
+    throw new AppError(
+      400,
+      "Published products require at least one category",
+      "CATEGORIES_REQUIRED",
+    );
+  }
+
+  await validateCategoryIds(storeId, ids);
+};
+
+const assertProductExists = async (productId: string, storeId: string) => {
+  const product = await prisma.product.findFirst({
+    where: { id: productId, storeId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!product) throw new AppError(404, "Product not found", "PRODUCT_NOT_FOUND");
+  return product;
+};
 
 export const productService = {
   async list(query: ListProductsQuery) {
@@ -139,45 +338,64 @@ export const productService = {
 
   async create(input: CreateProductInput, actorId?: string) {
     const storeId = await getDefaultStoreId();
+    const normalized = normalizeCreateInput(input);
+
+    await validateCategoryIds(storeId, normalized.categoryIds);
+    await ensurePublishReady(storeId, normalized.status, normalized.categoryIds);
 
     const existing = await prisma.product.findFirst({
-      where: { storeId, slug: input.slug, deletedAt: null },
+      where: { storeId, slug: normalized.slug, deletedAt: null },
     });
     if (existing) throw new AppError(409, "Product slug already exists", "PRODUCT_SLUG_EXISTS");
+
+    const imageCreates = buildImageCreates(normalized);
 
     const product = await prisma.$transaction(async (tx) => {
       const created = await tx.product.create({
         data: {
           storeId,
-          name: input.name,
-          slug: input.slug,
-          description: input.description,
-          shortDescription: input.shortDescription,
-          type: input.type,
-          status: input.status,
-          visibility: input.visibility,
-          brandId: input.brandId ?? null,
-          featured: input.featured ?? false,
-          metaTitle: input.metaTitle,
-          metaDescription: input.metaDescription,
-          publishedAt: input.status === "PUBLISHED" ? new Date() : null,
-          categories: input.categoryIds?.length
-            ? { create: input.categoryIds.map((categoryId) => ({ categoryId })) }
+          name: normalized.name,
+          slug: normalized.slug,
+          description: normalized.description,
+          shortDescription: normalized.shortDescription,
+          type: normalized.type,
+          status: normalized.status,
+          visibility: normalized.visibility,
+          brandId: normalized.brandId ?? null,
+          featured: normalized.featured ?? false,
+          metaTitle: normalized.metaTitle,
+          metaDescription: normalized.metaDescription,
+          publishedAt: normalized.status === "PUBLISHED" ? new Date() : null,
+          categories: normalized.categoryIds?.length
+            ? { create: normalized.categoryIds.map((categoryId) => ({ categoryId })) }
             : undefined,
           variants: {
             create: {
               storeId,
-              sku: input.sku ?? `${input.slug}-default`,
-              title: input.name,
-              price: input.price ?? 0,
-              compareAtPrice: input.compareAtPrice,
-              status: input.status === "ARCHIVED" ? "ARCHIVED" : "PUBLISHED",
-              trackInventory: input.trackInventory ?? true,
+              sku: normalized.sku ?? `${normalized.slug}-default`,
+              title: normalized.name,
+              price: normalized.price ?? 0,
+              compareAtPrice: normalized.compareAtPrice,
+              status: normalized.status === "ARCHIVED" ? "ARCHIVED" : "PUBLISHED",
+              trackInventory: normalized.trackInventory ?? true,
             },
           },
+          images: imageCreates.length
+            ? { create: imageCreates }
+            : undefined,
         },
         select: productSelect,
       });
+
+      const defaultVariant = created.variants[0];
+      if (
+        defaultVariant &&
+        normalized.initialStock &&
+        normalized.initialStock > 0 &&
+        (normalized.trackInventory ?? true)
+      ) {
+        await seedInventoryForVariant(tx, storeId, defaultVariant.id, normalized.initialStock);
+      }
 
       await tx.auditLog.create({
         data: {
@@ -201,6 +419,16 @@ export const productService = {
       where: { id, storeId, deletedAt: null },
     });
     if (!existing) throw new AppError(404, "Product not found", "PRODUCT_NOT_FOUND");
+
+    if (input.categoryIds) {
+      await validateCategoryIds(storeId, input.categoryIds);
+    }
+    await ensurePublishReady(
+      storeId,
+      input.status ?? existing.status,
+      input.categoryIds,
+      id,
+    );
 
     if (input.slug && input.slug !== existing.slug) {
       const slugTaken = await prisma.product.findFirst({
@@ -243,6 +471,11 @@ export const productService = {
         select: productSelect,
       });
 
+      await syncDefaultVariant(tx, id, storeId, input, input.name ?? updated.name);
+      if (input.primaryImage) {
+        await syncPrimaryImage(tx, id, input.primaryImage);
+      }
+
       await tx.auditLog.create({
         data: {
           userId: actorId,
@@ -253,7 +486,12 @@ export const productService = {
         },
       });
 
-      return updated;
+      const refreshed = await tx.product.findFirst({
+        where: { id },
+        select: productSelect,
+      });
+
+      return refreshed ?? updated;
     });
 
     return mapProduct(product);
@@ -423,5 +661,155 @@ export const productService = {
       where: { id: variantId },
       data: { deletedAt: new Date(), status: "ARCHIVED" },
     });
+  },
+
+  async listImages(productId: string) {
+    const storeId = await getDefaultStoreId();
+    await assertProductExists(productId, storeId);
+    return prisma.productImage.findMany({
+      where: { productId },
+      orderBy: { position: "asc" },
+      select: { id: true, url: true, altText: true, position: true, mediaId: true },
+    });
+  },
+
+  async addImage(productId: string, input: AddProductImageInput, actorId?: string) {
+    const storeId = await getDefaultStoreId();
+    await assertProductExists(productId, storeId);
+
+    const aggregate = await prisma.productImage.aggregate({
+      where: { productId },
+      _max: { position: true },
+      _count: { id: true },
+    });
+    if (aggregate._count.id >= 20) {
+      throw new AppError(400, "Maximum of 20 images per product", "IMAGE_LIMIT_REACHED");
+    }
+
+    const position = input.position ?? (aggregate._max.position ?? -1) + 1;
+
+    return prisma.$transaction(async (tx) => {
+      const image = await tx.productImage.create({
+        data: {
+          productId,
+          url: input.url,
+          altText: input.altText,
+          mediaId: input.mediaId ?? null,
+          position,
+        },
+        select: { id: true, url: true, altText: true, position: true, mediaId: true },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          userId: actorId,
+          action: "PRODUCT_IMAGE_ADDED",
+          resource: "product_image",
+          resourceId: image.id,
+          metadata: { productId },
+        },
+      });
+
+      return image;
+    });
+  },
+
+  async updateImage(
+    productId: string,
+    imageId: string,
+    input: UpdateProductImageInput,
+    actorId?: string,
+  ) {
+    const storeId = await getDefaultStoreId();
+    await assertProductExists(productId, storeId);
+
+    const existing = await prisma.productImage.findFirst({
+      where: { id: imageId, productId },
+    });
+    if (!existing) throw new AppError(404, "Product image not found", "PRODUCT_IMAGE_NOT_FOUND");
+
+    return prisma.$transaction(async (tx) => {
+      const image = await tx.productImage.update({
+        where: { id: imageId },
+        data: {
+          url: input.url,
+          altText: input.altText,
+          mediaId: input.mediaId,
+          position: input.position,
+        },
+        select: { id: true, url: true, altText: true, position: true, mediaId: true },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          userId: actorId,
+          action: "PRODUCT_IMAGE_UPDATED",
+          resource: "product_image",
+          resourceId: imageId,
+          metadata: { productId },
+        },
+      });
+
+      return image;
+    });
+  },
+
+  async deleteImage(productId: string, imageId: string, actorId?: string) {
+    const storeId = await getDefaultStoreId();
+    await assertProductExists(productId, storeId);
+
+    const existing = await prisma.productImage.findFirst({
+      where: { id: imageId, productId },
+    });
+    if (!existing) throw new AppError(404, "Product image not found", "PRODUCT_IMAGE_NOT_FOUND");
+
+    await prisma.$transaction(async (tx) => {
+      await tx.productImage.delete({ where: { id: imageId } });
+      await tx.auditLog.create({
+        data: {
+          userId: actorId,
+          action: "PRODUCT_IMAGE_DELETED",
+          resource: "product_image",
+          resourceId: imageId,
+          metadata: { productId },
+        },
+      });
+    });
+  },
+
+  async reorderImages(productId: string, input: ReorderProductImagesInput, actorId?: string) {
+    const storeId = await getDefaultStoreId();
+    await assertProductExists(productId, storeId);
+
+    const images = await prisma.productImage.findMany({
+      where: { productId },
+      select: { id: true },
+    });
+    const existingIds = new Set(images.map((image) => image.id));
+    if (
+      input.imageIds.length !== images.length ||
+      input.imageIds.some((id) => !existingIds.has(id))
+    ) {
+      throw new AppError(400, "Image order must include all product images", "INVALID_IMAGE_ORDER");
+    }
+
+    await prisma.$transaction(async (tx) => {
+      for (const [position, imageId] of input.imageIds.entries()) {
+        await tx.productImage.update({
+          where: { id: imageId },
+          data: { position },
+        });
+      }
+      await tx.auditLog.create({
+        data: {
+          userId: actorId,
+          action: "PRODUCT_IMAGES_REORDERED",
+          resource: "product",
+          resourceId: productId,
+        },
+      });
+    });
+
+    return this.listImages(productId);
   },
 };

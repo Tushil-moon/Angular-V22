@@ -159,7 +159,7 @@ export class HttpClientService {
                 code: (data as { code?: string } | undefined)?.code || data?.message || 'UNKNOWN_ERROR',
                 message: data?.message || error.message || 'An unexpected error occurred',
                 statusCode: status,
-                details: data?.errors,
+                details: data?.errors ?? (data as { details?: unknown } | undefined)?.details,
             };
         }
 

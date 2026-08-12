@@ -26,3 +26,11 @@ export const createMediaSchema = z.object({
 
 export type ListMediaQuery = z.infer<typeof listMediaQuerySchema>;
 export type CreateMediaInput = z.infer<typeof createMediaSchema>;
+
+export interface UploadMediaInput {
+  buffer: Buffer;
+  mimeType: string;
+  originalName: string;
+  size: number;
+  altText?: string | null;
+}

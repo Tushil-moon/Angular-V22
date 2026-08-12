@@ -251,7 +251,7 @@ export const PAGE_TITLES: Record<string, string> = {
     categories: 'Categories',
     brands: 'Brands',
     collections: 'Collections',
-    orders: 'Orders',
+    orders: 'Order Management',
     payments: 'Transactions',
     refunds: 'Refunds',
     customers: 'Customers',

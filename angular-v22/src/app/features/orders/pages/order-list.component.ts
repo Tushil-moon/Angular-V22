@@ -1,12 +1,12 @@
 /**
- * Order Management — Figma Admin UI Kit (node 5:2353), mapped to our theme
- * https://www.figma.com/design/5BaKpvAQuYjEYp8ZKuefFc/?node-id=5-2353
+ * Order Management — Figma Admin UI Kit (node 5:2353)
+ * https://www.figma.com/design/M3bpAZpkKNppHghX3SeMQU/?node-id=5-2353
  */
 
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { AuthService } from '@services/index';
+import { AuthService, HttpClientService } from '@services/index';
 import {
     BadgeComponent,
     type BadgeVariant,
@@ -25,7 +25,7 @@ import { catchResourceStreamError } from '@shared/utils/resource-error';
 import { ignorePromise } from '@utils/form-display.util';
 import { forkJoin, map, of } from 'rxjs';
 
-import { formatDate, formatMoney, orDash, titleCase } from '../../shared/format.util';
+import { formatDecimal, formatShortDate, orDash } from '../../shared/format.util';
 import type { Order, OrderStatus } from '../models/order.model';
 import { OrderApiService } from '../services/order-api.service';
 
@@ -41,10 +41,49 @@ interface OrderSummary {
     cancelled: number;
 }
 
+interface OrderKpis {
+    orders: number;
+    pendingOrders: number;
+    completedOrders: number;
+    cancelledOrders: number;
+    previousPeriodOrders: number;
+    previousPeriodPendingOrders: number;
+    previousPeriodCompletedOrders: number;
+    previousPeriodCancelledOrders: number;
+}
+
+interface KpiCard {
+    title: string;
+    value: number;
+    trendLabel: string;
+    trendPct: string;
+    trendUp: boolean;
+}
+
 interface StatusTab {
     label: string;
     value: OrderStatus | 'ALL';
     countKey: keyof OrderSummary;
+}
+
+interface AnalyticsDashboardPayload {
+    kpis?: {
+        orders?: number;
+        pending_orders?: number;
+        pendingOrders?: number;
+        completed_orders?: number;
+        completedOrders?: number;
+        cancelled_orders?: number;
+        cancelledOrders?: number;
+        previous_period_orders?: number;
+        previousPeriodOrders?: number;
+        previous_period_pending_orders?: number;
+        previousPeriodPendingOrders?: number;
+        previous_period_completed_orders?: number;
+        previousPeriodCompletedOrders?: number;
+        previous_period_cancelled_orders?: number;
+        previousPeriodCancelledOrders?: number;
+    };
 }
 
 @Component({
@@ -61,129 +100,179 @@ interface StatusTab {
         FlexTableCellComponent,
     ],
     template: `
-        <div class="index-page page-shell-fill">
-            <div class="index-header">
-                <div class="index-header-copy">
-                    <h1 class="index-title">Order Management</h1>
-                    <p class="index-subtitle">Monitor fulfillment, payments, and order status</p>
-                </div>
-            </div>
-
-            <div class="index-metrics shrink-0">
-                @for (card of kpiCards(); track card.label) {
-                    <div class="index-metric">
-                        <div class="index-metric-top">
-                            <div class="min-w-0">
-                                <div class="flex items-center gap-2">
-                                    <div class="index-metric-icon">
-                                        <app-icon [name]="card.icon" [size]="18" />
-                                    </div>
-                                    <p class="index-metric-label">{{ card.label }}</p>
-                                </div>
-                                <p class="index-metric-value">{{ card.value }}</p>
-                                <p class="om-kpi-meta">{{ card.hint }}</p>
+        <div class="index-page page-shell-fill om-page">
+            <div class="om-kpi-row">
+                @for (card of kpiCards(); track card.title) {
+                    <article class="om-kpi-card">
+                        <div class="om-kpi-head">
+                            <div>
+                                <h2 class="om-kpi-title">{{ card.title }}</h2>
+                                <p class="om-kpi-period">Last 7 days</p>
+                            </div>
+                            <button type="button" class="om-kpi-menu" aria-label="More options">
+                                <app-icon name="more-vertical" [size]="16" />
+                            </button>
+                        </div>
+                        <div class="om-kpi-value-row">
+                            <p class="om-kpi-value">{{ card.value }}</p>
+                            <div class="om-kpi-trend-wrap">
+                                <span class="om-kpi-trend-label">{{ card.trendLabel }}</span>
+                                <span
+                                    class="om-kpi-trend"
+                                    [class.om-kpi-trend-up]="card.trendUp"
+                                    [class.om-kpi-trend-down]="!card.trendUp"
+                                >
+                                    <app-icon
+                                        [name]="card.trendUp ? 'arrow-up' : 'arrow-down'"
+                                        [size]="14"
+                                    />
+                                    {{ card.trendPct }}
+                                </span>
                             </div>
                         </div>
-                    </div>
+                    </article>
                 }
             </div>
 
             <section class="index-card">
                 <div class="om-list-header">
-                    <div>
-                        <h2 class="om-list-title">Order list</h2>
-                        <p class="index-subtitle">{{ total() }} matching this view</p>
-                    </div>
+                    <h2 class="om-list-title">Order list</h2>
                     <div class="index-actions">
-                        <app-button size="sm" variant="outline" type="button" (clicked)="refresh()">
-                            <app-icon name="activity" [size]="14" />
-                            Refresh
+                        <app-button size="sm" variant="primary" type="button">
+                            <app-icon name="plus-square" [size]="14" />
+                            Add Order
+                        </app-button>
+                        <app-button size="sm" variant="outline" type="button">
+                            <app-icon name="more-horizontal" [size]="14" />
+                            More Action
                         </app-button>
                     </div>
                 </div>
 
-                <div class="index-tabs" role="tablist">
-                    @for (tab of statusTabs; track tab.value) {
-                        <button
-                            type="button"
-                            role="tab"
-                            class="index-tab"
-                            [class.index-tab-active]="statusFilter() === tab.value"
-                            [attr.aria-selected]="statusFilter() === tab.value"
-                            (click)="onStatusFilter(tab.value)"
-                        >
-                            {{ tab.label }} ({{ summary()[tab.countKey] }})
-                        </button>
-                    }
-                </div>
+                <div class="om-toolbar">
+                    <div class="om-pill-tabs" role="tablist">
+                        @for (tab of statusTabs; track tab.value) {
+                            <button
+                                type="button"
+                                role="tab"
+                                class="om-pill-tab"
+                                [class.om-pill-tab-active]="statusFilter() === tab.value"
+                                [attr.aria-selected]="statusFilter() === tab.value"
+                                (click)="onStatusFilter(tab.value)"
+                            >
+                                {{ tab.label }}
+                                @if (tab.value === 'ALL') {
+                                    ({{ summary()[tab.countKey] }})
+                                }
+                            </button>
+                        }
+                    </div>
 
-                <div class="index-filters">
-                    <div class="index-filters-leading">
-                        <app-search-input
-                            placeholder="Search order report"
-                            [initialValue]="searchQuery()"
-                            (searchChange)="onSearch($event)"
-                        />
+                    <div class="om-toolbar-actions">
+                        <div class="om-toolbar-search">
+                            <app-search-input
+                                placeholder="Search order report"
+                                [initialValue]="searchQuery()"
+                                (searchChange)="onSearch($event)"
+                            />
+                        </div>
+                        <button type="button" class="om-icon-btn" aria-label="Filter orders">
+                            <app-icon name="filter" [size]="16" />
+                        </button>
+                        <button type="button" class="om-icon-btn" aria-label="Sort orders">
+                            <app-icon name="arrow-up-down" [size]="16" />
+                        </button>
+                        <button type="button" class="om-icon-btn" aria-label="More table actions">
+                            <app-icon name="more-horizontal" [size]="16" />
+                        </button>
                     </div>
                 </div>
 
-                <div class="index-body">
-                    <app-flex-table
-                        [columns]="columns"
-                        [fill]="true"
-                        [loading]="isLoading()"
-                        [empty]="!isLoading() && items().length === 0"
-                        emptyTitle="No orders found"
-                        emptyDescription="Try another tab or wait for new checkouts."
-                        [flush]="true"
-                        [skeletonRowCount]="8"
-                    >
-                        @for (item of items(); track item.id; let i = $index) {
-                            <app-flex-table-row
-                                class="home-table-row"
-                                [interactive]="true"
-                                (click)="openOrder(item.id)"
-                            >
-                                <app-flex-table-cell column="no">
-                                    <span class="om-row-num">{{ rowNumber(i) }}</span>
-                                </app-flex-table-cell>
-                                <app-flex-table-cell column="order">
-                                    <span class="index-cell-primary">#{{ item.orderNumber }}</span>
-                                </app-flex-table-cell>
-                                <app-flex-table-cell column="customer">
-                                    <span class="index-cell-muted">{{ orDash(item.customerEmail) }}</span>
-                                </app-flex-table-cell>
-                                <app-flex-table-cell column="date">
-                                    <span class="index-cell-muted">{{ placedAt(item) }}</span>
-                                </app-flex-table-cell>
-                                <app-flex-table-cell column="price">
-                                    <span class="index-cell-money">{{ money(item) }}</span>
-                                </app-flex-table-cell>
-                                <app-flex-table-cell column="payment">
-                                    <span
-                                        class="om-payment"
-                                        [class.om-payment-paid]="isPaid(item)"
-                                        [class.om-payment-unpaid]="!isPaid(item)"
-                                    >
-                                        <span class="om-payment-dot" aria-hidden="true"></span>
-                                        {{ paymentLabel(item) }}
-                                    </span>
-                                </app-flex-table-cell>
-                                <app-flex-table-cell column="status">
-                                    <app-badge [variant]="statusVariant(item.status)">
-                                        <span class="om-status">
-                                            <app-icon [name]="statusIcon(item.status)" [size]="12" />
-                                            {{ statusLabel(item.status) }}
+                <div class="index-body om-table-wrap">
+                    <div class="om-table h-full min-h-0">
+                        <app-flex-table
+                            [columns]="columns"
+                            [fill]="true"
+                            [loading]="isLoading()"
+                            [empty]="!isLoading() && items().length === 0"
+                            emptyTitle="No orders found"
+                            emptyDescription="Try another tab or wait for new checkouts."
+                            [flush]="true"
+                            [skeletonRowCount]="8"
+                        >
+                            @for (item of items(); track item.id; let i = $index) {
+                                <app-flex-table-row
+                                    class="home-table-row"
+                                    [interactive]="true"
+                                    (click)="openOrder(item.id)"
+                                >
+                                    <app-flex-table-cell column="select">
+                                        <div class="om-row-check" (click)="$event.stopPropagation()">
+                                            <input
+                                                type="checkbox"
+                                                class="checkbox"
+                                                [checked]="isSelected(item.id)"
+                                                [attr.aria-label]="'Select order ' + item.orderNumber"
+                                                (change)="toggleSelected(item.id, $event)"
+                                            />
+                                        </div>
+                                    </app-flex-table-cell>
+                                    <app-flex-table-cell column="no">
+                                        <span class="om-row-num">{{ rowNumber(i) }}</span>
+                                    </app-flex-table-cell>
+                                    <app-flex-table-cell column="order">
+                                        <span class="index-cell-primary">#{{ item.orderNumber }}</span>
+                                    </app-flex-table-cell>
+                                    <app-flex-table-cell column="product">
+                                        <div class="om-product">
+                                            @if (productImage(item); as imageUrl) {
+                                                <img
+                                                    class="om-product-thumb"
+                                                    [src]="imageUrl"
+                                                    [alt]="productAlt(item)"
+                                                    loading="lazy"
+                                                />
+                                            } @else {
+                                                <div class="om-product-thumb-fallback" aria-hidden="true">
+                                                    <app-icon name="image" [size]="16" />
+                                                </div>
+                                            }
+                                            <span class="om-product-name">{{ productLabel(item) }}</span>
+                                        </div>
+                                    </app-flex-table-cell>
+                                    <app-flex-table-cell column="date">
+                                        <span class="index-cell-muted">{{ placedAt(item) }}</span>
+                                    </app-flex-table-cell>
+                                    <app-flex-table-cell column="price">
+                                        <span class="index-cell-money">{{ price(item) }}</span>
+                                    </app-flex-table-cell>
+                                    <app-flex-table-cell column="payment">
+                                        <span
+                                            class="om-payment"
+                                            [class.om-payment-paid]="isPaid(item)"
+                                            [class.om-payment-unpaid]="!isPaid(item)"
+                                        >
+                                            <span class="om-payment-dot" aria-hidden="true"></span>
+                                            {{ paymentLabel(item) }}
                                         </span>
-                                    </app-badge>
-                                </app-flex-table-cell>
-                            </app-flex-table-row>
-                        }
-                    </app-flex-table>
+                                    </app-flex-table-cell>
+                                    <app-flex-table-cell column="status">
+                                        <app-badge [variant]="statusVariant(item.status)">
+                                            <span class="om-status">
+                                                <app-icon [name]="statusIcon(item.status)" [size]="12" />
+                                                {{ statusLabel(item.status) }}
+                                            </span>
+                                        </app-badge>
+                                    </app-flex-table-cell>
+                                </app-flex-table-row>
+                            }
+                        </app-flex-table>
+                    </div>
                 </div>
 
                 <div class="index-footer">
                     <app-pagination
+                        mode="numbered"
                         [page]="currentPage()"
                         [pageSize]="pageSize()"
                         [total]="total()"
@@ -196,13 +285,15 @@ interface StatusTab {
 })
 export class OrderListComponent {
     private readonly orderApi = inject(OrderApiService);
+    private readonly http = inject(HttpClientService);
     private readonly authService = inject(AuthService);
     private readonly router = inject(Router);
 
     readonly searchQuery = signal('');
     readonly statusFilter = signal<OrderStatus | 'ALL'>('ALL');
     readonly currentPage = signal(1);
-    readonly pageSize = signal(20);
+    readonly pageSize = signal(10);
+    readonly selectedIds = signal<ReadonlySet<string>>(new Set());
 
     readonly statusTabs: StatusTab[] = [
         { label: 'All order', value: 'ALL', countKey: 'total' },
@@ -212,14 +303,36 @@ export class OrderListComponent {
     ];
 
     readonly columns: FlexTableColumn[] = [
-        { key: 'no', label: 'No.', grid: '3.5rem' },
-        { key: 'order', label: 'Order ID', grid: 'minmax(7rem, 1fr)', primary: true },
-        { key: 'customer', label: 'Customer', grid: 'minmax(10rem, 1.4fr)' },
-        { key: 'date', label: 'Date', grid: 'minmax(7rem, 1fr)', hideBelow: 'md' },
-        { key: 'price', label: 'Price', grid: 'minmax(6rem, 0.8fr)' },
-        { key: 'payment', label: 'Payment', grid: 'minmax(6rem, 0.8fr)', hideBelow: 'lg' },
-        { key: 'status', label: 'Status', grid: 'minmax(8rem, 1fr)' },
+        { key: 'select', label: '', grid: '2.75rem' },
+        { key: 'no', label: 'No.', grid: '3rem' },
+        { key: 'order', label: 'Order Id', grid: 'minmax(6.5rem, 0.9fr)', primary: true },
+        { key: 'product', label: 'Product', grid: 'minmax(12rem, 2fr)' },
+        { key: 'date', label: 'Date', grid: 'minmax(6.5rem, 0.9fr)', hideBelow: 'md' },
+        { key: 'price', label: 'Price', grid: 'minmax(5rem, 0.7fr)' },
+        { key: 'payment', label: 'Payment', grid: 'minmax(5.5rem, 0.75fr)', hideBelow: 'lg' },
+        { key: 'status', label: 'Status', grid: 'minmax(7.5rem, 1fr)' },
     ];
+
+    readonly kpiResource = rxResource({
+        params: () => (this.authService.isAuthenticated() ? this.kpiRange() : undefined),
+        stream: ({ params }) => {
+            if (!params) {
+                return of(this.emptyKpis());
+            }
+
+            return this.http
+                .get<AnalyticsDashboardPayload>('/analytics/dashboard', {
+                    params: { from: params.from, to: params.to },
+                })
+                .pipe(
+                    map((res) => this.normalizeKpis(res.data?.kpis)),
+                    catchResourceStreamError<OrderKpis>({
+                        fallback: this.emptyKpis(),
+                        logMessage: 'Order KPI analytics unavailable:',
+                    }),
+                );
+        },
+    });
 
     readonly summaryResource = rxResource({
         params: () => (this.authService.isAuthenticated() ? true : undefined),
@@ -278,32 +391,36 @@ export class OrderListComponent {
             this.summaryResource.value() ?? { total: 0, pending: 0, completed: 0, cancelled: 0 },
     );
 
-    readonly kpiCards = computed(() => {
-        const s = this.summary();
+    readonly kpiCards = computed((): KpiCard[] => {
+        const k = this.kpiResource.value() ?? this.emptyKpis();
         return [
             {
-                label: 'Total orders',
-                value: s.total,
-                hint: 'All time in store',
-                icon: 'shopping-cart' as IconName,
+                title: 'Total Order',
+                value: k.orders,
+                trendLabel: 'order',
+                trendPct: this.trendPct(k.orders, k.previousPeriodOrders),
+                trendUp: k.orders >= k.previousPeriodOrders,
             },
             {
-                label: 'New orders',
-                value: s.pending,
-                hint: 'Awaiting confirmation',
-                icon: 'package' as IconName,
+                title: 'Order Completed',
+                value: k.completedOrders,
+                trendLabel: 'order',
+                trendPct: this.trendPct(k.completedOrders, k.previousPeriodCompletedOrders),
+                trendUp: k.completedOrders >= k.previousPeriodCompletedOrders,
             },
             {
-                label: 'Completed orders',
-                value: s.completed,
-                hint: 'Marked completed',
-                icon: 'check' as IconName,
+                title: 'Order Pending',
+                value: k.pendingOrders,
+                trendLabel: 'order',
+                trendPct: this.trendPct(k.pendingOrders, k.previousPeriodPendingOrders),
+                trendUp: k.pendingOrders >= k.previousPeriodPendingOrders,
             },
             {
-                label: 'Canceled orders',
-                value: s.cancelled,
-                hint: 'Cancelled checkouts',
-                icon: 'x' as IconName,
+                title: 'Order Cancelled',
+                value: k.cancelledOrders,
+                trendLabel: 'order',
+                trendPct: this.trendPct(k.cancelledOrders, k.previousPeriodCancelledOrders),
+                trendUp: k.cancelledOrders >= k.previousPeriodCancelledOrders,
             },
         ];
     });
@@ -319,6 +436,7 @@ export class OrderListComponent {
     }
 
     refresh(): void {
+        this.kpiResource.reload();
         this.summaryResource.reload();
         this.pageResource.reload();
     }
@@ -331,14 +449,44 @@ export class OrderListComponent {
         return (this.currentPage() - 1) * this.pageSize() + index + 1;
     }
 
-    orDash = orDash;
-
-    placedAt(order: Order): string {
-        return formatDate(order.placedAt ?? order.createdAt);
+    isSelected(id: string): boolean {
+        return this.selectedIds().has(id);
     }
 
-    money(order: Order): string {
-        return formatMoney(order.grandTotal, order.currencyCode);
+    toggleSelected(id: string, event: Event): void {
+        const checked = (event.target as HTMLInputElement).checked;
+        const next = new Set(this.selectedIds());
+        if (checked) {
+            next.add(id);
+        } else {
+            next.delete(id);
+        }
+        this.selectedIds.set(next);
+    }
+
+    productLabel(order: Order): string {
+        const item = order.primaryItem;
+        if (!item?.productName) return orDash(order.customerEmail);
+        if (order.itemCount > 1) {
+            return `${item.productName} +${order.itemCount - 1}`;
+        }
+        return item.productName;
+    }
+
+    productImage(order: Order): string | null {
+        return order.primaryItem?.imageUrl ?? null;
+    }
+
+    productAlt(order: Order): string {
+        return order.primaryItem?.imageAlt ?? order.primaryItem?.productName ?? 'Product';
+    }
+
+    placedAt(order: Order): string {
+        return formatShortDate(order.placedAt ?? order.createdAt);
+    }
+
+    price(order: Order): string {
+        return formatDecimal(order.grandTotal);
     }
 
     isPaid(order: Order): boolean {
@@ -351,21 +499,34 @@ export class OrderListComponent {
     }
 
     statusLabel(status: OrderStatus): string {
-        if (status === 'CANCELLED') return 'Cancelled';
-        return titleCase(status);
+        switch (status) {
+            case 'DELIVERED':
+            case 'COMPLETED':
+                return 'Delivered';
+            case 'SHIPPED':
+            case 'PACKED':
+                return 'Shipped';
+            case 'CANCELLED':
+                return 'Cancelled';
+            default:
+                if (status === 'PENDING') return 'Pending';
+                return status.charAt(0) + status.slice(1).toLowerCase();
+        }
     }
 
     statusIcon(status: OrderStatus): IconName {
         switch (status) {
             case 'DELIVERED':
             case 'COMPLETED':
-                return 'check';
+                return 'truck';
             case 'SHIPPED':
             case 'PACKED':
                 return 'truck';
             case 'CANCELLED':
             case 'REFUNDED':
                 return 'x';
+            case 'PENDING':
+                return 'clock';
             default:
                 return 'alert-circle';
         }
@@ -387,5 +548,54 @@ export class OrderListComponent {
             default:
                 return 'outline';
         }
+    }
+
+    private kpiRange(): { from: string; to: string } {
+        const to = new Date();
+        const from = new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return {
+            from: from.toISOString().slice(0, 10),
+            to: to.toISOString().slice(0, 10),
+        };
+    }
+
+    private emptyKpis(): OrderKpis {
+        return {
+            orders: 0,
+            pendingOrders: 0,
+            completedOrders: 0,
+            cancelledOrders: 0,
+            previousPeriodOrders: 0,
+            previousPeriodPendingOrders: 0,
+            previousPeriodCompletedOrders: 0,
+            previousPeriodCancelledOrders: 0,
+        };
+    }
+
+    private normalizeKpis(
+        kpis: AnalyticsDashboardPayload['kpis'] | undefined,
+    ): OrderKpis {
+        return {
+            orders: kpis?.orders ?? 0,
+            pendingOrders: kpis?.pendingOrders ?? kpis?.pending_orders ?? 0,
+            completedOrders: kpis?.completedOrders ?? kpis?.completed_orders ?? 0,
+            cancelledOrders: kpis?.cancelledOrders ?? kpis?.cancelled_orders ?? 0,
+            previousPeriodOrders:
+                kpis?.previousPeriodOrders ?? kpis?.previous_period_orders ?? 0,
+            previousPeriodPendingOrders:
+                kpis?.previousPeriodPendingOrders ?? kpis?.previous_period_pending_orders ?? 0,
+            previousPeriodCompletedOrders:
+                kpis?.previousPeriodCompletedOrders ?? kpis?.previous_period_completed_orders ?? 0,
+            previousPeriodCancelledOrders:
+                kpis?.previousPeriodCancelledOrders ?? kpis?.previous_period_cancelled_orders ?? 0,
+        };
+    }
+
+    private trendPct(current: number, previous: number): string {
+        if (previous <= 0) {
+            return current > 0 ? '100%' : '0%';
+        }
+        const delta = ((current - previous) / previous) * 100;
+        return `${Math.abs(delta).toFixed(1)}%`;
     }
 }

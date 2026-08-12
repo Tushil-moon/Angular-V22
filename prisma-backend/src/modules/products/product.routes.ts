@@ -5,10 +5,14 @@ import { validate } from "../../middlewares/validate";
 import { Permissions } from "../../shared/constants/permissions";
 import * as controller from "./product.controller";
 import {
+  addProductImageSchema,
   createProductSchema,
   createVariantSchema,
   listProductsQuerySchema,
   productIdParamSchema,
+  productImageIdParamSchema,
+  reorderProductImagesSchema,
+  updateProductImageSchema,
   updateProductSchema,
   updateVariantSchema,
   variantIdParamSchema,
@@ -48,6 +52,36 @@ productRouter.post(
   canManage,
   validate({ params: productIdParamSchema }),
   controller.duplicateProduct,
+);
+productRouter.get(
+  "/:id/images",
+  canRead,
+  validate({ params: productIdParamSchema }),
+  controller.listProductImages,
+);
+productRouter.post(
+  "/:id/images",
+  canManage,
+  validate({ params: productIdParamSchema, body: addProductImageSchema }),
+  controller.addProductImage,
+);
+productRouter.post(
+  "/:id/images/reorder",
+  canManage,
+  validate({ params: productIdParamSchema, body: reorderProductImagesSchema }),
+  controller.reorderProductImages,
+);
+productRouter.patch(
+  "/:id/images/:imageId",
+  canManage,
+  validate({ params: productImageIdParamSchema, body: updateProductImageSchema }),
+  controller.updateProductImage,
+);
+productRouter.delete(
+  "/:id/images/:imageId",
+  canManage,
+  validate({ params: productImageIdParamSchema }),
+  controller.deleteProductImage,
 );
 productRouter.get(
   "/:id/variants",

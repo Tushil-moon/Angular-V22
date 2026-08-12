@@ -8,11 +8,8 @@ import {
     formatBytes,
     formatDateTime,
     listTotalCount,
-    openNameSlugDialog,
-    slugify,
 } from '@features/shared/admin-list.util';
 import type { FilterOptions, PaginatedResponse } from '@models/index';
-import { DialogService } from '@services/dialog.service';
 import { AuthService } from '@services/index';
 import {
     type EnterpriseListConfig,
@@ -20,26 +17,22 @@ import {
     type WorkspaceKpi,
 } from '@shared/components';
 import { Permissions } from '@shared/constants/permissions';
-import { map, Observable, of, switchMap } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import type { MediaAsset } from '../models/media.model';
 import { MediaApiService } from '../services/media-api.service';
 
-const MIME_TYPES_BY_EXTENSION: Record<string, string> = {
-    gif: 'image/gif',
-    jpeg: 'image/jpeg',
-    jpg: 'image/jpeg',
-    pdf: 'application/pdf',
-    png: 'image/png',
-    svg: 'image/svg+xml',
-    webp: 'image/webp',
-};
+const ACCEPTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
-const DEFAULT_MIME_TYPE = 'image/png';
-
-function guessMimeType(fileName: string): string {
-    const extension = fileName.split('.').pop()?.toLowerCase() ?? '';
-    return MIME_TYPES_BY_EXTENSION[extension] ?? DEFAULT_MIME_TYPE;
+function pickImageFile(): Promise<File | null> {
+    return new Promise((resolve) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/jpeg,image/png,image/webp,image/gif';
+        input.onchange = () => resolve(input.files?.[0] ?? null);
+        input.click();
+    });
 }
 
 @Component({
@@ -61,7 +54,6 @@ function guessMimeType(fileName: string): string {
 })
 export class MediaListComponent {
     private readonly mediaApi = inject(MediaApiService);
-    private readonly dialog = inject(DialogService);
     private readonly auth = inject(AuthService);
 
     readonly config: EnterpriseListConfig<MediaAsset> = {
@@ -121,24 +113,26 @@ export class MediaListComponent {
         this.mediaApi.list(filters);
 
     readonly createMedia = (): Observable<MediaAsset | null> =>
-        openNameSlugDialog(this.dialog, {
-            title: 'Register media asset',
-            submitLabel: 'Create asset',
-            showSlug: false,
-        }).pipe(
-            switchMap((result) => {
-                if (!result) return of(null);
-                // Storage keys are unique per store, so placeholder entries get a timestamp suffix.
-                const storageKey = `${slugify(result.name) || 'asset'}-${Date.now()}`;
-                return this.mediaApi.create({
-                    url: `https://placeholder.local/${storageKey}`,
-                    storageKey,
-                    mimeType: guessMimeType(result.name),
-                    size: 0,
-                    fileName: result.name,
+        new Observable((observer) => {
+            void pickImageFile().then((file) => {
+                if (!file) {
+                    observer.next(null);
+                    observer.complete();
+                    return;
+                }
+                if (!ACCEPTED_IMAGE_TYPES.has(file.type)) {
+                    observer.error(new Error('Only JPEG, PNG, WebP, and GIF images are supported.'));
+                    return;
+                }
+                this.mediaApi.upload(file).subscribe({
+                    next: (asset) => {
+                        observer.next(asset);
+                        observer.complete();
+                    },
+                    error: (error: unknown) => observer.error(error),
                 });
-            }),
-        );
+            });
+        });
 
     readonly deleteMedia = (id: string): Observable<void> => this.mediaApi.delete(id);
 }

@@ -69,3 +69,37 @@ export const deleteVariant = asyncHandler(async (req, res) => {
   await productService.deleteVariant(String(req.params.id), String(req.params.variantId));
   return sendSuccess(res, null, "Variant deleted");
 });
+
+export const listProductImages = asyncHandler(async (req, res) => {
+  const images = await productService.listImages(String(req.params.id));
+  return sendSuccess(res, images);
+});
+
+export const addProductImage = asyncHandler(async (req, res) => {
+  const image = await productService.addImage(String(req.params.id), req.body, req.user?.id);
+  return sendCreated(res, image, "Image added");
+});
+
+export const updateProductImage = asyncHandler(async (req, res) => {
+  const image = await productService.updateImage(
+    String(req.params.id),
+    String(req.params.imageId),
+    req.body,
+    req.user?.id,
+  );
+  return sendSuccess(res, image, "Image updated");
+});
+
+export const deleteProductImage = asyncHandler(async (req, res) => {
+  await productService.deleteImage(
+    String(req.params.id),
+    String(req.params.imageId),
+    req.user?.id,
+  );
+  return sendSuccess(res, null, "Image deleted");
+});
+
+export const reorderProductImages = asyncHandler(async (req, res) => {
+  const images = await productService.reorderImages(String(req.params.id), req.body, req.user?.id);
+  return sendSuccess(res, images, "Images reordered");
+});

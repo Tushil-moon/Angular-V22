@@ -5,6 +5,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+import type { CategoryTreeNode } from '@features/categories/models/category.model';
+import { CategoryApiService } from '@features/categories/services/category-api.service';
 import { listTotalCount } from '@features/shared/admin-list.util';
 import { AuthService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
@@ -12,10 +14,11 @@ import {
     BadgeComponent,
     type BadgeVariant,
     ButtonComponent,
+    FilterSelectComponent,
     FlexTableCellComponent,
+    type FlexTableColumn,
     FlexTableComponent,
     FlexTableRowComponent,
-    type FlexTableColumn,
     IconComponent,
     PaginationComponent,
     SearchInputComponent,
@@ -27,8 +30,10 @@ import { catchResourceStreamError } from '@shared/utils/resource-error';
 import { ignorePromise } from '@utils/form-display.util';
 import { forkJoin, map, of } from 'rxjs';
 
-import type { Product, ProductStatus } from '../models/product.model';
+import { formatDecimal } from '../../shared/format.util';
+import type { Product, ProductStatus, ProductType } from '../models/product.model';
 import { ProductApiService } from '../services/product-api.service';
+import { productTypeOptions } from '../utils/product-type.util';
 
 interface PageResult {
     items: Product[];
@@ -45,6 +50,7 @@ interface StatusTab {
     selector: 'app-product-list',
     imports: [
         SearchInputComponent,
+        FilterSelectComponent,
         ButtonComponent,
         IconComponent,
         BadgeComponent,
@@ -122,6 +128,22 @@ interface StatusTab {
                             (searchChange)="onSearch($event)"
                         />
                     </div>
+                    <div class="index-filters-trailing flex flex-wrap gap-2">
+                        <app-filter-select
+                            placeholder="All categories"
+                            ariaLabel="Filter by category"
+                            [options]="categoryFilterOptions()"
+                            [value]="categoryFilter()"
+                            (valueChange)="onCategoryFilter($event)"
+                        />
+                        <app-filter-select
+                            placeholder="All types"
+                            ariaLabel="Filter by product type"
+                            [options]="typeFilterOptions"
+                            [value]="typeFilter()"
+                            (valueChange)="onTypeFilter($event)"
+                        />
+                    </div>
                 </div>
 
                 <div class="index-body">
@@ -145,6 +167,12 @@ interface StatusTab {
                                         <p class="index-cell-primary truncate">{{ item.name }}</p>
                                         <p class="index-cell-muted truncate text-xs">{{ item.slug }}</p>
                                     </div>
+                                </app-flex-table-cell>
+                                <app-flex-table-cell column="sku">
+                                    <span class="index-cell-muted">{{ item.sku || '—' }}</span>
+                                </app-flex-table-cell>
+                                <app-flex-table-cell column="price">
+                                    <span class="index-cell-money">{{ formatPrice(item) }}</span>
                                 </app-flex-table-cell>
                                 <app-flex-table-cell column="status">
                                     <app-badge [variant]="statusVariant(item.status)">
@@ -194,6 +222,7 @@ interface StatusTab {
 })
 export class ProductListComponent {
     private readonly productApi = inject(ProductApiService);
+    private readonly categoryApi = inject(CategoryApiService);
     private readonly authService = inject(AuthService);
     private readonly permissionService = inject(PermissionService);
     private readonly toast = inject(ToastService);
@@ -201,9 +230,39 @@ export class ProductListComponent {
 
     readonly searchQuery = signal('');
     readonly statusFilter = signal<ProductStatus | 'ALL'>('ALL');
+    readonly categoryFilter = signal('');
+    readonly typeFilter = signal('');
     readonly currentPage = signal(1);
     readonly pageSize = signal(20);
     readonly deletingId = signal<string | null>(null);
+
+    readonly typeFilterOptions = [
+        { value: '', label: 'All types' },
+        ...productTypeOptions().map((option) => ({ value: option.value, label: option.label })),
+    ];
+
+    readonly categoryTreeResource = rxResource({
+        params: () => (this.authService.isAuthenticated() ? true : undefined),
+        stream: ({ params }) => {
+            if (!params) return of([] as CategoryTreeNode[]);
+            return this.categoryApi.tree();
+        },
+    });
+
+    readonly categoryFilterOptions = computed(() => {
+        const options = [{ value: '', label: 'All categories' }];
+        const walk = (nodes: CategoryTreeNode[], depth: number) => {
+            for (const node of nodes) {
+                if (node.status === 'PUBLISHED') {
+                    const prefix = depth > 0 ? `${'— '.repeat(depth)}` : '';
+                    options.push({ value: node.id, label: `${prefix}${node.name}` });
+                }
+                if (node.children.length) walk(node.children, depth + 1);
+            }
+        };
+        walk(this.categoryTreeResource.value() ?? [], 0);
+        return options;
+    });
 
     readonly canManage = computed(() =>
         this.permissionService.hasPermission(Permissions.ManageProducts),
@@ -219,8 +278,10 @@ export class ProductListComponent {
     readonly columns = computed((): FlexTableColumn[] => {
         const cols: FlexTableColumn[] = [
             { key: 'name', label: 'Product', grid: 'minmax(12rem, 2fr)', primary: true },
+            { key: 'sku', label: 'SKU', grid: 'minmax(6rem, 0.8fr)', hideBelow: 'md' },
+            { key: 'price', label: 'Price', grid: 'minmax(5rem, 0.6fr)' },
             { key: 'status', label: 'Status', grid: 'minmax(7rem, 0.7fr)' },
-            { key: 'type', label: 'Type', grid: 'minmax(6rem, 0.6fr)', hideBelow: 'md' },
+            { key: 'type', label: 'Type', grid: 'minmax(6rem, 0.6fr)', hideBelow: 'lg' },
             { key: 'featured', label: 'Featured', grid: 'minmax(6rem, 0.7fr)', hideBelow: 'lg' },
         ];
         if (this.canManage()) {
@@ -266,6 +327,8 @@ export class ProductListComponent {
                 pageSize: this.pageSize(),
                 search: this.searchQuery().trim() || undefined,
                 status: status === 'ALL' ? undefined : status,
+                categoryId: this.categoryFilter() || undefined,
+                type: (this.typeFilter() as ProductType) || undefined,
             };
         },
         stream: ({ params, abortSignal }) => {
@@ -296,6 +359,20 @@ export class ProductListComponent {
     onStatusFilter(value: ProductStatus | 'ALL'): void {
         this.statusFilter.set(value);
         this.currentPage.set(1);
+    }
+
+    onCategoryFilter(value: string): void {
+        this.categoryFilter.set(value);
+        this.currentPage.set(1);
+    }
+
+    onTypeFilter(value: string): void {
+        this.typeFilter.set(value);
+        this.currentPage.set(1);
+    }
+
+    formatPrice(item: Product): string {
+        return item.price != null ? formatDecimal(item.price) : '—';
     }
 
     statusVariant(status: ProductStatus): BadgeVariant {

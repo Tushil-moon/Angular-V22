@@ -30,6 +30,27 @@ const orderListSelect = {
   customer: {
     select: { id: true, email: true, firstName: true, lastName: true },
   },
+  items: {
+    take: 1,
+    orderBy: { createdAt: "asc" },
+    select: {
+      productName: true,
+      variantTitle: true,
+      variant: {
+        select: {
+          product: {
+            select: {
+              images: {
+                take: 1,
+                orderBy: { position: "asc" },
+                select: { url: true, altText: true },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   _count: { select: { items: true } },
 } satisfies Prisma.OrderSelect;
 

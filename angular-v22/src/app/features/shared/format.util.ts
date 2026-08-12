@@ -41,6 +41,22 @@ export function formatDate(value: string | null | undefined): string {
     return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date);
 }
 
+/** Figma order table date — DD-MM-YYYY */
+export function formatShortDate(value: string | null | undefined): string {
+    if (!value) return EM_DASH;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return EM_DASH;
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
+export function formatDecimal(value: number | string | null | undefined): string {
+    if (value == null) return EM_DASH;
+    return toNumber(value).toFixed(2);
+}
+
 export function orDash(value: string | null | undefined): string {
     return value?.trim() ? value : EM_DASH;
 }
