@@ -62,6 +62,6 @@ erDiagram
 
 ## Migration strategy
 
-- CRM migrations archived under `prisma/migrations-archive/`
+- Active migrations: `prisma/migrations/` (e-commerce baseline only)
 - Baseline: `prisma/migrations/20260811120000_ecommerce_baseline/`
 - Dev/staging may reset; production requires planned cutover once live data exists

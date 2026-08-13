@@ -82,7 +82,7 @@ const STATUS_OPTIONS: SelectOption[] = [
             [showFooter]="true"
         >
             @if (isEdit() && loading()) {
-                <div dialogHeaderExtra class="flex shrink-0 items-center pt-1">
+                <div dialogHeaderExtra>
                     <span
                         class="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
                     >
@@ -90,7 +90,7 @@ const STATUS_OPTIONS: SelectOption[] = [
                     </span>
                 </div>
             } @else if (isEdit() && loaded()?.status; as status) {
-                <div dialogHeaderExtra class="flex shrink-0 items-center pt-1">
+                <div dialogHeaderExtra>
                     <app-badge [variant]="statusVariant(status)">{{ status }}</app-badge>
                 </div>
             }

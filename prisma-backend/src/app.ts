@@ -3,7 +3,6 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
-import path from "node:path";
 import pinoHttp from "pino-http";
 import swaggerUi from "swagger-ui-express";
 import { corsOptions } from "./config/cors";
@@ -32,7 +31,7 @@ app.use(generalLimiter);
 
 app.use(
   "/uploads",
-  express.static(path.resolve(env.UPLOAD_DIR), {
+  express.static(env.uploadDirAbsolute, {
     maxAge: env.NODE_ENV === "production" ? "7d" : 0,
     fallthrough: true,
   }),

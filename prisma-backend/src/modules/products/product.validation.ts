@@ -92,6 +92,21 @@ export const createVariantSchema = z.object({
 
 export const updateVariantSchema = createVariantSchema.partial();
 
+export const BULK_IMPORT_MAX_ROWS = 100;
+
+export const productImportCsvFieldsSchema = z.record(z.string(), z.string());
+
+export const bulkImportProductItemSchema = z.object({
+  row: z.number().int().positive().optional(),
+  fields: productImportCsvFieldsSchema,
+});
+
+export const bulkImportProductsSchema = z.object({
+  products: z.array(bulkImportProductItemSchema).min(1).max(BULK_IMPORT_MAX_ROWS),
+  dryRun: z.boolean().optional().default(false),
+  defaultStatus: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional().default("DRAFT"),
+});
+
 export type ListProductsQuery = z.infer<typeof listProductsQuerySchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
@@ -100,3 +115,4 @@ export type UpdateVariantInput = z.infer<typeof updateVariantSchema>;
 export type AddProductImageInput = z.infer<typeof addProductImageSchema>;
 export type UpdateProductImageInput = z.infer<typeof updateProductImageSchema>;
 export type ReorderProductImagesInput = z.infer<typeof reorderProductImagesSchema>;
+export type BulkImportProductsInput = z.infer<typeof bulkImportProductsSchema>;

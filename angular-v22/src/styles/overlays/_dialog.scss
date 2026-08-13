@@ -72,31 +72,39 @@
 .dialog-panel-xl .dialog-header,
 .dialog-panel-2xl .dialog-header,
 .dialog-panel-product .dialog-header {
-    @apply border-b border-border/80 bg-muted/10 px-8 pb-5 pt-7 pr-14;
+    @apply border-b border-border/80 bg-muted/10 px-6 py-4;
 }
 
 .dialog-panel-xl .dialog-body,
 .dialog-panel-2xl .dialog-body,
 .dialog-panel-product .dialog-body {
-    @apply bg-muted/5 px-8 py-5;
+    @apply bg-muted/5 px-6 py-5;
 }
 
 .dialog-panel-xl .dialog-footer,
 .dialog-panel-2xl .dialog-footer,
 .dialog-panel-product .dialog-footer {
-    @apply border-t border-border/80 bg-card px-8 py-4;
+    @apply border-t border-border/80 bg-card px-6 py-4;
 }
 
 .dialog-header-row {
-    @apply flex w-full items-start justify-between gap-4;
+    @apply flex w-full items-center justify-between gap-4;
 }
 
 .dialog-header-main {
-    @apply flex min-w-0 items-start gap-3;
+    @apply flex min-w-0 flex-1 items-center gap-3;
 }
 
 .dialog-header-copy {
-    @apply min-w-0 space-y-1;
+    @apply min-w-0 space-y-1.5;
+}
+
+.dialog-header-actions {
+    @apply flex shrink-0 items-center gap-2;
+}
+
+[dialogHeaderExtra] {
+    @apply flex shrink-0 flex-wrap items-center gap-2;
 }
 
 .dialog-title-icon {
@@ -115,7 +123,7 @@
 }
 
 .dialog-panel-xl .dialog-header {
-    @apply px-6 pb-4 pt-6;
+    @apply px-6 py-4;
 }
 
 .dialog-panel-xl .dialog-body {
@@ -127,8 +135,8 @@
 }
 
 .dialog-close {
-    @apply absolute right-4 top-4 z-10 inline-flex size-8 items-center justify-center rounded-md
-       opacity-70 ring-offset-background transition-opacity hover:bg-accent hover:opacity-100
+    @apply inline-flex size-8 shrink-0 items-center justify-center rounded-md opacity-70
+       ring-offset-background transition-opacity hover:bg-accent hover:opacity-100
        focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none;
     border: 0;
     background: transparent;
@@ -137,7 +145,7 @@
 }
 
 .dialog-header {
-    @apply flex shrink-0 flex-col gap-2 border-b border-border pb-4 pr-10 text-left;
+    @apply flex shrink-0 flex-col gap-2 border-b border-border pb-4 text-left;
 }
 
 .dialog-title {
@@ -208,7 +216,7 @@
 }
 
 .dialog-form {
-    @apply flex flex-col gap-4;
+    @apply flex flex-col gap-5;
 }
 
 .dialog-form-actions {
@@ -354,7 +362,7 @@
 
 .dialog-panel-product .dialog-close,
 .dialog-panel-2xl .dialog-close {
-    @apply right-5 top-5 size-9 rounded-lg;
+    @apply size-9 rounded-lg;
 }
 
 .dialog-panel-product .dialog-footer,
@@ -388,11 +396,11 @@
     }
 
     .dialog-close {
-        @apply right-3 top-3;
+        @apply size-8;
     }
 
     .dialog-header {
-        @apply gap-1.5 pb-3 pr-9;
+        @apply gap-1.5 pb-3;
     }
 
     .dialog-title {

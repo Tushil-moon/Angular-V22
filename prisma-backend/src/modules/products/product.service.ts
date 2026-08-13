@@ -3,8 +3,14 @@ import { prisma } from "../../config/prisma";
 import { AppError } from "../../shared/errors/app-error";
 import { buildPaginationMeta } from "../../shared/validation/pagination";
 import { getDefaultStoreId } from "../../shared/utils/store";
+import {
+  buildImportLookupMaps,
+  parseCsvRowToProduct,
+  type ProductImportFieldKey,
+} from "./product-import.util";
 import type {
   AddProductImageInput,
+  BulkImportProductsInput,
   CreateProductInput,
   CreateVariantInput,
   ListProductsQuery,
@@ -257,6 +263,75 @@ const assertProductExists = async (productId: string, storeId: string) => {
   });
   if (!product) throw new AppError(404, "Product not found", "PRODUCT_NOT_FOUND");
   return product;
+};
+
+type ImportRowStatus = "valid" | "imported" | "failed";
+
+interface ImportRowResult {
+  row: number;
+  slug: string;
+  name: string;
+  status: ImportRowStatus;
+  productId?: string;
+  errors: string[];
+  fieldErrors?: Partial<Record<ProductImportFieldKey, string>>;
+}
+
+const appErrorMessage = (error: unknown): string => {
+  if (error instanceof AppError) return error.message;
+  if (error instanceof Error) return error.message;
+  return "Unexpected error";
+};
+
+const validateImportRow = async (
+  storeId: string,
+  input: CreateProductInput,
+): Promise<string[]> => {
+  const errors: string[] = [];
+  const normalized = normalizeCreateInput(input);
+
+  try {
+    await validateCategoryIds(storeId, normalized.categoryIds);
+  } catch (error) {
+    errors.push(appErrorMessage(error));
+  }
+
+  try {
+    await ensurePublishReady(storeId, normalized.status, normalized.categoryIds);
+  } catch (error) {
+    errors.push(appErrorMessage(error));
+  }
+
+  if (normalized.brandId) {
+    const brand = await prisma.brand.findFirst({
+      where: { id: normalized.brandId, storeId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!brand) {
+      errors.push("Brand not found");
+    }
+  }
+
+  return errors;
+};
+
+const mapValidationErrorsToFields = (
+  errors: string[],
+): Partial<Record<ProductImportFieldKey, string>> => {
+  const fieldErrors: Partial<Record<ProductImportFieldKey, string>> = {};
+  for (const error of errors) {
+    const lower = error.toLowerCase();
+    if (lower.includes("brand")) {
+      fieldErrors.brand_slug ??= error;
+    } else if (lower.includes("categor")) {
+      fieldErrors.category_slugs ??= error;
+    } else if (lower.includes("slug")) {
+      fieldErrors.slug ??= error;
+    } else if (lower.includes("publish")) {
+      fieldErrors.status ??= error;
+    }
+  }
+  return fieldErrors;
 };
 
 export const productService = {
@@ -548,6 +623,141 @@ export const productService = {
       },
       actorId,
     );
+  },
+
+  async bulkImport(input: BulkImportProductsInput, actorId?: string) {
+    const storeId = await getDefaultStoreId();
+    const slugsInBatch = new Set<string>();
+    const results: ImportRowResult[] = [];
+    const defaultStatus = input.defaultStatus ?? "DRAFT";
+
+    const [brands, categories] = await Promise.all([
+      prisma.brand.findMany({
+        where: { storeId, deletedAt: null, status: "PUBLISHED" },
+        select: { id: true, slug: true },
+      }),
+      prisma.category.findMany({
+        where: { storeId, deletedAt: null, status: "PUBLISHED" },
+        select: { id: true, slug: true },
+      }),
+    ]);
+    const lookup = buildImportLookupMaps(brands, categories);
+
+    const parsedRows = input.products.map((item, index) => ({
+      row: item.row ?? index + 1,
+      fields: item.fields,
+      parsed: parseCsvRowToProduct(item.fields, lookup, defaultStatus),
+    }));
+
+    const incomingSlugs = parsedRows
+      .map((entry) => entry.parsed.product?.slug)
+      .filter((slug): slug is string => Boolean(slug));
+    const existingProducts = incomingSlugs.length
+      ? await prisma.product.findMany({
+          where: { storeId, deletedAt: null, slug: { in: incomingSlugs } },
+          select: { slug: true },
+        })
+      : [];
+    const existingSlugSet = new Set(existingProducts.map((product) => product.slug));
+
+    let imported = 0;
+    let failed = 0;
+    let valid = 0;
+
+    for (const entry of parsedRows) {
+      const { row, parsed } = entry;
+      const baseResult = { row, slug: parsed.slug, name: parsed.name };
+
+      if (!parsed.product) {
+        results.push({
+          ...baseResult,
+          status: "failed",
+          errors: parsed.errors,
+          fieldErrors: parsed.fieldErrors,
+        });
+        failed += 1;
+        continue;
+      }
+
+      const product = parsed.product;
+
+      if (slugsInBatch.has(product.slug)) {
+        results.push({
+          ...baseResult,
+          status: "failed",
+          errors: ["Duplicate slug in import file"],
+          fieldErrors: { slug: "Duplicate slug in import file" },
+        });
+        failed += 1;
+        continue;
+      }
+      slugsInBatch.add(product.slug);
+
+      if (existingSlugSet.has(product.slug)) {
+        results.push({
+          ...baseResult,
+          status: "failed",
+          errors: ["Product slug already exists"],
+          fieldErrors: { slug: "Product slug already exists" },
+        });
+        failed += 1;
+        continue;
+      }
+
+      const validationErrors = await validateImportRow(storeId, product);
+      if (validationErrors.length) {
+        results.push({
+          ...baseResult,
+          status: "failed",
+          errors: validationErrors,
+          fieldErrors: mapValidationErrorsToFields(validationErrors),
+        });
+        failed += 1;
+        continue;
+      }
+
+      if (input.dryRun) {
+        results.push({
+          ...baseResult,
+          status: "valid",
+          errors: [],
+          fieldErrors: {},
+        });
+        valid += 1;
+        continue;
+      }
+
+      try {
+        const created = await this.create(product, actorId);
+        existingSlugSet.add(product.slug);
+        results.push({
+          ...baseResult,
+          status: "imported",
+          productId: created.id,
+          errors: [],
+          fieldErrors: {},
+        });
+        imported += 1;
+      } catch (error) {
+        results.push({
+          ...baseResult,
+          status: "failed",
+          errors: [appErrorMessage(error)],
+        });
+        failed += 1;
+      }
+    }
+
+    return {
+      dryRun: input.dryRun,
+      summary: {
+        total: input.products.length,
+        imported,
+        failed,
+        valid: input.dryRun ? valid : imported,
+      },
+      results,
+    };
   },
 
   async listVariants(productId: string) {

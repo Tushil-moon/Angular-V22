@@ -7,8 +7,7 @@ declare global {
       sessionId: string;
       roles: RoleName[] | string[];
       permissions: string[];
-      organizationId?: string;
-      organizationRole?: "OWNER" | "ADMIN" | "MEMBER";
+      storeId?: string;
     }
 
     interface Request {

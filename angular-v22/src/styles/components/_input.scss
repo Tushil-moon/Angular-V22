@@ -15,15 +15,24 @@
 }
 
 .form-group {
-    @apply flex flex-col gap-2;
+    @apply flex flex-col gap-2.5;
 }
 
 .form-label {
-    @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+    @apply mb-0 block text-sm font-medium leading-snug peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
 }
 
 .form-label-required {
     @apply ml-0.5 font-normal text-muted-foreground;
+}
+
+/* Standalone labels outside .form-group (e.g. category pickers) */
+p.form-label {
+    @apply mb-2.5;
+}
+
+.form-group .form-label {
+    @apply mb-0;
 }
 
 /* Field instruction — small, tight under the control */
@@ -33,5 +42,5 @@
 
 .form-group > .form-hint,
 .form-group > .form-error {
-    margin-top: -0.25rem; /* net ~4px under the field after gap-2 */
+    margin-top: 0.125rem;
 }

@@ -2,7 +2,7 @@
   "name": "angular-v22-deploy",
   "private": true,
   "version": "1.0.0",
-  "description": "Angular CRM frontend + Prisma Express API — Vercel monorepo deploy",
+  "description": "Angular e-commerce frontend + Prisma Express API — Vercel monorepo deploy",
   "engines": {
     "node": ">=20"
   },

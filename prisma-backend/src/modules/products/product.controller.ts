@@ -45,6 +45,14 @@ export const duplicateProduct = asyncHandler(async (req, res) => {
   return sendCreated(res, product, "Product duplicated");
 });
 
+export const importProducts = asyncHandler(async (req, res) => {
+  const result = await productService.bulkImport(req.body, req.user?.id);
+  const message = result.dryRun
+    ? "Import validation completed"
+    : `Imported ${result.summary.imported} of ${result.summary.total} products`;
+  return sendSuccess(res, result, message);
+});
+
 export const listVariants = asyncHandler(async (req, res) => {
   const variants = await productService.listVariants(String(req.params.id));
   return sendSuccess(res, variants);

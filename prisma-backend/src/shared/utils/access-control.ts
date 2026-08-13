@@ -6,22 +6,16 @@ import { hasPermission, ownerScopeFilter, shouldScopeToOwner } from "./permissio
 
 export const storeScopeFilter = (storeId: string) => ({ storeId });
 
-/** @deprecated Prefer storeScopeFilter — organizationId maps to store id in auth context. */
-export const orgScopeFilter = (organizationId: string) => storeScopeFilter(organizationId);
-
 export const buildStoreScopedWhere = <T extends Record<string, unknown>>(auth: AuthContext, where: T) => {
-  if (!auth.organizationId) {
+  if (!auth.storeId) {
     throw new AppError(400, "Store context is required", "NO_STORE");
   }
 
   return {
     ...where,
-    ...storeScopeFilter(auth.organizationId),
+    ...storeScopeFilter(auth.storeId),
   };
 };
-
-/** @deprecated Prefer buildStoreScopedWhere */
-export const buildOrgScopedWhere = buildStoreScopedWhere;
 
 export const buildOwnerScopedWhere = <T extends Record<string, unknown>>(auth: AuthContext, where: T) => {
   const storeWhere = buildStoreScopedWhere(auth, where);

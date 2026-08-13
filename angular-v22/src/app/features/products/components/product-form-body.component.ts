@@ -357,7 +357,7 @@ import { getProductTypeProfile, productTypeOptions } from '../utils/product-type
                                     [formField]="productForm.brandId"
                                 />
                                 <div>
-                                    <p class="form-label mb-2">Categories</p>
+                                    <p class="form-label">Categories</p>
                                     @if (fieldError('categoryIds')) {
                                         <p class="form-error mb-2">{{ fieldError('categoryIds') }}</p>
                                     }

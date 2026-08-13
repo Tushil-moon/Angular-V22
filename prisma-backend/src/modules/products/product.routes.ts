@@ -6,6 +6,7 @@ import { Permissions } from "../../shared/constants/permissions";
 import * as controller from "./product.controller";
 import {
   addProductImageSchema,
+  bulkImportProductsSchema,
   createProductSchema,
   createVariantSchema,
   listProductsQuerySchema,
@@ -27,6 +28,12 @@ productRouter.use(authenticate);
 
 productRouter.get("/", canRead, validate({ query: listProductsQuerySchema }), controller.listProducts);
 productRouter.post("/", canManage, validate({ body: createProductSchema }), controller.createProduct);
+productRouter.post(
+  "/import",
+  canManage,
+  validate({ body: bulkImportProductsSchema }),
+  controller.importProducts,
+);
 productRouter.get("/:id", canRead, validate({ params: productIdParamSchema }), controller.getProduct);
 productRouter.patch(
   "/:id",

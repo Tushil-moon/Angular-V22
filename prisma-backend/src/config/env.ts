@@ -1,4 +1,5 @@
 import "dotenv/config";
+import path from "node:path";
 import { z } from "zod";
 
 const envSchema = z.object({
@@ -50,6 +51,8 @@ const envSchema = z.object({
     .enum(["true", "false"])
     .default("true")
     .transform((value) => value === "true"),
+  /** local = disk, s3 = object storage, auto = s3 when fully configured else local */
+  STORAGE_DRIVER: z.enum(["local", "s3", "auto"]).default("local"),
   UPLOAD_DIR: z.string().default("uploads"),
   UPLOAD_MAX_BYTES: z.coerce.number().int().positive().default(5 * 1024 * 1024),
   /** Public origin for uploaded assets (no /api path). Defaults from API_BASE_URL. */
@@ -76,7 +79,26 @@ function resolveNodeEnv(): "development" | "production" | "test" | undefined {
   return isVercel ? "production" : undefined;
 }
 
-export const env = envSchema.parse({
+function resolvePublicBaseUrl(config: {
+  NODE_ENV: "development" | "production" | "test";
+  PORT: number;
+  API_BASE_URL?: string;
+  PUBLIC_BASE_URL?: string;
+}): string {
+  if (config.PUBLIC_BASE_URL) {
+    return config.PUBLIC_BASE_URL.replace(/\/$/, "");
+  }
+
+  // Local dev must serve uploads from this machine even if API_BASE_URL points at production.
+  if (!isServerless && config.NODE_ENV === "development") {
+    return `http://localhost:${config.PORT}`;
+  }
+
+  const apiBase = config.API_BASE_URL?.replace(/\/$/, "") ?? `http://localhost:${config.PORT}`;
+  return apiBase.replace(/\/api\/v\d+$/, "");
+}
+
+const parsedEnv = envSchema.parse({
   ...process.env,
   NODE_ENV: resolveNodeEnv(),
   API_BASE_URL:
@@ -87,6 +109,14 @@ export const env = envSchema.parse({
     process.env.CORS_ORIGIN ||
     [vercelOrigin, "http://localhost:4200", "http://127.0.0.1:4200"].filter(Boolean).join(","),
 });
+
+export const env = {
+  ...parsedEnv,
+  publicBaseUrl: resolvePublicBaseUrl(parsedEnv),
+  uploadDirAbsolute: path.isAbsolute(parsedEnv.UPLOAD_DIR)
+    ? parsedEnv.UPLOAD_DIR
+    : path.resolve(process.cwd(), parsedEnv.UPLOAD_DIR),
+};
 export const isProduction = env.NODE_ENV === "production";
 /** Runtime DB: pooled URL on Vercel/Lambda and in production. */
 export const usePooledDatabase = isProduction || isServerless;

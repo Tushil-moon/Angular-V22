@@ -29,10 +29,6 @@ export type DialogSize = 'sm' | 'default' | 'lg' | 'xl' | '2xl';
             cdkTrapFocus
             cdkTrapFocusAutoCapture
         >
-            <button type="button" class="dialog-close" (click)="close()" aria-label="Close">
-                <app-icon name="x" [size]="16" />
-            </button>
-
             <div class="dialog-header">
                 <div class="dialog-header-row">
                     <div class="dialog-header-main">
@@ -50,7 +46,12 @@ export type DialogSize = 'sm' | 'default' | 'lg' | 'xl' | '2xl';
                             }
                         </div>
                     </div>
-                    <ng-content select="[dialogHeaderExtra]" />
+                    <div class="dialog-header-actions">
+                        <ng-content select="[dialogHeaderExtra]" />
+                        <button type="button" class="dialog-close" (click)="close()" aria-label="Close">
+                            <app-icon name="x" [size]="16" />
+                        </button>
+                    </div>
                 </div>
             </div>
 

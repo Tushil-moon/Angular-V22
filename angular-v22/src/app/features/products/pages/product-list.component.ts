@@ -36,6 +36,7 @@ import type { Product, ProductStatus, ProductType } from '../models/product.mode
 import { ProductApiService } from '../services/product-api.service';
 import { getProductTypeLabel, productTypeOptions } from '../utils/product-type.util';
 import { openProductFormDialog } from '../utils/open-product-form-dialog.util';
+import { openProductImportDialog } from '../utils/open-product-import-dialog.util';
 
 interface PageResult {
     items: Product[];
@@ -66,6 +67,10 @@ interface PageResult {
                 </div>
                 @if (canManage()) {
                     <div class="index-actions">
+                        <app-button size="toolbar" variant="outline" (clicked)="importProducts()">
+                            <app-icon name="upload" [size]="14" />
+                            Import
+                        </app-button>
                         <app-button size="toolbar" variant="primary" (clicked)="createProduct()">
                             <app-icon name="plus-square" [size]="14" />
                             Add product
@@ -422,6 +427,15 @@ export class ProductListComponent {
     createProduct(): void {
         openProductFormDialog(this.dialog).subscribe((result) => {
             if (result === 'saved') {
+                this.pageResource.reload();
+                this.summaryResource.reload();
+            }
+        });
+    }
+
+    importProducts(): void {
+        openProductImportDialog(this.dialog).subscribe((result) => {
+            if (result === 'imported') {
                 this.pageResource.reload();
                 this.summaryResource.reload();
             }

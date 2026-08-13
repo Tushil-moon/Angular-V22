@@ -79,10 +79,17 @@ export function titleCase(value: string | null | undefined): string {
 /** Normalize media/upload URLs for `<img src>` across dev and production. */
 export function resolveMediaUrl(url: string | null | undefined): string {
     if (!url?.trim()) return '';
-    const trimmed = url.trim();
+    let trimmed = url.trim();
 
     if (/^(data:|blob:|https?:\/\/)/i.test(trimmed)) {
-        return trimmed.replace(/\/api\/v\d+\/uploads\//i, '/uploads/');
+        trimmed = trimmed.replace(/\/api\/v\d+\/uploads\//i, '/uploads/');
+
+        if (!environment.production && environment.assetBaseUrl) {
+            const assetBase = environment.assetBaseUrl.replace(/\/$/, '');
+            trimmed = trimmed.replace(/^https?:\/\/[^/]+\/uploads\//i, `${assetBase}/uploads/`);
+        }
+
+        return trimmed;
     }
 
     if (trimmed.startsWith('/uploads/')) {

@@ -2,6 +2,7 @@ import app from "./app";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { prisma } from "./config/prisma";
+import { getUploadStorageMode } from "./shared/storage/object-storage";
 
 const verifyDatabaseConnection = async () => {
   try {
@@ -22,6 +23,14 @@ void verifyDatabaseConnection();
 
 const server = app.listen(env.PORT, () => {
   logger.info(`Server running on port ${env.PORT}`);
+  logger.info(
+    {
+      storage: getUploadStorageMode(),
+      uploadDir: env.uploadDirAbsolute,
+      publicBaseUrl: env.publicBaseUrl,
+    },
+    "Media storage configured",
+  );
 });
 
 const shutdown = async () => {

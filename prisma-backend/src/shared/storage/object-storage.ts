@@ -23,6 +23,17 @@ function isS3Configured(): boolean {
   return Boolean(env.S3_BUCKET && env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY);
 }
 
+function shouldUseS3Storage(): boolean {
+  if (env.STORAGE_DRIVER === "local") return false;
+  if (env.STORAGE_DRIVER === "s3") {
+    if (!isS3Configured()) {
+      throw new Error("STORAGE_DRIVER=s3 but S3 credentials are not configured");
+    }
+    return true;
+  }
+  return isS3Configured();
+}
+
 let s3Client: S3Client | null = null;
 
 function getS3Client(): S3Client {
@@ -50,12 +61,7 @@ function buildS3PublicUrl(storageKey: string): string {
 }
 
 function getPublicBaseUrl(): string {
-  if (env.PUBLIC_BASE_URL) {
-    return env.PUBLIC_BASE_URL.replace(/\/$/, "");
-  }
-
-  const apiBase = env.API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
-  return apiBase.replace(/\/api\/v\d+$/, "");
+  return env.publicBaseUrl;
 }
 
 function buildLocalPublicUrl(storageKey: string): string {
@@ -64,7 +70,7 @@ function buildLocalPublicUrl(storageKey: string): string {
 }
 
 async function uploadToLocal(storageKey: string, buffer: Buffer): Promise<string> {
-  const absolutePath = path.join(env.UPLOAD_DIR, storageKey);
+  const absolutePath = path.join(env.uploadDirAbsolute, storageKey);
   await mkdir(path.dirname(absolutePath), { recursive: true });
   await writeFile(absolutePath, buffer);
   return buildLocalPublicUrl(storageKey);
@@ -87,7 +93,7 @@ export async function uploadObject(
   buffer: Buffer,
   mimeType: string,
 ): Promise<{ url: string; storageKey: string }> {
-  const url = isS3Configured()
+  const url = shouldUseS3Storage()
     ? await uploadToS3(storageKey, buffer, mimeType)
     : await uploadToLocal(storageKey, buffer);
 
@@ -95,5 +101,5 @@ export async function uploadObject(
 }
 
 export function getUploadStorageMode(): "s3" | "local" {
-  return isS3Configured() ? "s3" : "local";
+  return shouldUseS3Storage() ? "s3" : "local";
 }

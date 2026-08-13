@@ -42,7 +42,7 @@ export type ProductFormDialogResult = 'saved';
             [showFooter]="true"
         >
             @if (body()?.isEdit() && body()?.isLoadingProduct()) {
-                <div dialogHeaderExtra class="flex shrink-0 items-center pt-1">
+                <div dialogHeaderExtra>
                     <span
                         class="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
                     >
@@ -50,7 +50,7 @@ export type ProductFormDialogResult = 'saved';
                     </span>
                 </div>
             } @else if (body()?.isEdit() && body()?.loadedProduct(); as product) {
-                <div dialogHeaderExtra class="flex shrink-0 items-center pt-1">
+                <div dialogHeaderExtra>
                     <app-badge [variant]="body()!.statusVariant(product.status)">
                         {{ product.status }}
                     </app-badge>

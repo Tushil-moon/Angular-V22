@@ -16,8 +16,10 @@ import {
     CreateProductRequest,
     CreateVariantRequest,
     Product,
+    ProductBulkImportRequest,
     ProductImage,
     ProductImageInput,
+    ProductImportResult,
     ProductListFilters,
     ProductStatus,
     ProductType,
@@ -25,6 +27,7 @@ import {
     ProductVisibility,
     UpdateProductRequest,
     UpdateVariantRequest,
+    ApiProductImportResult,
 } from '../models/product.model';
 
 function mapApiVariant(payload: ApiProductVariantPayload): ProductVariant {
@@ -175,6 +178,27 @@ function buildProductBody(payload: ProductBodyPayload): Record<string, unknown> 
     return body;
 }
 
+function mapApiImportResult(payload: ApiProductImportResult): ProductImportResult {
+    return {
+        dryRun: payload.dry_run ?? payload.dryRun ?? false,
+        summary: {
+            total: payload.summary.total,
+            imported: payload.summary.imported,
+            failed: payload.summary.failed,
+            valid: payload.summary.valid,
+        },
+        results: (payload.results ?? []).map((row) => ({
+            row: row.row,
+            slug: row.slug,
+            name: row.name,
+            status: row.status,
+            productId: row.product_id ?? row.productId,
+            errors: row.errors ?? [],
+            fieldErrors: row.field_errors ?? row.fieldErrors ?? {},
+        })),
+    };
+}
+
 @Injectable({
     providedIn: 'root',
 })
@@ -209,6 +233,27 @@ export class ProductApiService {
         return this.http
             .post<ApiProductPayload>('/products', buildProductBody(payload))
             .pipe(map((response) => (response.data ? mapApiProduct(response.data) : null)));
+    }
+
+    importProducts(payload: ProductBulkImportRequest): Observable<ProductImportResult> {
+        return this.http
+            .post<ApiProductImportResult>('/products/import', {
+                products: payload.products.map((entry) => ({
+                    row: entry.row,
+                    fields: entry.fields,
+                })),
+                dryRun: payload.dryRun ?? false,
+                defaultStatus: payload.defaultStatus ?? 'DRAFT',
+            })
+            .pipe(
+                map((response) =>
+                    response.data ? mapApiImportResult(response.data) : mapApiImportResult({
+                        dryRun: payload.dryRun ?? false,
+                        summary: { total: 0, imported: 0, failed: 0, valid: 0 },
+                        results: [],
+                    }),
+                ),
+            );
     }
 
     update(id: string, payload: UpdateProductRequest): Observable<Product | null> {

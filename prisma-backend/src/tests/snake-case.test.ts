@@ -15,7 +15,7 @@ describe("snake-case", () => {
           emailVerified: true,
           createdAt: new Date("2026-01-01T00:00:00.000Z"),
         },
-        recentActivity: [{ fullName: "Jane Doe", dealCount: 2 }],
+        recentActivity: [{ fullName: "Jane Doe", itemCount: 2 }],
         pageSize: 20,
         hasMore: true,
       }),
@@ -25,7 +25,7 @@ describe("snake-case", () => {
         email_verified: true,
         created_at: "2026-01-01T00:00:00.000Z",
       },
-      recent_activity: [{ full_name: "Jane Doe", deal_count: 2 }],
+      recent_activity: [{ full_name: "Jane Doe", item_count: 2 }],
       page_size: 20,
       has_more: true,
     });

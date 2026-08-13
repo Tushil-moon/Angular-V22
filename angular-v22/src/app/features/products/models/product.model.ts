@@ -211,3 +211,60 @@ export interface ApiProductPayload {
     created_at?: string;
     updated_at?: string;
 }
+
+export const PRODUCT_IMPORT_MAX_ROWS = 100;
+
+export type ProductImportRowStatus = 'valid' | 'imported' | 'failed' | 'pending';
+
+export interface ProductImportRowResult {
+    row: number;
+    slug: string;
+    name: string;
+    status: ProductImportRowStatus;
+    productId?: string;
+    errors: string[];
+    fieldErrors?: Partial<Record<string, string>>;
+}
+
+export interface ProductImportSummary {
+    total: number;
+    imported: number;
+    failed: number;
+    valid: number;
+}
+
+export interface ProductImportResult {
+    dryRun: boolean;
+    summary: ProductImportSummary;
+    results: ProductImportRowResult[];
+}
+
+export interface ProductBulkImportRequest {
+    products: Array<{ row?: number; fields: Record<string, string> }>;
+    dryRun?: boolean;
+    defaultStatus?: ProductStatus;
+}
+
+export interface ApiProductImportRowResult {
+    row: number;
+    slug: string;
+    name: string;
+    status: ProductImportRowStatus;
+    product_id?: string;
+    productId?: string;
+    errors?: string[];
+    field_errors?: Partial<Record<string, string>>;
+    fieldErrors?: Partial<Record<string, string>>;
+}
+
+export interface ApiProductImportResult {
+    dry_run?: boolean;
+    dryRun?: boolean;
+    summary: {
+        total: number;
+        imported: number;
+        failed: number;
+        valid: number;
+    };
+    results: ApiProductImportRowResult[];
+}
