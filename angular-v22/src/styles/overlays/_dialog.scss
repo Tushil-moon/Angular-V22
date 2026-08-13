@@ -43,6 +43,89 @@
     max-width: min(42rem, 100%);
 }
 
+.dialog-panel-xl {
+    max-width: min(72rem, calc(100vw - 2rem));
+    max-height: calc(
+        100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    );
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+}
+
+.dialog-panel-2xl {
+    max-width: min(96rem, calc(100vw - 1.5rem));
+    width: 100%;
+    max-height: calc(
+        100dvh - 1.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    );
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+    border-radius: 1rem;
+    box-shadow:
+        0 0 0 1px color-mix(in oklch, var(--border) 80%, transparent),
+        0 24px 48px rgb(0 0 0 / 12%),
+        0 8px 16px rgb(0 0 0 / 8%);
+}
+
+.dialog-panel-xl .dialog-header,
+.dialog-panel-2xl .dialog-header,
+.dialog-panel-product .dialog-header {
+    @apply border-b border-border/80 bg-muted/10 px-8 pb-5 pt-7 pr-14;
+}
+
+.dialog-panel-xl .dialog-body,
+.dialog-panel-2xl .dialog-body,
+.dialog-panel-product .dialog-body {
+    @apply bg-muted/5 px-8 py-5;
+}
+
+.dialog-panel-xl .dialog-footer,
+.dialog-panel-2xl .dialog-footer,
+.dialog-panel-product .dialog-footer {
+    @apply border-t border-border/80 bg-card px-8 py-4;
+}
+
+.dialog-header-row {
+    @apply flex w-full items-start justify-between gap-4;
+}
+
+.dialog-header-main {
+    @apply flex min-w-0 items-start gap-3;
+}
+
+.dialog-header-copy {
+    @apply min-w-0 space-y-1;
+}
+
+.dialog-title-icon {
+    @apply flex size-10 shrink-0 items-center justify-center rounded-lg border border-border/80
+        bg-primary/10 text-primary;
+}
+
+.dialog-panel-2xl .dialog-title,
+.dialog-panel-product .dialog-title {
+    @apply text-xl font-semibold tracking-tight;
+}
+
+.dialog-panel-2xl .dialog-description,
+.dialog-panel-product .dialog-description {
+    @apply text-sm text-muted-foreground;
+}
+
+.dialog-panel-xl .dialog-header {
+    @apply px-6 pb-4 pt-6;
+}
+
+.dialog-panel-xl .dialog-body {
+    @apply px-6 py-0;
+}
+
+.dialog-panel-xl .dialog-footer {
+    @apply px-6 pb-6 pt-4;
+}
+
 .dialog-close {
     @apply absolute right-4 top-4 z-10 inline-flex size-8 items-center justify-center rounded-md
        opacity-70 ring-offset-background transition-opacity hover:bg-accent hover:opacity-100
@@ -103,11 +186,11 @@
 }
 
 .dialog-footer app-button {
-    @apply flex w-full min-w-0 sm:w-auto;
+    @apply flex-host-responsive;
 }
 
 .dialog-footer app-button .btn {
-    @apply w-full justify-center sm:w-auto;
+    @apply btn-responsive;
 }
 
 .dialog-footer:has(> app-button:nth-child(2):last-child),
@@ -135,12 +218,12 @@
 
 .dialog-form-actions app-button,
 .dialog-form-actions app-submit-button {
-    @apply flex w-full min-w-0 sm:w-auto;
+    @apply flex-host-responsive;
 }
 
 .dialog-form-actions app-button .btn,
 .dialog-form-actions app-submit-button .btn {
-    @apply w-full justify-center sm:w-auto;
+    @apply btn-responsive;
 }
 
 .dialog-detail-header {
@@ -165,11 +248,11 @@
 }
 
 .dialog-section-toolbar app-button {
-    @apply flex w-full min-w-0 sm:w-auto;
+    @apply flex-host-responsive;
 }
 
 .dialog-section-toolbar app-button .btn {
-    @apply w-full justify-center sm:w-auto;
+    @apply btn-responsive;
 }
 
 .dialog-roles-section {
@@ -202,6 +285,91 @@
 .dialog-convert-panel {
     @apply space-y-3 rounded-md border border-border p-4;
     background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+}
+
+.dialog-panel-product .dialog-body-inner,
+.dialog-panel-2xl .dialog-body-inner {
+    @apply max-h-[calc(100dvh-11rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))];
+    padding-inline: 0.125rem;
+}
+
+.dialog-panel-product .dialog-footer app-button .btn-primary {
+    @apply min-w-[9rem];
+}
+
+.cdk-overlay-pane.dialog-overlay-pane:has(.dialog-panel-product),
+.cdk-overlay-pane.dialog-overlay-pane:has(.dialog-panel-2xl) {
+    padding: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right))
+        max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
+}
+
+.dialog-panel-2xl .home-panel,
+.dialog-panel-product .home-panel {
+    @apply rounded-xl border-border/70 bg-card shadow-none;
+}
+
+.dialog-panel-2xl .home-panel-header,
+.dialog-panel-product .home-panel-header {
+    @apply border-b border-border/50 bg-muted/25 px-5 py-3.5;
+}
+
+.dialog-panel-2xl .home-panel-pad,
+.dialog-panel-product .home-panel-pad {
+    @apply p-5;
+}
+
+.dialog-panel-2xl .home-panel-title,
+.dialog-panel-product .home-panel-title {
+    @apply text-sm font-semibold;
+}
+
+.dialog-panel-2xl .home-panel-desc,
+.dialog-panel-product .home-panel-desc {
+    @apply text-xs leading-relaxed;
+}
+
+.dialog-panel-xl .home-panel {
+    @apply rounded-lg border border-border/80 shadow-none;
+}
+
+.dialog-panel-xl .home-panel-header {
+    @apply border-b border-border/60 bg-muted/20 px-4 py-3;
+}
+
+.dialog-panel-xl .home-panel-pad {
+    @apply p-4;
+}
+
+.dialog-panel-xl .home-panel-title {
+    @apply text-sm font-semibold;
+}
+
+.dialog-panel-xl .home-panel-desc {
+    @apply text-xs;
+}
+
+.dialog-panel-xl .dialog-body-inner {
+    @apply max-h-[calc(100dvh-12rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))];
+}
+
+.dialog-panel-product .dialog-close,
+.dialog-panel-2xl .dialog-close {
+    @apply right-5 top-5 size-9 rounded-lg;
+}
+
+.dialog-panel-product .dialog-footer,
+.dialog-panel-2xl .dialog-footer {
+    @apply sm:justify-between;
+}
+
+.dialog-panel-product .dialog-footer app-button,
+.dialog-panel-2xl .dialog-footer app-button {
+    @apply w-auto;
+}
+
+.dialog-panel-product .dialog-footer app-button .btn,
+.dialog-panel-2xl .dialog-footer app-button .btn {
+    @apply w-auto justify-center;
 }
 
 /* ── Responsive dialog ── */
@@ -250,6 +418,15 @@
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {
+    .dialog-panel-2xl,
+    .dialog-panel-product {
+        max-width: calc(100vw - 1rem);
+    }
+
+    .dialog-panel-xl {
+        max-width: min(72rem, calc(100vw - 2rem));
+    }
+
     .dialog-panel-lg {
         max-width: min(42rem, calc(100vw - 2rem));
     }

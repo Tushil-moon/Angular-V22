@@ -13,6 +13,7 @@ export {
     formatDateTime,
     formatMoney,
     orDash,
+    resolveMediaUrl,
     titleCase,
     toNumber,
 } from './format.util';
@@ -36,28 +37,27 @@ export function optionalString(value: string | number | boolean | undefined): st
     return String(value);
 }
 
+function trimEdgeDashes(value: string): string {
+    let start = 0;
+    let end = value.length;
+    while (start < end && value[start] === '-') start += 1;
+    while (end > start && value[end - 1] === '-') end -= 1;
+    return value.slice(start, end);
+}
+
 export function slugify(value: string): string {
-    return value
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .slice(0, 80);
+    return trimEdgeDashes(value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')).slice(0, 80);
 }
 
 /** Uppercase alphanumeric code derived from a name, used when the API requires a code. */
 export function codify(value: string, maxLength = 20): string {
-    return (
-        value
-            .trim()
-            .toUpperCase()
-            .replace(/[^A-Z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '')
-            .slice(0, maxLength) || `CODE-${Date.now()}`
-    );
+    const normalized = trimEdgeDashes(
+        value.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-'),
+    ).slice(0, maxLength);
+    return normalized || `CODE-${Date.now()}`;
 }
 
-export function catalogStatusVariant(status: CatalogStatus | string): BadgeVariant {
+export function catalogStatusVariant(status: string): BadgeVariant {
     switch (status) {
         case 'PUBLISHED':
         case 'ACTIVE':

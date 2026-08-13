@@ -107,3 +107,21 @@ Use these APIs for new async, performance, and form work. Reference:
 
 - Use `loadComponent` for feature pages (auth, dashboard, users, roles) instead of static route imports
 - Keep layout/guard components eagerly loaded; lazy load leaf route components
+
+## SonarQube (keep clean)
+
+- No nested ternaries in templates or TS — use `if/else` or a named helper
+- Cognitive complexity ≤ 15 — split large mappers/builders into focused helpers (e.g. `applyProductIdentity`)
+- Reuse type aliases for repeated unions (`NumericInput` instead of `number | string | null | undefined`)
+- Do not write `SpecificUnion | string` when `string` already covers the union
+- Avoid backtracking-prone regex (`/^-+|-+$/`); trim edge characters in a small loop instead
+- Prefer `{ value: T }[]` over `Array<T>` (ESLint `@typescript-eslint/array-type`)
+
+## Styling (Tailwind vs SCSS)
+
+- Prefer Tailwind utilities on templates for layout, spacing, and typography
+- Use SCSS `@apply` only for design-system primitives (`.btn`, `.input`, `.select-*`, `.dialog-panel`) and cases that need mixins, pseudo-elements, or parent→child projected content rules
+- Do not add new component `styles: \`...\`` blocks — put utilities on the template or host
+- Use `cn()` (or `[class.x]="condition"`) for conditional classes; never `ngClass` / `ngStyle`
+- Reuse `.input` / `.btn` with size modifiers (`h-8 text-xs`, `btn-toolbar`) instead of one-off input/button classes
+- Share mobile/desktop button stacking via `.btn-responsive` and `.flex-host-responsive`

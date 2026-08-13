@@ -22,17 +22,22 @@ export interface DetailSheetField {
     template: `
         @if (open()) {
             <div
-                class="detail-sheet-overlay"
+                class="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px]"
                 (click)="closed.emit()"
                 aria-hidden="true"
             ></div>
-            <aside class="detail-sheet" role="dialog" aria-modal="true" [attr.aria-label]="title()">
-                <div class="detail-sheet-header">
+            <aside
+                class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-border bg-background shadow-xl"
+                role="dialog"
+                aria-modal="true"
+                [attr.aria-label]="title()"
+            >
+                <div class="flex items-start gap-3 border-b border-border px-5 py-4">
                     <div class="min-w-0 flex-1">
-                        <p class="detail-sheet-eyebrow">{{ eyebrow() }}</p>
-                        <h2 class="detail-sheet-title">{{ title() }}</h2>
+                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ eyebrow() }}</p>
+                        <h2 class="mt-1 text-lg font-semibold text-foreground">{{ title() }}</h2>
                         @if (subtitle()) {
-                            <p class="detail-sheet-subtitle">{{ subtitle() }}</p>
+                            <p class="mt-1 text-sm text-muted-foreground">{{ subtitle() }}</p>
                         }
                     </div>
                     <app-button variant="ghost" size="icon" type="button" (clicked)="closed.emit()">
@@ -41,17 +46,17 @@ export interface DetailSheetField {
                     </app-button>
                 </div>
 
-                <div class="detail-sheet-body custom-scrollbar">
+                <div class="custom-scrollbar flex-1 overflow-y-auto px-5 py-4">
                     @if (status()) {
                         <app-badge [variant]="statusVariant()">{{ status() }}</app-badge>
                         <app-separator class="my-4" />
                     }
 
-                    <dl class="detail-sheet-fields">
+                    <dl class="space-y-4">
                         @for (field of fields(); track field.label) {
-                            <div class="detail-sheet-field">
-                                <dt>{{ field.label }}</dt>
-                                <dd>
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ field.label }}</dt>
+                                <dd class="mt-1 text-sm text-foreground">
                                     @if (field.badge) {
                                         <app-badge [variant]="field.badge">{{ field.value }}</app-badge>
                                     } @else {
@@ -66,56 +71,11 @@ export interface DetailSheetField {
                 </div>
 
                 @if (showActions()) {
-                    <div class="detail-sheet-footer">
+                    <div class="flex items-center justify-end gap-2 border-t border-border px-5 py-4">
                         <ng-content select="[detailActions]" />
                     </div>
                 }
             </aside>
-        }
-    `,
-    styles: `
-        .detail-sheet-overlay {
-            @apply fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px];
-        }
-
-        .detail-sheet {
-            @apply fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-border bg-background shadow-xl;
-        }
-
-        .detail-sheet-header {
-            @apply flex items-start gap-3 border-b border-border px-5 py-4;
-        }
-
-        .detail-sheet-eyebrow {
-            @apply text-xs font-medium uppercase tracking-wide text-muted-foreground;
-        }
-
-        .detail-sheet-title {
-            @apply mt-1 text-lg font-semibold text-foreground;
-        }
-
-        .detail-sheet-subtitle {
-            @apply mt-1 text-sm text-muted-foreground;
-        }
-
-        .detail-sheet-body {
-            @apply flex-1 overflow-y-auto px-5 py-4;
-        }
-
-        .detail-sheet-fields {
-            @apply space-y-4;
-        }
-
-        .detail-sheet-field dt {
-            @apply text-xs font-medium uppercase tracking-wide text-muted-foreground;
-        }
-
-        .detail-sheet-field dd {
-            @apply mt-1 text-sm text-foreground;
-        }
-
-        .detail-sheet-footer {
-            @apply flex items-center justify-end gap-2 border-t border-border px-5 py-4;
         }
     `,
 })

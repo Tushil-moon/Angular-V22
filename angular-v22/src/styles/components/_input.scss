@@ -11,14 +11,11 @@
 
 .input.border-destructive {
     border-color: var(--destructive);
-}
-
-.input.border-destructive:focus-visible {
-    --tw-ring-color: var(--destructive);
+    @include shadcn-input-focus-destructive;
 }
 
 .form-group {
-    @apply space-y-2;
+    @apply flex flex-col gap-2;
 }
 
 .form-label {
@@ -27,4 +24,14 @@
 
 .form-label-required {
     @apply ml-0.5 font-normal text-muted-foreground;
+}
+
+/* Field instruction — small, tight under the control */
+.form-hint {
+    @apply m-0 block text-xs leading-snug text-muted-foreground;
+}
+
+.form-group > .form-hint,
+.form-group > .form-error {
+    margin-top: -0.25rem; /* net ~4px under the field after gap-2 */
 }

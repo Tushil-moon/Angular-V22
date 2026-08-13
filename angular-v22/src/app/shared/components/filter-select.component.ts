@@ -10,7 +10,7 @@ import { SelectComponent, SelectOption } from './select.component';
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-filter-select',
     imports: [SelectComponent],
-    host: { class: 'inline-flex min-w-0' },
+    host: { class: 'filter-select-host inline-flex min-w-0' },
     template: `
         <app-select
             [options]="options()"
@@ -19,6 +19,7 @@ import { SelectComponent, SelectOption } from './select.component';
             [disabled]="disabled()"
             [ariaLabel]="ariaLabel()"
             [filter]="true"
+            size="toolbar"
             (valueChange)="valueChange.emit($event)"
         />
     `,

@@ -14,6 +14,7 @@ export * from './dropdown-menu.component';
 export * from './enterprise-detail-sheet.component';
 export * from './enterprise-list-shell.component';
 export * from './filter-select.component';
+export * from './list-toolbar.component';
 export * from './flex-table.component';
 export * from './flex-table.types';
 export * from './icon.component';

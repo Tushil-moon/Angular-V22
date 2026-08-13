@@ -2,17 +2,22 @@
  * Display formatters shared by admin feature pages.
  */
 
+import { environment } from '@env';
+
 const EM_DASH = '—';
 
+/** Numeric values from API payloads or form inputs. */
+export type NumericInput = number | string | null | undefined;
+
 /** Prisma decimals arrive as strings over the wire. */
-export function toNumber(value: number | string | null | undefined): number {
+export function toNumber(value: NumericInput): number {
     if (value == null) return 0;
     const parsed = typeof value === 'string' ? Number(value) : value;
     return Number.isFinite(parsed) ? parsed : 0;
 }
 
 export function formatMoney(
-    value: number | string | null | undefined,
+    value: NumericInput,
     currencyCode = 'USD',
 ): string {
     if (value == null) return EM_DASH;
@@ -52,7 +57,7 @@ export function formatShortDate(value: string | null | undefined): string {
     return `${day}-${month}-${year}`;
 }
 
-export function formatDecimal(value: number | string | null | undefined): string {
+export function formatDecimal(value: NumericInput): string {
     if (value == null) return EM_DASH;
     return toNumber(value).toFixed(2);
 }
@@ -69,6 +74,23 @@ export function titleCase(value: string | null | undefined): string {
         .filter(Boolean)
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
+}
+
+/** Normalize media/upload URLs for `<img src>` across dev and production. */
+export function resolveMediaUrl(url: string | null | undefined): string {
+    if (!url?.trim()) return '';
+    const trimmed = url.trim();
+
+    if (/^(data:|blob:|https?:\/\/)/i.test(trimmed)) {
+        return trimmed.replace(/\/api\/v\d+\/uploads\//i, '/uploads/');
+    }
+
+    if (trimmed.startsWith('/uploads/')) {
+        const base = environment.assetBaseUrl?.replace(/\/$/, '') ?? '';
+        return `${base}${trimmed}`;
+    }
+
+    return trimmed;
 }
 
 /** Extracts a user-facing message from an `ApiError`-shaped rejection. */

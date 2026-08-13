@@ -48,3 +48,12 @@ Alphabetical within each group. Match surrounding file style.
 - Large god classes/files
 - Duplicate error handling outside middleware
 - Copy-paste across modules — extract to shared when third use appears
+
+## SonarQube (keep clean)
+
+- No nested ternaries — use `if/else` or a named helper
+- Cognitive complexity ≤ 15 — split large builders into focused helpers
+- Use `z.url()` (Zod 4), not deprecated `z.string().url()`
+- Prefer `??=` for lazy singleton initialization
+- Avoid regex alternation with repeated quantifiers (e.g. `^-+|-+$`); trim edges in a loop instead
+- No unnecessary escapes inside character classes (`[^\w.-]` not `[^\w.\-]`)

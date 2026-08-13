@@ -8,8 +8,9 @@ import { DIALOG_CLOSE } from '@shared/dialog/dialog.tokens';
 import { DialogRef } from '@shared/dialog/dialog-ref';
 
 import { IconComponent } from './icon.component';
+import type { IconName } from '@shared/icons';
 
-export type DialogSize = 'sm' | 'default' | 'lg';
+export type DialogSize = 'sm' | 'default' | 'lg' | 'xl' | '2xl';
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,7 +21,7 @@ export type DialogSize = 'sm' | 'default' | 'lg';
     imports: [A11yModule, IconComponent],
     template: `
         <div
-            [class]="panelClass()"
+            [class]="panelClasses()"
             role="dialog"
             aria-modal="true"
             [attr.aria-labelledby]="titleId"
@@ -33,10 +34,24 @@ export type DialogSize = 'sm' | 'default' | 'lg';
             </button>
 
             <div class="dialog-header">
-                <h2 class="dialog-title" [id]="titleId">{{ title() }}</h2>
-                @if (description()) {
-                    <p class="dialog-description" [id]="descriptionId">{{ description() }}</p>
-                }
+                <div class="dialog-header-row">
+                    <div class="dialog-header-main">
+                        @if (titleIcon()) {
+                            <div class="dialog-title-icon" aria-hidden="true">
+                                <app-icon [name]="titleIcon()!" [size]="20" />
+                            </div>
+                        }
+                        <div class="dialog-header-copy">
+                            <h2 class="dialog-title" [id]="titleId">{{ title() }}</h2>
+                            @if (description()) {
+                                <p class="dialog-description" [id]="descriptionId">
+                                    {{ description() }}
+                                </p>
+                            }
+                        </div>
+                    </div>
+                    <ng-content select="[dialogHeaderExtra]" />
+                </div>
             </div>
 
             <div class="dialog-body">
@@ -62,17 +77,22 @@ export class DialogComponent {
 
     title = input('Dialog');
     description = input('');
+    titleIcon = input<IconName | null>(null);
     size = input<DialogSize>('default');
+    extraPanelClass = input('', { alias: 'panelClass' });
     showFooter = input(true);
 
-    panelClass = computed(() => {
+    panelClasses = computed(() => {
         const sizeClasses: Record<DialogSize, string> = {
             sm: 'dialog-panel-sm',
             default: 'dialog-panel-md',
             lg: 'dialog-panel-lg',
+            xl: 'dialog-panel-xl',
+            '2xl': 'dialog-panel-2xl',
         };
         const sizeClass = sizeClasses[this.size()];
-        return `dialog-panel animate-dialogIn ${sizeClass}`;
+        const extra = this.extraPanelClass();
+        return ['dialog-panel', 'animate-dialogIn', sizeClass, extra].filter(Boolean).join(' ');
     });
 
     close(): void {

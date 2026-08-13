@@ -183,6 +183,7 @@ import { ThemeToggleComponent } from '../components/theme-toggle.component';
 
                         <div class="site-header-search">
                             <app-search-input
+                                size="default"
                                 placeholder="Search data, users, or reports"
                                 ariaLabel="Global search"
                                 (searchChange)="onGlobalSearch($event)"

@@ -7,6 +7,8 @@ import { buildApiBaseUrl } from './build-env';
 export const environment = {
     production: true,
     apiBaseUrl: buildApiBaseUrl,
+    /** Same-origin uploads in production (/uploads/...). */
+    assetBaseUrl: '',
     apiTimeout: 30000,
     tokenStorageKey: 'auth_token',
     refreshTokenStorageKey: 'refresh_token',

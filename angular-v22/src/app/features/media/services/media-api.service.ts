@@ -9,6 +9,7 @@ import { HttpClientService } from '@services/http-client.service';
 import { type ApiPaginatedPayload, mapApiPaginated } from '@utils/api-mappers';
 import { map, Observable } from 'rxjs';
 
+import { resolveMediaUrl } from '../../shared/format.util';
 import { ApiMediaPayload, CreateMediaRequest, MediaAsset } from '../models/media.model';
 
 export function mapApiMediaAsset(payload: ApiMediaPayload): MediaAsset {
@@ -20,7 +21,7 @@ export function mapApiMediaAsset(payload: ApiMediaPayload): MediaAsset {
         sizeBytes: payload.size_bytes ?? 0,
         width: payload.width ?? null,
         height: payload.height ?? null,
-        url: payload.url,
+        url: resolveMediaUrl(payload.url),
         storageKey: payload.storage_key,
         altText: payload.alt_text ?? null,
         createdAt: payload.created_at ?? '',

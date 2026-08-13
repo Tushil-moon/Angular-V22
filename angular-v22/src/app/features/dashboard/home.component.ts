@@ -216,9 +216,9 @@ type ReportPeriod = 'this' | 'last';
             </div>
 
             <div class="dashboard-mid-grid">
-                <section class="dashboard-panel">
-                    <div class="dashboard-panel-header">
-                        <h2 class="dashboard-panel-title">Report for this week</h2>
+                <section class="home-panel">
+                    <div class="home-panel-header">
+                        <h2 class="home-panel-title">Report for this week</h2>
                         <div class="dashboard-period-toggle">
                             <button
                                 type="button"
@@ -282,7 +282,7 @@ type ReportPeriod = 'this' | 'last';
                     </div>
                 </section>
 
-                <aside class="dashboard-panel">
+                <aside class="home-panel">
                     <div class="dashboard-live-metric">
                         <div class="flex items-start justify-between">
                             <div>
@@ -307,7 +307,7 @@ type ReportPeriod = 'this' | 'last';
 
                     <div class="dashboard-country-section">
                         <div class="dashboard-country-head">
-                            <h3 class="dashboard-panel-title">Sales by Country</h3>
+                            <h3 class="home-panel-title">Sales by Country</h3>
                             <span class="text-sm text-muted-foreground">Sales</span>
                         </div>
                         @if (countrySales().length === 0) {
@@ -344,9 +344,9 @@ type ReportPeriod = 'this' | 'last';
             </div>
 
             <div class="dashboard-lower-grid">
-                <section class="dashboard-panel">
-                    <div class="dashboard-panel-header">
-                        <h2 class="dashboard-panel-title">Transaction</h2>
+                <section class="home-panel">
+                    <div class="home-panel-header">
+                        <h2 class="home-panel-title">Transaction</h2>
                         <a routerLink="/dashboard/orders" class="inline-flex">
                             <app-button size="sm" variant="outline" type="button">
                                 Filter
@@ -397,10 +397,10 @@ type ReportPeriod = 'this' | 'last';
                     </div>
                 </section>
 
-                <aside class="dashboard-panel">
-                    <div class="dashboard-panel-header !items-start">
+                <aside class="home-panel">
+                    <div class="home-panel-header !items-start">
                         <div>
-                            <h2 class="dashboard-panel-title">Top Products</h2>
+                            <h2 class="home-panel-title">Top Products</h2>
                             <a routerLink="/dashboard/products" class="inline-flex">
                                 <app-button size="sm" variant="link" type="button">All product</app-button>
                             </a>
@@ -441,9 +441,9 @@ type ReportPeriod = 'this' | 'last';
             </div>
 
             <div class="dashboard-bottom-grid">
-                <section class="dashboard-panel">
-                    <div class="dashboard-panel-header">
-                        <h2 class="dashboard-panel-title">Best selling product</h2>
+                <section class="home-panel">
+                    <div class="home-panel-header">
+                        <h2 class="home-panel-title">Best selling product</h2>
                         <app-button size="sm" variant="outline" type="button">
                             Filter
                             <app-icon name="arrow-up-down" [size]="14" />
@@ -498,9 +498,9 @@ type ReportPeriod = 'this' | 'last';
                     </div>
                 </section>
 
-                <aside class="dashboard-panel dashboard-add-panel">
+                <aside class="home-panel dashboard-add-panel">
                     <div class="dashboard-add-head">
-                        <h2 class="dashboard-panel-title">Add New Product</h2>
+                        <h2 class="home-panel-title">Add New Product</h2>
                         <a routerLink="/dashboard/products/new" class="inline-flex">
                             <app-button size="sm" variant="link" type="button">
                                 <app-icon name="plus-square" [size]="14" />

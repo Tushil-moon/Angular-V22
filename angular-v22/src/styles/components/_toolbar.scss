@@ -1,0 +1,100 @@
+@use 'mixins' as *;
+
+/* ── Toolbar controls (search, filter select, buttons) — unified 36px height ── */
+:root {
+    --toolbar-control-height: 2.25rem;
+}
+
+.toolbar-control {
+    @apply box-border h-9 min-h-9 text-sm leading-none;
+}
+
+/* Search — toolbar size overrides (shared layout in _search.scss) */
+.search-input-host.search-input-toolbar {
+    @apply min-w-0;
+}
+
+.search-input-toolbar .search-field-input {
+    @apply toolbar-control w-full min-w-0 max-w-full rounded-md border border-input bg-transparent py-0 pl-9 pr-3
+        text-foreground shadow-sm dark:bg-input/30;
+    text-overflow: ellipsis;
+    @include shadcn-input-focus;
+}
+
+/* Filter select — child DOM + focus mixin */
+.filter-select-host {
+    @apply inline-flex min-w-0;
+}
+
+.list-toolbar-host-row > app-filter-select.filter-select-host {
+    @apply min-w-0 shrink flex-[0_1_8.75rem];
+}
+
+.list-toolbar-host-row > app-search-input.search-input-host {
+    @apply block min-w-0 w-auto max-w-52 shrink flex-[1_1_11rem];
+}
+
+.filter-select-host .select-root {
+    @apply w-full min-w-0;
+}
+
+.filter-select-host .select-trigger {
+    @apply toolbar-control flex w-full items-center justify-between gap-2 rounded-md border border-input
+        bg-transparent px-3 py-0 leading-none shadow-sm text-foreground dark:bg-input/30;
+    @include shadcn-input-focus;
+}
+
+.filter-select-host .select-value {
+    @apply line-clamp-1 text-left;
+}
+
+/* Button toolbar size */
+.btn-toolbar {
+    @apply toolbar-control inline-flex items-center justify-center gap-1.5 rounded-md px-3 font-medium
+        has-[>svg]:px-2.5;
+}
+
+.om-toolbar:has(> app-list-toolbar:only-child) {
+    @apply lg:justify-end;
+}
+
+.om-list-header-filters {
+    @apply min-w-0 max-w-full;
+}
+
+/* Align controls inside common toolbar containers */
+.om-toolbar-actions,
+.card-toolbar,
+.toolbar-actions,
+.index-filters,
+.index-filters-leading,
+.index-filters-trailing,
+.om-list-header-filters,
+.list-toolbar-host-row {
+    @apply items-center;
+
+    > app-search-input,
+    > app-filter-select,
+    > app-button,
+    > app-list-toolbar {
+        @apply flex items-center self-center;
+    }
+}
+
+/* Prevent search/select bottom borders from being clipped in list headers */
+.om-list-header .list-toolbar-host-row,
+.om-list-header-filters.list-toolbar-host-row {
+    overflow: visible;
+    /* Subpixel room so borders/shadows are not shaved by flex layout */
+    padding-block: 1px;
+    min-height: calc(var(--toolbar-control-height) + 2px);
+}
+
+.om-list-header .filter-select-host,
+.om-list-header .search-input-host {
+    overflow: visible;
+}
+
+.om-toolbar-search {
+    @apply w-full min-w-[12rem] sm:w-56;
+}

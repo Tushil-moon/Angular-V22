@@ -8,7 +8,7 @@ import { HttpClientService } from '@services/http-client.service';
 import { ApiPaginatedPayload, mapApiPaginated } from '@utils/api-mappers';
 import { map, Observable } from 'rxjs';
 
-import { toNumber } from '../../shared/format.util';
+import { toNumber, resolveMediaUrl } from '../../shared/format.util';
 import {
     ApiProductImagePayload,
     ApiProductPayload,
@@ -54,11 +54,24 @@ function mapApiImage(payload: {
 }): ProductImage {
     return {
         id: payload.id,
-        url: payload.url,
+        url: resolveMediaUrl(payload.url),
         altText: payload.alt_text ?? payload.altText ?? null,
         position: payload.position ?? 0,
         mediaId: payload.media_id ?? payload.mediaId ?? null,
     };
+}
+
+function resolveProductPrice(
+    payload: ApiProductPayload,
+    defaultVariant: ProductVariant | undefined,
+): number | null {
+    if (payload.price != null) {
+        return toNumber(payload.price);
+    }
+    if (defaultVariant) {
+        return defaultVariant.price;
+    }
+    return null;
 }
 
 export function mapApiProduct(payload: ApiProductPayload): Product {
@@ -86,12 +99,7 @@ export function mapApiProduct(payload: ApiProductPayload): Product {
         })),
         variants,
         images: (payload.images ?? []).map(mapApiImage),
-        price:
-            payload.price != null
-                ? toNumber(payload.price)
-                : defaultVariant
-                  ? defaultVariant.price
-                  : null,
+        price: resolveProductPrice(payload, defaultVariant),
         sku: payload.sku ?? defaultVariant?.sku ?? null,
         metaTitle: payload.meta_title ?? payload.metaTitle ?? null,
         metaDescription: payload.meta_description ?? payload.metaDescription ?? null,
@@ -100,21 +108,34 @@ export function mapApiProduct(payload: ApiProductPayload): Product {
     };
 }
 
-function buildProductBody(payload: CreateProductRequest | UpdateProductRequest): Record<string, unknown> {
-    const body: Record<string, unknown> = {};
+type ProductBodyPayload = CreateProductRequest | UpdateProductRequest;
 
+function applyProductIdentity(body: Record<string, unknown>, payload: ProductBodyPayload): void {
     if ('name' in payload && payload.name !== undefined) body['name'] = payload.name;
     if ('slug' in payload && payload.slug !== undefined) body['slug'] = payload.slug;
     if ('description' in payload) body['description'] = payload.description ?? null;
     if ('shortDescription' in payload) body['shortDescription'] = payload.shortDescription ?? null;
     if ('type' in payload && payload.type !== undefined) body['type'] = payload.type;
     if ('status' in payload && payload.status !== undefined) body['status'] = payload.status;
-    if ('visibility' in payload && payload.visibility !== undefined) body['visibility'] = payload.visibility;
+    if ('visibility' in payload && payload.visibility !== undefined) {
+        body['visibility'] = payload.visibility;
+    }
+}
+
+function applyProductCatalog(body: Record<string, unknown>, payload: ProductBodyPayload): void {
     if ('brandId' in payload) body['brandId'] = payload.brandId ?? null;
-    if ('categoryIds' in payload && payload.categoryIds !== undefined) body['categoryIds'] = payload.categoryIds;
+    if ('categoryIds' in payload && payload.categoryIds !== undefined) {
+        body['categoryIds'] = payload.categoryIds;
+    }
     if ('featured' in payload && payload.featured !== undefined) body['featured'] = payload.featured;
+}
+
+function applyProductSeo(body: Record<string, unknown>, payload: ProductBodyPayload): void {
     if ('metaTitle' in payload) body['metaTitle'] = payload.metaTitle ?? null;
     if ('metaDescription' in payload) body['metaDescription'] = payload.metaDescription ?? null;
+}
+
+function applyProductPricing(body: Record<string, unknown>, payload: ProductBodyPayload): void {
     if ('price' in payload && payload.price !== undefined) body['price'] = payload.price;
     if ('compareAtPrice' in payload) body['compareAtPrice'] = payload.compareAtPrice ?? null;
     if ('sku' in payload && payload.sku !== undefined) body['sku'] = payload.sku;
@@ -124,6 +145,9 @@ function buildProductBody(payload: CreateProductRequest | UpdateProductRequest):
     if ('initialStock' in payload && payload.initialStock !== undefined) {
         body['initialStock'] = payload.initialStock;
     }
+}
+
+function applyProductImages(body: Record<string, unknown>, payload: ProductBodyPayload): void {
     if ('primaryImage' in payload && payload.primaryImage) {
         body['primaryImage'] = {
             url: payload.primaryImage.url,
@@ -139,7 +163,15 @@ function buildProductBody(payload: CreateProductRequest | UpdateProductRequest):
             position: image.position ?? index,
         }));
     }
+}
 
+function buildProductBody(payload: ProductBodyPayload): Record<string, unknown> {
+    const body: Record<string, unknown> = {};
+    applyProductIdentity(body, payload);
+    applyProductCatalog(body, payload);
+    applyProductSeo(body, payload);
+    applyProductPricing(body, payload);
+    applyProductImages(body, payload);
     return body;
 }
 

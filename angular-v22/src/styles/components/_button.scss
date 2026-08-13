@@ -70,12 +70,21 @@ input[type='reset'] {
     @apply w-full;
 }
 
-/* Toolbar / page action buttons — full width on mobile, auto on sm+ */
-.toolbar-btn {
+/* Mobile full-width / desktop auto — shared by dialogs, settings, toolbars */
+.btn-responsive {
     @apply w-full justify-center sm:w-auto;
 }
 
+.flex-host-responsive {
+    @apply flex w-full min-w-0 sm:w-auto;
+}
+
+/* Toolbar / page action buttons — full width on mobile, auto on sm+ */
+.toolbar-btn {
+    @apply btn-responsive;
+}
+
 /* Default size (md) */
-.btn:not(.btn-sm):not(.btn-lg):not(.btn-xl):not(.btn-icon):not(.btn-link) {
+.btn:not(.btn-sm):not(.btn-lg):not(.btn-xl):not(.btn-icon):not(.btn-link):not(.btn-toolbar) {
     @apply h-9 px-4 py-2;
 }

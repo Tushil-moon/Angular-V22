@@ -89,22 +89,6 @@
     @apply grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(16rem,1fr)];
 }
 
-.dashboard-panel {
-    @apply home-panel;
-}
-
-.dashboard-panel-header {
-    @apply home-panel-header;
-}
-
-.dashboard-panel-title {
-    @apply home-panel-title;
-}
-
-.dashboard-panel-subtitle {
-    @apply home-panel-desc;
-}
-
 .dashboard-period-toggle {
     @apply inline-flex rounded-md border border-border bg-muted/30 p-1;
 }
@@ -686,12 +670,18 @@
 }
 
 .om-list-header {
-    @apply flex shrink-0 flex-col gap-3 border-b border-border px-5 py-4 sm:flex-row sm:items-center
-        sm:justify-between;
+    /* Keep control borders/shadows visible (no overflow clip) */
+    @apply flex shrink-0 flex-col gap-3 border-b border-border px-5 py-4 md:flex-row
+        md:items-center md:justify-between md:gap-4;
+    overflow: visible;
 }
 
 .om-list-title {
     @apply text-xl font-bold text-foreground;
+}
+
+.om-list-header-copy {
+    @apply min-w-0 shrink-0;
 }
 
 .om-toolbar {
@@ -786,84 +776,55 @@
     @apply mt-3 text-xs text-muted-foreground;
 }
 
-/* Legacy aliases */
-.ops-metric-grid {
-    @apply index-metrics;
+/* Product catalog — admin panel */
+.product-form-page {
+    @apply index-page page-shell-fill om-page pb-24 lg:pb-0;
 }
 
-.ops-metric {
-    @apply index-metric;
+.product-form-header {
+    @apply flex flex-col gap-4 border-b border-border pb-4 lg:flex-row lg:items-start lg:justify-between;
 }
 
-.ops-metric-label {
-    @apply index-metric-label;
+.product-form-header-main {
+    @apply flex min-w-0 items-start gap-3;
 }
 
-.ops-metric-value {
-    @apply index-metric-value;
+.product-form-header-copy {
+    @apply min-w-0 space-y-1;
 }
 
-.ops-metric-hint {
-    @apply index-metric-hint;
+.product-form-header-actions {
+    @apply flex flex-wrap items-center gap-2;
 }
 
-.ops-panel {
-    @apply home-panel p-4;
+.product-form-savebar {
+    @apply fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card p-3 shadow-lg lg:hidden;
 }
 
-.ops-section-title {
-    @apply home-panel-title;
+.product-form-grid {
+    @apply grid gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(17rem,0.9fr)] xl:grid-cols-[minmax(0,1.65fr)_minmax(20rem,0.95fr)];
 }
 
-.ops-section-desc {
-    @apply home-panel-desc;
+.product-form-aside {
+    @apply space-y-4 lg:sticky lg:top-4 lg:self-start;
 }
 
-.ops-split {
-    @apply home-grid;
+.product-kpi-row {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-3;
 }
 
-.ops-shortcut-grid {
-    @apply grid grid-cols-2 gap-2;
+.category-tree-picker-list {
+    @apply max-h-56 space-y-1 overflow-y-auto rounded-xl border border-border bg-background p-2;
 }
 
-.ops-shortcut {
-    @apply flex flex-col gap-2 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:bg-muted/60;
+.category-tree-picker-row {
+    @apply flex min-h-10 items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-muted/50;
 }
 
-.ops-shortcut-icon {
-    @apply home-link-icon;
+.category-tree-picker-summary {
+    @apply mt-2 text-xs text-muted-foreground;
 }
 
-.ops-shortcut-label {
-    @apply home-link-label;
-}
-
-.ops-shortcut-desc {
-    @apply home-link-desc;
-}
-
-.ops-empty {
-    @apply index-empty;
-}
-
-.ops-empty-title {
-    @apply index-empty-title;
-}
-
-.ops-empty-desc {
-    @apply index-empty-desc;
-}
-
-.ops-attention {
-    @apply flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-4 sm:flex-row sm:items-center
-        sm:justify-between;
-}
-
-.ops-attention-title {
-    @apply text-sm font-semibold text-foreground;
-}
-
-.ops-attention-desc {
-    @apply mt-0.5 text-xs text-muted-foreground;
+.product-table-categories {
+    @apply line-clamp-2 text-sm text-muted-foreground;
 }

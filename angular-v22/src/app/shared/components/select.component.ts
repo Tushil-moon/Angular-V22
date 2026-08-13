@@ -56,6 +56,7 @@ export interface SelectOption {
                     [id]="id()"
                     class="select-trigger"
                     [class.select-trigger-sm]="size() === 'sm'"
+                    [class.select-trigger-toolbar]="size() === 'toolbar'"
                     [class.select-trigger-invalid]="invalid()"
                     [disabled]="isEffectivelyDisabled()"
                     [attr.aria-label]="ariaLabel() || null"
@@ -129,7 +130,7 @@ export class SelectComponent implements ControlValueAccessor {
     options = input<SelectOption[]>([]);
     wrapperClass = input('');
     ariaLabel = input('');
-    size = input<'default' | 'sm'>('default');
+    size = input<'default' | 'sm' | 'toolbar'>('default');
     filter = input(false);
     invalid = input(false);
     disabled = input(false);

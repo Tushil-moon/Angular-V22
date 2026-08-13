@@ -16,6 +16,7 @@ import {
     FlexTableRowComponent,
     type FlexTableColumn,
     IconComponent,
+    ListToolbarComponent,
     PaginationComponent,
     SearchInputComponent,
 } from '@shared/components';
@@ -94,6 +95,7 @@ interface AnalyticsDashboardPayload {
         BadgeComponent,
         ButtonComponent,
         IconComponent,
+        ListToolbarComponent,
         PaginationComponent,
         FlexTableComponent,
         FlexTableRowComponent,
@@ -138,11 +140,11 @@ interface AnalyticsDashboardPayload {
                 <div class="om-list-header">
                     <h2 class="om-list-title">Order list</h2>
                     <div class="index-actions">
-                        <app-button size="sm" variant="primary" type="button">
+                        <app-button size="toolbar" variant="primary" type="button">
                             <app-icon name="plus-square" [size]="14" />
                             Add Order
                         </app-button>
-                        <app-button size="sm" variant="outline" type="button">
+                        <app-button size="toolbar" variant="outline" type="button">
                             <app-icon name="more-horizontal" [size]="14" />
                             More Action
                         </app-button>
@@ -168,24 +170,22 @@ interface AnalyticsDashboardPayload {
                         }
                     </div>
 
-                    <div class="om-toolbar-actions">
-                        <div class="om-toolbar-search">
-                            <app-search-input
-                                placeholder="Search order report"
-                                [initialValue]="searchQuery()"
-                                (searchChange)="onSearch($event)"
-                            />
-                        </div>
-                        <button type="button" class="om-icon-btn" aria-label="Filter orders">
+                    <app-list-toolbar>
+                        <app-search-input
+                            placeholder="Search order report"
+                            [initialValue]="searchQuery()"
+                            (searchChange)="onSearch($event)"
+                        />
+                        <button type="button" class="om-icon-btn" toolbarAction aria-label="Filter orders">
                             <app-icon name="filter" [size]="16" />
                         </button>
-                        <button type="button" class="om-icon-btn" aria-label="Sort orders">
+                        <button type="button" class="om-icon-btn" toolbarAction aria-label="Sort orders">
                             <app-icon name="arrow-up-down" [size]="16" />
                         </button>
-                        <button type="button" class="om-icon-btn" aria-label="More table actions">
+                        <button type="button" class="om-icon-btn" toolbarAction aria-label="More table actions">
                             <app-icon name="more-horizontal" [size]="16" />
                         </button>
-                    </div>
+                    </app-list-toolbar>
                 </div>
 
                 <div class="index-body om-table-wrap">

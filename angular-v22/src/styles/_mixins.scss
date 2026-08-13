@@ -1,15 +1,29 @@
 // Shared Sass mixins for shadcn-style components
 
 @mixin shadcn-focus-ring {
-    @apply outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50;
+    @apply outline-none;
 }
 
 @mixin shadcn-focus-ring-border {
     @apply focus-visible:border-ring;
 }
 
+/** Form controls — border only on focus (no ring / glow / inset shadow). */
 @mixin shadcn-input-focus {
-    @apply focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-[3px] focus-visible:ring-ring/50;
+    outline: none;
+
+    &:focus-visible {
+        outline: none;
+        border-color: var(--ring);
+        box-shadow: none;
+    }
+}
+
+@mixin shadcn-input-focus-destructive {
+    &:focus-visible {
+        border-color: var(--destructive);
+        box-shadow: none;
+    }
 }
 
 @mixin focus-ring-offset {

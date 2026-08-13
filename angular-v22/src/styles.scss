@@ -26,6 +26,22 @@
         outline-color: color-mix(in oklab, var(--ring) 50%, transparent);
     }
 
+    /* Form fields — no focus outline / ring glow */
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible,
+    .input:focus-visible,
+    .textarea:focus-visible,
+    .select-trigger:focus-visible,
+    .date-picker-trigger:focus-visible,
+    .search-field-input:focus-visible,
+    .checkbox:focus-visible,
+    .switch:focus-visible {
+        outline: none;
+        --tw-ring-shadow: 0 0 #0000;
+        --tw-ring-offset-shadow: 0 0 #0000;
+    }
+
     html {
         color-scheme: light;
     }
@@ -59,6 +75,8 @@
     @include meta.load-css('styles/components/card');
         @include meta.load-css('styles/components/input');
         @include meta.load-css('styles/components/search');
+    @include meta.load-css('styles/components/toolbar');
+    @include meta.load-css('styles/components/product-images');
     @include meta.load-css('styles/components/textarea');
     @include meta.load-css('styles/components/select');
     @include meta.load-css('styles/components/checkbox');

@@ -1,0 +1,16 @@
+/* Product images — pseudo-elements only (layout is Tailwind in template) */
+
+.product-images-advanced-summary {
+    &::-webkit-details-marker {
+        display: none;
+    }
+
+    &::after {
+        content: '▾';
+        @apply float-right text-muted-foreground transition-transform;
+    }
+}
+
+.product-images-advanced[open] .product-images-advanced-summary::after {
+    transform: rotate(180deg);
+}

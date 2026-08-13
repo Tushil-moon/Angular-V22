@@ -94,10 +94,7 @@
 
 .date-picker-trigger-invalid {
     border-color: var(--destructive);
-
-    &:focus-visible {
-        --tw-ring-color: var(--destructive);
-    }
+    @include shadcn-input-focus-destructive;
 }
 
 .date-picker-trigger-placeholder .date-picker-value {

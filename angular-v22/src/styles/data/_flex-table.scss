@@ -6,7 +6,6 @@
     @apply w-full overflow-x-auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    scrollbar-gutter: stable;
 }
 
 .flex-table-fill .flex-table-scroll {

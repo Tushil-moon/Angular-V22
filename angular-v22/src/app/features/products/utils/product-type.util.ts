@@ -68,7 +68,11 @@ export const PRODUCT_TYPE_PROFILES: Record<ProductType, ProductTypeProfile> = {
 };
 
 export function getProductTypeProfile(type: string): ProductTypeProfile {
-    return PRODUCT_TYPE_PROFILES[(type as ProductType) ?? 'SIMPLE'] ?? PRODUCT_TYPE_PROFILES.SIMPLE;
+    return PRODUCT_TYPE_PROFILES[(type as ProductType) || 'SIMPLE'] ?? PRODUCT_TYPE_PROFILES.SIMPLE;
+}
+
+export function getProductTypeLabel(type: string): string {
+    return getProductTypeProfile(type).label;
 }
 
 export function productTypeOptions(): { value: ProductType; label: string; description: string }[] {

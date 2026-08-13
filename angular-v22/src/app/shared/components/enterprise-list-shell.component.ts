@@ -87,8 +87,8 @@ interface PageResult<T> {
         <div
             [class]="
                 embedded()
-                    ? 'enterprise-list-shell-embedded'
-                    : 'index-page page-shell-fill enterprise-list-shell'
+                    ? 'flex min-h-0 flex-1 flex-col'
+                    : 'index-page page-shell-fill min-w-0'
             "
         >
             @if (!embedded()) {
@@ -146,7 +146,7 @@ interface PageResult<T> {
                             />
                         }
                         @if (!embedded() && canManage() && !config().hideCreate) {
-                            <app-button size="sm" [disabled]="creating()" (clicked)="onCreate()">
+                            <app-button size="toolbar" [disabled]="creating()" (clicked)="onCreate()">
                                 <app-icon name="plus" [size]="14" />
                                 Add {{ config().entityLabel }}
                             </app-button>
@@ -160,7 +160,7 @@ interface PageResult<T> {
                             />
                         }
                         @if (embedded() && canManage() && !config().hideCreate) {
-                            <app-button size="sm" [disabled]="creating()" (clicked)="onCreate()">
+                            <app-button size="toolbar" [disabled]="creating()" (clicked)="onCreate()">
                                 <app-icon name="plus" [size]="14" />
                                 Add {{ config().entityLabel }}
                             </app-button>
@@ -199,9 +199,9 @@ interface PageResult<T> {
                 <div class="index-body">
                     @if (viewMode() === 'cards' && enableCardView()) {
                         @if (isLoading()) {
-                            <div class="enterprise-card-grid p-4">
+                            <div class="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
                                 @for (_ of skeletonItems; track $index) {
-                                    <div class="enterprise-card enterprise-card-skeleton"></div>
+                                    <div class="h-24 animate-pulse rounded-lg border border-border bg-muted"></div>
                                 }
                             </div>
                         } @else if (items().length === 0) {
@@ -210,15 +210,15 @@ interface PageResult<T> {
                                 <p class="index-empty-desc">Create one or adjust your search.</p>
                             </div>
                         } @else {
-                            <div class="enterprise-card-grid p-4">
+                            <div class="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
                                 @for (item of items(); track itemTrackBy()(item)) {
                                     <button
                                         type="button"
-                                        class="enterprise-card"
+                                        class="rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-muted/40"
                                         (click)="openDetail(item)"
                                     >
-                                        <div class="enterprise-card-top">
-                                            <p class="enterprise-card-title">
+                                        <div class="flex items-start justify-between gap-2">
+                                            <p class="text-sm font-medium text-foreground">
                                                 {{ config().cardTitle?.(item) ?? primaryCell(item) }}
                                             </p>
                                             @if (statusBadge(item); as badge) {
@@ -226,12 +226,12 @@ interface PageResult<T> {
                                             }
                                         </div>
                                         @if (config().cardSubtitle) {
-                                            <p class="enterprise-card-subtitle">
+                                            <p class="mt-1 text-xs text-muted-foreground">
                                                 {{ config().cardSubtitle!(item) }}
                                             </p>
                                         }
                                         @if (cardMetaLines(item).length > 0) {
-                                            <div class="enterprise-card-meta">
+                                            <div class="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                                                 @for (line of cardMetaLines(item); track line) {
                                                     <span>{{ line }}</span>
                                                 }
@@ -330,43 +330,6 @@ interface PageResult<T> {
                 </div>
             }
         </app-enterprise-detail-sheet>
-    `,
-    styles: `
-        .enterprise-list-shell {
-            @apply min-w-0;
-        }
-
-        .enterprise-card-grid {
-            @apply grid gap-3 sm:grid-cols-2 xl:grid-cols-3;
-        }
-
-        .enterprise-card {
-            @apply rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-muted/40;
-        }
-
-        .enterprise-card-skeleton {
-            @apply h-24 animate-pulse bg-muted;
-        }
-
-        .enterprise-card-top {
-            @apply flex items-start justify-between gap-2;
-        }
-
-        .enterprise-card-title {
-            @apply text-sm font-medium text-foreground;
-        }
-
-        .enterprise-card-subtitle {
-            @apply mt-1 text-xs text-muted-foreground;
-        }
-
-        .enterprise-card-meta {
-            @apply mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground;
-        }
-
-        .enterprise-list-shell-embedded {
-            @apply flex min-h-0 flex-1 flex-col;
-        }
     `,
 })
 export class EnterpriseListShellComponent<T extends { id: string }> {

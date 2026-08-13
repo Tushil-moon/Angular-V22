@@ -1,7 +1,7 @@
 @use 'mixins' as *;
 
 .form-error {
-    @apply text-sm font-medium text-destructive;
+    @apply m-0 text-xs font-medium leading-snug text-destructive;
 }
 
 .textarea {
@@ -13,4 +13,5 @@
 
 .textarea.border-destructive {
     border-color: var(--destructive);
+    @include shadcn-input-focus-destructive;
 }

@@ -76,7 +76,7 @@ import { IconComponent } from './icon.component';
                 <div class="form-error">{{ error() }}</div>
             }
             @if (hint() && !hasError()) {
-                <small class="text-muted-foreground mt-1.5 block text-sm">{{ hint() }}</small>
+                <small class="form-hint">{{ hint() }}</small>
             }
         </div>
 

@@ -59,7 +59,7 @@
 .toolbar-actions app-button .btn,
 .card-toolbar > app-button .btn,
 .card-header-row > app-button .btn {
-    @apply w-full justify-center sm:w-auto;
+    @apply btn-responsive;
 }
 
 .page-title {

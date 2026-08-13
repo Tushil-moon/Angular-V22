@@ -8,12 +8,15 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 import { IconComponent } from './icon.component';
+import type { ToolbarControlSize } from './toolbar.types';
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-search-input',
     host: {
         class: 'search-input-host',
+        '[class.search-input-toolbar]': 'size() === "toolbar"',
+        '[class.search-input-default]': 'size() === "default"',
     },
     imports: [ReactiveFormsModule, IconComponent],
     template: `
@@ -36,6 +39,8 @@ export class SearchInputComponent implements OnInit {
     ariaLabel = input('');
     debounceMs = input(300);
     initialValue = input('');
+    /** `toolbar` = 36px height for list filters; `default` = standard form field. */
+    size = input<ToolbarControlSize>('toolbar');
 
     searchChange = output<string>();
 

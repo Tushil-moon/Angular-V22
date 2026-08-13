@@ -84,22 +84,22 @@ type OrderAction = 'confirm' | 'cancel' | 'ship' | 'complete';
                             }}</app-badge>
                         </div>
                         <div class="p-4 pt-0 sm:p-6 sm:pt-0">
-                            <dl class="summary-grid">
+                            <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
-                                    <dt>Payment</dt>
-                                    <dd>{{ label(current.paymentStatus) }}</dd>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Payment</dt>
+                                    <dd class="mt-1 text-sm text-foreground">{{ label(current.paymentStatus) }}</dd>
                                 </div>
                                 <div>
-                                    <dt>Fulfillment</dt>
-                                    <dd>{{ label(current.fulfillmentStatus) }}</dd>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fulfillment</dt>
+                                    <dd class="mt-1 text-sm text-foreground">{{ label(current.fulfillmentStatus) }}</dd>
                                 </div>
                                 <div>
-                                    <dt>Placed</dt>
-                                    <dd>{{ placedLabel() }}</dd>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Placed</dt>
+                                    <dd class="mt-1 text-sm text-foreground">{{ placedLabel() }}</dd>
                                 </div>
                                 <div>
-                                    <dt>Phone</dt>
-                                    <dd>{{ display(current.customerPhone) }}</dd>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Phone</dt>
+                                    <dd class="mt-1 text-sm text-foreground">{{ display(current.customerPhone) }}</dd>
                                 </div>
                             </dl>
 
@@ -154,26 +154,26 @@ type OrderAction = 'confirm' | 'cancel' | 'ship' | 'complete';
                             <h2 class="home-panel-title">Totals</h2>
                         </div>
                         <div class="p-4 pt-0 sm:p-6 sm:pt-0">
-                            <dl class="totals-list">
-                                <div>
-                                    <dt>Subtotal</dt>
-                                    <dd>{{ money(current.subtotal) }}</dd>
+                            <dl class="space-y-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Subtotal</dt>
+                                    <dd class="text-sm font-medium text-foreground">{{ money(current.subtotal) }}</dd>
                                 </div>
-                                <div>
-                                    <dt>Discount</dt>
-                                    <dd>{{ money(current.discountTotal) }}</dd>
+                                <div class="flex items-center justify-between gap-3">
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Discount</dt>
+                                    <dd class="text-sm font-medium text-foreground">{{ money(current.discountTotal) }}</dd>
                                 </div>
-                                <div>
-                                    <dt>Tax</dt>
-                                    <dd>{{ money(current.taxTotal) }}</dd>
+                                <div class="flex items-center justify-between gap-3">
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tax</dt>
+                                    <dd class="text-sm font-medium text-foreground">{{ money(current.taxTotal) }}</dd>
                                 </div>
-                                <div>
-                                    <dt>Shipping</dt>
-                                    <dd>{{ money(current.shippingTotal) }}</dd>
+                                <div class="flex items-center justify-between gap-3">
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Shipping</dt>
+                                    <dd class="text-sm font-medium text-foreground">{{ money(current.shippingTotal) }}</dd>
                                 </div>
-                                <div class="totals-grand">
-                                    <dt>Grand total</dt>
-                                    <dd>{{ money(current.grandTotal) }}</dd>
+                                <div class="flex items-center justify-between gap-3 border-t border-border pt-3">
+                                    <dt class="text-sm font-semibold normal-case tracking-normal text-foreground">Grand total</dt>
+                                    <dd class="text-sm font-medium text-foreground">{{ money(current.grandTotal) }}</dd>
                                 </div>
                             </dl>
                         </div>
@@ -228,11 +228,11 @@ type OrderAction = 'confirm' | 'cancel' | 'ship' | 'complete';
                             <h2 class="home-panel-title">Timeline</h2>
                         </div>
                         <div class="p-4 pt-0 sm:p-6 sm:pt-0">
-                            <ol class="timeline">
+                            <ol class="space-y-4 border-l border-border pl-4">
                                 @for (entry of current.statusHistory; track entry.id) {
                                     <li>
-                                        <p class="timeline-title">{{ label(entry.toStatus) }}</p>
-                                        <p class="timeline-meta">
+                                        <p class="text-sm font-medium text-foreground">{{ label(entry.toStatus) }}</p>
+                                        <p class="mt-0.5 text-xs text-muted-foreground">
                                             {{ dateTime(entry.createdAt) }}
                                             @if (entry.note) {
                                                 · {{ entry.note }}
@@ -246,52 +246,6 @@ type OrderAction = 'confirm' | 'cancel' | 'ship' | 'complete';
                 }
             }
         </div>
-    `,
-    styles: `
-        .summary-grid {
-            @apply grid grid-cols-1 gap-4 sm:grid-cols-2;
-        }
-
-        .summary-grid dt,
-        .totals-list dt {
-            @apply text-xs font-medium uppercase tracking-wide text-muted-foreground;
-        }
-
-        .summary-grid dd {
-            @apply mt-1 text-sm text-foreground;
-        }
-
-        .totals-list {
-            @apply space-y-3;
-        }
-
-        .totals-list > div {
-            @apply flex items-center justify-between gap-3;
-        }
-
-        .totals-list dd {
-            @apply text-sm font-medium text-foreground;
-        }
-
-        .totals-grand {
-            @apply border-t border-border pt-3;
-        }
-
-        .totals-grand dt {
-            @apply text-sm font-semibold normal-case tracking-normal text-foreground;
-        }
-
-        .timeline {
-            @apply space-y-4 border-l border-border pl-4;
-        }
-
-        .timeline-title {
-            @apply text-sm font-medium text-foreground;
-        }
-
-        .timeline-meta {
-            @apply mt-0.5 text-xs text-muted-foreground;
-        }
     `,
 })
 export class OrderDetailComponent {

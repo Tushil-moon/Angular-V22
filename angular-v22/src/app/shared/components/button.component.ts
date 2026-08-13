@@ -6,7 +6,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 import { cn } from '@utils/cn';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link';
-export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl' | 'icon';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl' | 'icon' | 'toolbar';
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,6 +57,7 @@ export class ButtonComponent {
             lg: 'btn-lg',
             xl: 'btn-xl',
             icon: 'btn-icon',
+            toolbar: 'btn-toolbar',
         };
 
         return cn(

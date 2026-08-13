@@ -16,18 +16,21 @@ type PaginationMode = 'simple' | 'numbered';
     template: `
         @if (totalPages() > 1 || showWhenSingle()) {
             <div
-                class="pagination"
-                [class.pagination-numbered]="mode() === 'numbered'"
+                [class]="
+                    mode() === 'numbered'
+                        ? 'flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center justify-center sm:justify-center'
+                        : 'flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between'
+                "
                 role="navigation"
                 aria-label="Pagination"
             >
                 @if (mode() === 'simple') {
-                    <p class="pagination-summary text-sm text-muted-foreground">
+                    <p class="text-sm text-muted-foreground">
                         Showing {{ rangeStart() }}–{{ rangeEnd() }} of {{ total() }}
                     </p>
                 }
 
-                <div class="pagination-controls">
+                <div class="flex flex-wrap items-center justify-center gap-2">
                     <app-button
                         variant="outline"
                         size="sm"
@@ -40,15 +43,21 @@ type PaginationMode = 'simple' | 'numbered';
                     </app-button>
 
                     @if (mode() === 'numbered') {
-                        <div class="pagination-pages" role="group" aria-label="Page numbers">
+                        <div class="flex items-center gap-1" role="group" aria-label="Page numbers">
                             @for (item of pageItems(); track item.key) {
                                 @if (item.type === 'ellipsis') {
-                                    <span class="pagination-ellipsis" aria-hidden="true">…</span>
+                                    <span
+                                        class="inline-flex size-9 items-center justify-center text-sm text-muted-foreground"
+                                        aria-hidden="true"
+                                    >…</span>
                                 } @else {
                                     <button
                                         type="button"
-                                        class="pagination-page-btn"
-                                        [class.pagination-page-btn-active]="item.page === page()"
+                                        [class]="
+                                            item.page === page()
+                                                ? 'inline-flex size-9 items-center justify-center rounded-lg border border-primary bg-primary text-sm font-medium tabular-nums text-primary-foreground transition-colors hover:bg-primary hover:text-primary-foreground'
+                                                : 'inline-flex size-9 items-center justify-center rounded-lg border border-transparent text-sm font-medium tabular-nums text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+                                        "
                                         [attr.aria-current]="item.page === page() ? 'page' : null"
                                         (click)="goToPage(item.page)"
                                     >
@@ -58,7 +67,7 @@ type PaginationMode = 'simple' | 'numbered';
                             }
                         </div>
                     } @else {
-                        <span class="pagination-page text-sm text-muted-foreground">
+                        <span class="min-w-[7rem] text-center text-sm text-muted-foreground">
                             Page {{ page() }} of {{ totalPages() }}
                         </span>
                     }
@@ -75,41 +84,6 @@ type PaginationMode = 'simple' | 'numbered';
                     </app-button>
                 </div>
             </div>
-        }
-    `,
-    styles: `
-        .pagination {
-            @apply flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between;
-        }
-
-        .pagination-numbered {
-            @apply justify-center sm:justify-center;
-        }
-
-        .pagination-controls {
-            @apply flex flex-wrap items-center justify-center gap-2;
-        }
-
-        .pagination-page {
-            @apply min-w-[7rem] text-center;
-        }
-
-        .pagination-pages {
-            @apply flex items-center gap-1;
-        }
-
-        .pagination-page-btn {
-            @apply inline-flex size-9 items-center justify-center rounded-lg border border-transparent text-sm
-                font-medium tabular-nums text-muted-foreground transition-colors hover:bg-muted
-                hover:text-foreground;
-        }
-
-        .pagination-page-btn-active {
-            @apply border-primary bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground;
-        }
-
-        .pagination-ellipsis {
-            @apply inline-flex size-9 items-center justify-center text-sm text-muted-foreground;
         }
     `,
 })

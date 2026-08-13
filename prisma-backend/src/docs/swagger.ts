@@ -7,7 +7,7 @@ export const swaggerSpec = swaggerJsdoc({
     info: {
       title: "Angular V22 Auth API",
       version: "1.0.0",
-      description: "Authentication, sessions, organizations, and health for the UI shell.",
+      description: "Authentication, sessions, stores, and health for the UI shell.",
     },
     servers: [{ url: `${env.API_BASE_URL}/api/v1` }],
     components: {

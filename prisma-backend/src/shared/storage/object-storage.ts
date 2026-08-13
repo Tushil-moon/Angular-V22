@@ -11,7 +11,7 @@ export function isAllowedImageMimeType(mimeType: string): boolean {
 }
 
 export function sanitizeUploadFileName(fileName: string): string {
-  const base = path.basename(fileName).replace(/[^\w.\-]+/g, "-").replace(/-+/g, "-");
+  const base = path.basename(fileName).replace(/[^\w.-]+/g, "-").replace(/-+/g, "-");
   return base.slice(0, 180) || "upload";
 }
 
@@ -26,8 +26,7 @@ function isS3Configured(): boolean {
 let s3Client: S3Client | null = null;
 
 function getS3Client(): S3Client {
-  if (!s3Client) {
-    s3Client = new S3Client({
+  s3Client ??= new S3Client({
       region: env.S3_REGION,
       endpoint: env.S3_ENDPOINT,
       forcePathStyle: env.S3_FORCE_PATH_STYLE,
@@ -36,7 +35,6 @@ function getS3Client(): S3Client {
         secretAccessKey: env.S3_SECRET_ACCESS_KEY!,
       },
     });
-  }
   return s3Client;
 }
 
@@ -51,8 +49,17 @@ function buildS3PublicUrl(storageKey: string): string {
   return `https://${bucket}.s3.${env.S3_REGION}.amazonaws.com/${storageKey}`;
 }
 
+function getPublicBaseUrl(): string {
+  if (env.PUBLIC_BASE_URL) {
+    return env.PUBLIC_BASE_URL.replace(/\/$/, "");
+  }
+
+  const apiBase = env.API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
+  return apiBase.replace(/\/api\/v\d+$/, "");
+}
+
 function buildLocalPublicUrl(storageKey: string): string {
-  const base = env.API_BASE_URL!.replace(/\/$/, "");
+  const base = getPublicBaseUrl();
   return `${base}/uploads/${storageKey.split(path.sep).join("/")}`;
 }
 

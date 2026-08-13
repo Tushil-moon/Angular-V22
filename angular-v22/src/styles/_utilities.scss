@@ -49,12 +49,12 @@
 
 .settings-panel form > div:has(> app-button) app-button,
 .settings-profile-header app-button {
-    @apply flex w-full min-w-0 sm:w-auto;
+    @apply flex-host-responsive;
 }
 
 .settings-panel form > div:has(> app-button) app-button .btn,
 .settings-profile-header app-button .btn {
-    @apply w-full justify-center sm:w-auto;
+    @apply btn-responsive;
 }
 
 .settings-profile-header {
@@ -71,11 +71,11 @@
 }
 
 .settings-session-row app-button {
-    @apply flex w-full min-w-0 sm:w-auto;
+    @apply flex-host-responsive;
 }
 
 .settings-session-row app-button .btn {
-    @apply w-full justify-center sm:w-auto;
+    @apply btn-responsive;
 }
 
 .settings-section {

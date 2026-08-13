@@ -110,22 +110,22 @@ import { CustomerApiService } from '../services/customer-api.service';
                             </div>
                         </div>
                         <div class="home-panel-pad">
-                            <dl class="cd-grid">
+                            <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
-                                    <dt>Email</dt>
-                                    <dd>{{ display(current.email) }}</dd>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</dt>
+                                    <dd class="mt-1 text-sm text-foreground">{{ display(current.email) }}</dd>
                                 </div>
                                 <div>
-                                    <dt>Phone</dt>
-                                    <dd>{{ display(current.phone) }}</dd>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Phone</dt>
+                                    <dd class="mt-1 text-sm text-foreground">{{ display(current.phone) }}</dd>
                                 </div>
                                 <div>
-                                    <dt>Marketing</dt>
-                                    <dd>{{ current.acceptsMarketing ? 'Subscribed' : 'Opted out' }}</dd>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Marketing</dt>
+                                    <dd class="mt-1 text-sm text-foreground">{{ current.acceptsMarketing ? 'Subscribed' : 'Opted out' }}</dd>
                                 </div>
                                 <div>
-                                    <dt>Last order</dt>
-                                    <dd>{{ dateTime(current.lastOrderAt) }}</dd>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Last order</dt>
+                                    <dd class="mt-1 text-sm text-foreground">{{ dateTime(current.lastOrderAt) }}</dd>
                                 </div>
                             </dl>
 
@@ -135,7 +135,7 @@ import { CustomerApiService } from '../services/customer-api.service';
                                         Addresses
                                     </p>
                                     @for (address of current.addresses; track address.id) {
-                                        <div class="cd-address">
+                                        <div class="rounded-xl border border-border bg-muted/30 p-3">
                                             <p class="text-sm font-medium text-foreground">
                                                 {{ display(address.name) }} · {{ address.type }}
                                             </p>
@@ -233,23 +233,6 @@ import { CustomerApiService } from '../services/customer-api.service';
                 </section>
             }
         </div>
-    `,
-    styles: `
-        .cd-grid {
-            @apply grid grid-cols-1 gap-4 sm:grid-cols-2;
-        }
-
-        .cd-grid dt {
-            @apply text-xs font-medium uppercase tracking-wide text-muted-foreground;
-        }
-
-        .cd-grid dd {
-            @apply mt-1 text-sm text-foreground;
-        }
-
-        .cd-address {
-            @apply rounded-xl border border-border bg-muted/30 p-3;
-        }
     `,
 })
 export class CustomerDetailComponent {

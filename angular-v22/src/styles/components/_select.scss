@@ -2,7 +2,7 @@
 
 /* ── Select (shadcn / Radix) ── */
 .select-root {
-    @apply w-full min-w-0;
+    @apply flex w-full min-w-0 flex-col gap-2;
 }
 
 .select-wrap {
@@ -16,11 +16,16 @@
 }
 
 .select-trigger-sm {
-    @apply h-8 py-1;
+    @apply h-8 min-h-8 max-h-8 py-1;
+}
+
+.select-trigger-toolbar {
+    @apply h-9 min-h-9 py-0 leading-none;
 }
 
 .select-trigger-invalid {
-    @apply border-destructive focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40;
+    border-color: var(--destructive);
+    @include shadcn-input-focus-destructive;
 }
 
 .select-value {
@@ -60,5 +65,5 @@
 }
 
 .card-toolbar > app-filter-select {
-    @apply w-full sm:w-36 shrink-0;
+    @apply w-full shrink-0 sm:w-36;
 }
