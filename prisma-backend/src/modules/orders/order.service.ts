@@ -19,6 +19,7 @@ const orderListSelect = {
   taxTotal: true,
   shippingTotal: true,
   grandTotal: true,
+  amountRefunded: true,
   customerEmail: true,
   customerPhone: true,
   note: true,

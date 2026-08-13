@@ -5,7 +5,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { AuthService, PermissionService } from '@services/index';
+import { openRefundFormDialog } from '@features/refunds/utils/open-refund-form-dialog.util';
+import { AuthService, DialogService, PermissionService } from '@services/index';
 import { ToastService } from '@services/toast.service';
 import {
     BadgeComponent,
@@ -144,6 +145,16 @@ type OrderAction = 'confirm' | 'cancel' | 'ship' | 'complete';
                                             Cancel order
                                         </app-button>
                                     }
+                                    @if (canRequestRefund()) {
+                                        <app-button
+                                            size="sm"
+                                            variant="outline"
+                                            type="button"
+                                            (clicked)="requestRefund()"
+                                        >
+                                            Request refund
+                                        </app-button>
+                                    }
                                 </div>
                             }
                         </div>
@@ -253,6 +264,7 @@ export class OrderDetailComponent {
     private readonly authService = inject(AuthService);
     private readonly permissionService = inject(PermissionService);
     private readonly toast = inject(ToastService);
+    private readonly dialog = inject(DialogService);
     private readonly route = inject(ActivatedRoute);
 
     readonly orderId = signal(this.route.snapshot.paramMap.get('id') ?? '');
@@ -264,6 +276,17 @@ export class OrderDetailComponent {
     readonly canCancel = computed(() =>
         this.permissionService.hasAny(Permissions.CancelOrders, Permissions.ManageOrders),
     );
+    readonly canRequestRefund = computed(() => {
+        if (!this.permissionService.hasPermission(Permissions.ManageRefunds)) return false;
+        const order = this.order();
+        if (!order) return false;
+        return (
+            order.status !== 'CANCELLED' &&
+            order.status !== 'REFUNDED' &&
+            order.paymentStatus !== 'PENDING' &&
+            order.paymentStatus !== 'FAILED'
+        );
+    });
 
     readonly itemColumns: FlexTableColumn[] = [
         { key: 'product', label: 'Product', grid: 'minmax(10rem, 1.6fr)', primary: true },
@@ -336,6 +359,17 @@ export class OrderDetailComponent {
             default:
                 return 'outline';
         }
+    }
+
+    requestRefund(): void {
+        const id = this.orderId();
+        if (!id) return;
+
+        openRefundFormDialog(this.dialog, { orderId: id }).subscribe((result) => {
+            if (result === 'saved') {
+                this.orderResource.reload();
+            }
+        });
     }
 
     runAction(action: OrderAction): void {

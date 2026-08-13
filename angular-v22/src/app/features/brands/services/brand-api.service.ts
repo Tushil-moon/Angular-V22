@@ -3,15 +3,15 @@
  */
 
 import { inject, Injectable } from '@angular/core';
-import { buildListParams } from '@features/shared/admin-list.util';
 import type { FilterOptions, PaginatedResponse } from '@models/index';
 import { HttpClientService } from '@services/http-client.service';
-import { type ApiPaginatedPayload, mapApiPaginated } from '@utils/api-mappers';
-import { map, Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
 
-import {
+import { crudCreate, crudDelete, crudGet, crudList, crudPatch } from '../../shared/crud-api.util';
+import type {
     ApiBrandPayload,
     Brand,
+    BrandListFilters,
     BrandStatus,
     CreateBrandRequest,
     UpdateBrandRequest,
@@ -32,45 +32,63 @@ export function mapApiBrand(payload: ApiBrandPayload): Brand {
     };
 }
 
-@Injectable({
-    providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class BrandApiService {
     private readonly http = inject(HttpClientService);
 
-    list(filters: FilterOptions = {}): Observable<PaginatedResponse<Brand>> {
-        return this.http
-            .get<ApiPaginatedPayload<ApiBrandPayload>>('/brands', {
-                params: buildListParams(filters),
-            })
-            .pipe(map((response) => mapApiPaginated(response.data, mapApiBrand)));
+    list(filters: BrandListFilters = {}): Observable<PaginatedResponse<Brand>> {
+        return crudList(
+            this.http,
+            '/brands',
+            mapApiBrand,
+            filters as FilterOptions,
+            {
+                status: filters.status || undefined,
+                sort: filters.sortBy || undefined,
+                order: filters.sortOrder || undefined,
+            },
+        );
     }
 
     getById(id: string): Observable<Brand | null> {
-        return this.http
-            .get<ApiBrandPayload>(`/brands/${id}`)
-            .pipe(map((response) => (response.data ? mapApiBrand(response.data) : null)));
+        return crudGet(this.http, `/brands/${id}`, mapApiBrand);
     }
 
     create(payload: CreateBrandRequest): Observable<Brand | null> {
-        return this.http
-            .post<ApiBrandPayload>('/brands', {
+        return crudCreate(
+            this.http,
+            '/brands',
+            {
                 name: payload.name,
                 slug: payload.slug,
                 description: payload.description ?? undefined,
-                website: payload.website ?? undefined,
+                website: payload.website || undefined,
                 status: payload.status ?? 'PUBLISHED',
-            })
-            .pipe(map((response) => (response.data ? mapApiBrand(response.data) : null)));
+                sortOrder: payload.sortOrder ?? 0,
+            },
+            mapApiBrand,
+        );
     }
 
     update(id: string, payload: UpdateBrandRequest): Observable<Brand | null> {
-        return this.http
-            .patch<ApiBrandPayload>(`/brands/${id}`, payload)
-            .pipe(map((response) => (response.data ? mapApiBrand(response.data) : null)));
+        return crudPatch(
+            this.http,
+            `/brands/${id}`,
+            {
+                ...(payload.name !== undefined ? { name: payload.name } : {}),
+                ...(payload.slug !== undefined ? { slug: payload.slug } : {}),
+                ...(payload.description !== undefined
+                    ? { description: payload.description }
+                    : {}),
+                ...(payload.website !== undefined ? { website: payload.website || '' } : {}),
+                ...(payload.status !== undefined ? { status: payload.status } : {}),
+                ...(payload.sortOrder !== undefined ? { sortOrder: payload.sortOrder } : {}),
+            },
+            mapApiBrand,
+        );
     }
 
     delete(id: string): Observable<void> {
-        return this.http.delete(`/brands/${id}`).pipe(map(() => undefined));
+        return crudDelete(this.http, `/brands/${id}`);
     }
 }

@@ -29,6 +29,7 @@ export interface Order {
     taxTotal: number;
     shippingTotal: number;
     grandTotal: number;
+    amountRefunded: number;
     customerId: string | null;
     customerEmail: string;
     customerPhone: string | null;
@@ -98,6 +99,7 @@ export interface ApiOrderPayload {
     tax_total?: number | string;
     shipping_total?: number | string;
     grand_total?: number | string;
+    amount_refunded?: number | string;
     customer_id?: string | null;
     customer_email?: string | null;
     customer_phone?: string | null;

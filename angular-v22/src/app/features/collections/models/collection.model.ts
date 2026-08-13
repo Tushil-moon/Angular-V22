@@ -1,7 +1,7 @@
 import type { CatalogStatus } from '@features/shared/admin-list.util';
 
 export type CollectionStatus = CatalogStatus;
-export type CollectionType = 'MANUAL' | 'AUTOMATED';
+export type CollectionType = 'MANUAL' | 'RULE_BASED';
 
 export interface Collection {
     id: string;
@@ -23,9 +23,20 @@ export interface CreateCollectionRequest {
     description?: string | null;
     type?: CollectionType;
     status?: CollectionStatus;
+    featured?: boolean;
+    sortOrder?: number;
 }
 
 export type UpdateCollectionRequest = Partial<CreateCollectionRequest>;
+
+export interface CollectionListFilters {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    status?: CollectionStatus;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+}
 
 export interface ApiCollectionPayload {
     id: string;

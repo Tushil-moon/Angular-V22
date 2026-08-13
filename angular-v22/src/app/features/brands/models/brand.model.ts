@@ -21,9 +21,19 @@ export interface CreateBrandRequest {
     description?: string | null;
     website?: string | null;
     status?: BrandStatus;
+    sortOrder?: number;
 }
 
 export type UpdateBrandRequest = Partial<CreateBrandRequest>;
+
+export interface BrandListFilters {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    status?: BrandStatus;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+}
 
 export interface ApiBrandPayload {
     id: string;

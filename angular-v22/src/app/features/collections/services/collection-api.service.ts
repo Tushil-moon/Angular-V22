@@ -3,15 +3,16 @@
  */
 
 import { inject, Injectable } from '@angular/core';
-import { buildListParams } from '@features/shared/admin-list.util';
 import type { FilterOptions, PaginatedResponse } from '@models/index';
 import { HttpClientService } from '@services/http-client.service';
-import { type ApiPaginatedPayload, mapApiPaginated } from '@utils/api-mappers';
-import { map, Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { map } from 'rxjs';
 
-import {
+import { crudCreate, crudDelete, crudGet, crudList, crudPatch } from '../../shared/crud-api.util';
+import type {
     ApiCollectionPayload,
     Collection,
+    CollectionListFilters,
     CollectionStatus,
     CollectionType,
     CreateCollectionRequest,
@@ -34,45 +35,65 @@ export function mapApiCollection(payload: ApiCollectionPayload): Collection {
     };
 }
 
-@Injectable({
-    providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class CollectionApiService {
     private readonly http = inject(HttpClientService);
 
-    list(filters: FilterOptions = {}): Observable<PaginatedResponse<Collection>> {
-        return this.http
-            .get<ApiPaginatedPayload<ApiCollectionPayload>>('/collections', {
-                params: buildListParams(filters),
-            })
-            .pipe(map((response) => mapApiPaginated(response.data, mapApiCollection)));
+    list(filters: CollectionListFilters = {}): Observable<PaginatedResponse<Collection>> {
+        return crudList(
+            this.http,
+            '/collections',
+            mapApiCollection,
+            filters as FilterOptions,
+            {
+                status: filters.status || undefined,
+                sort: filters.sortBy || undefined,
+                order: filters.sortOrder || undefined,
+            },
+        );
     }
 
     getById(id: string): Observable<Collection | null> {
-        return this.http
-            .get<ApiCollectionPayload>(`/collections/${id}`)
-            .pipe(map((response) => (response.data ? mapApiCollection(response.data) : null)));
+        return crudGet(this.http, `/collections/${id}`, mapApiCollection);
     }
 
     create(payload: CreateCollectionRequest): Observable<Collection | null> {
-        return this.http
-            .post<ApiCollectionPayload>('/collections', {
+        return crudCreate(
+            this.http,
+            '/collections',
+            {
                 name: payload.name,
                 slug: payload.slug,
                 description: payload.description ?? undefined,
                 type: payload.type ?? 'MANUAL',
                 status: payload.status ?? 'PUBLISHED',
-            })
-            .pipe(map((response) => (response.data ? mapApiCollection(response.data) : null)));
+                featured: payload.featured ?? false,
+                sortOrder: payload.sortOrder ?? 0,
+            },
+            mapApiCollection,
+        );
     }
 
     update(id: string, payload: UpdateCollectionRequest): Observable<Collection | null> {
-        return this.http
-            .patch<ApiCollectionPayload>(`/collections/${id}`, payload)
-            .pipe(map((response) => (response.data ? mapApiCollection(response.data) : null)));
+        return crudPatch(
+            this.http,
+            `/collections/${id}`,
+            {
+                ...(payload.name !== undefined ? { name: payload.name } : {}),
+                ...(payload.slug !== undefined ? { slug: payload.slug } : {}),
+                ...(payload.description !== undefined
+                    ? { description: payload.description }
+                    : {}),
+                ...(payload.type !== undefined ? { type: payload.type } : {}),
+                ...(payload.status !== undefined ? { status: payload.status } : {}),
+                ...(payload.featured !== undefined ? { featured: payload.featured } : {}),
+                ...(payload.sortOrder !== undefined ? { sortOrder: payload.sortOrder } : {}),
+            },
+            mapApiCollection,
+        );
     }
 
     delete(id: string): Observable<void> {
-        return this.http.delete(`/collections/${id}`).pipe(map(() => undefined));
+        return crudDelete(this.http, `/collections/${id}`);
     }
 }

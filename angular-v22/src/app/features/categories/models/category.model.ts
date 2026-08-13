@@ -45,10 +45,20 @@ export interface CreateCategoryRequest {
     description?: string | null;
     parentId?: string | null;
     status?: CategoryStatus;
+    sortOrder?: number;
 }
 
 export type UpdateCategoryRequest = Partial<CreateCategoryRequest>;
 
+export interface CategoryListFilters {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    status?: CategoryStatus;
+    parentId?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+}
 export interface ApiCategoryPayload {
     id: string;
     name: string;

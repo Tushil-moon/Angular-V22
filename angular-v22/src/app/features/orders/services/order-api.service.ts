@@ -51,6 +51,7 @@ export function mapApiOrder(payload: ApiOrderPayload): Order {
         taxTotal: toNumber(payload.tax_total),
         shippingTotal: toNumber(payload.shipping_total),
         grandTotal: toNumber(payload.grand_total),
+        amountRefunded: toNumber(payload.amount_refunded),
         customerId: payload.customer_id ?? null,
         customerEmail: payload.customer_email ?? '',
         customerPhone: payload.customer_phone ?? null,

@@ -108,6 +108,24 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'categories/new',
+                canActivate: [permissionGuard],
+                data: { permissions: [Permissions.ManageCategories] },
+                loadComponent: () =>
+                    import('@features/categories/pages/category-form.component').then(
+                        (m) => m.CategoryFormComponent,
+                    ),
+            },
+            {
+                path: 'categories/:id',
+                canActivate: [permissionGuard],
+                data: { permissions: [Permissions.ReadCategories, Permissions.ManageCategories] },
+                loadComponent: () =>
+                    import('@features/categories/pages/category-form.component').then(
+                        (m) => m.CategoryFormComponent,
+                    ),
+            },
+            {
                 path: 'brands',
                 canActivate: [permissionGuard],
                 data: { permissions: [Permissions.ReadBrands] },
@@ -117,12 +135,48 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'brands/new',
+                canActivate: [permissionGuard],
+                data: { permissions: [Permissions.ManageBrands] },
+                loadComponent: () =>
+                    import('@features/brands/pages/brand-form.component').then(
+                        (m) => m.BrandFormComponent,
+                    ),
+            },
+            {
+                path: 'brands/:id',
+                canActivate: [permissionGuard],
+                data: { permissions: [Permissions.ReadBrands, Permissions.ManageBrands] },
+                loadComponent: () =>
+                    import('@features/brands/pages/brand-form.component').then(
+                        (m) => m.BrandFormComponent,
+                    ),
+            },
+            {
                 path: 'collections',
                 canActivate: [permissionGuard],
                 data: { permissions: [Permissions.ReadCollections] },
                 loadComponent: () =>
                     import('@features/collections/pages/collection-list.component').then(
                         (m) => m.CollectionListComponent,
+                    ),
+            },
+            {
+                path: 'collections/new',
+                canActivate: [permissionGuard],
+                data: { permissions: [Permissions.ManageCollections] },
+                loadComponent: () =>
+                    import('@features/collections/pages/collection-form-launcher.component').then(
+                        (m) => m.CollectionFormLauncherComponent,
+                    ),
+            },
+            {
+                path: 'collections/:id',
+                canActivate: [permissionGuard],
+                data: { permissions: [Permissions.ManageCollections] },
+                loadComponent: () =>
+                    import('@features/collections/pages/collection-form.component').then(
+                        (m) => m.CollectionFormComponent,
                     ),
             },
             {

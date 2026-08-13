@@ -8,12 +8,12 @@ import { HttpClientService } from '@services/http-client.service';
 import type { Observable } from 'rxjs';
 import { map } from 'rxjs';
 
-import { readFilter } from '../../shared/list-params.util';
 import { crudCreate, crudDelete, crudGet, crudList, crudPatch } from '../../shared/crud-api.util';
 import type {
     ApiCategoryPayload,
     ApiCategoryTreeNode,
     Category,
+    CategoryListFilters,
     CategoryStatus,
     CategoryTreeNode,
     CreateCategoryRequest,
@@ -53,10 +53,19 @@ export function mapApiCategory(payload: ApiCategoryPayload): Category {
 export class CategoryApiService {
     private readonly http = inject(HttpClientService);
 
-    list(filters: FilterOptions = {}): Observable<PaginatedResponse<Category>> {
-        return crudList(this.http, '/categories', mapApiCategory, filters, {
-            status: readFilter(filters, 'status'),
-        });
+    list(filters: CategoryListFilters = {}): Observable<PaginatedResponse<Category>> {
+        return crudList(
+            this.http,
+            '/categories',
+            mapApiCategory,
+            filters as FilterOptions,
+            {
+                status: filters.status || undefined,
+                parentId: filters.parentId || undefined,
+                sort: filters.sortBy || undefined,
+                order: filters.sortOrder || undefined,
+            },
+        );
     }
 
     getById(id: string): Observable<Category | null> {
@@ -73,13 +82,28 @@ export class CategoryApiService {
                 description: payload.description ?? undefined,
                 parentId: payload.parentId ?? undefined,
                 status: payload.status ?? 'PUBLISHED',
+                sortOrder: payload.sortOrder ?? 0,
             },
             mapApiCategory,
         );
     }
 
     update(id: string, payload: UpdateCategoryRequest): Observable<Category | null> {
-        return crudPatch(this.http, `/categories/${id}`, payload, mapApiCategory);
+        return crudPatch(
+            this.http,
+            `/categories/${id}`,
+            {
+                ...(payload.name !== undefined ? { name: payload.name } : {}),
+                ...(payload.slug !== undefined ? { slug: payload.slug } : {}),
+                ...(payload.description !== undefined
+                    ? { description: payload.description }
+                    : {}),
+                ...(payload.parentId !== undefined ? { parentId: payload.parentId } : {}),
+                ...(payload.status !== undefined ? { status: payload.status } : {}),
+                ...(payload.sortOrder !== undefined ? { sortOrder: payload.sortOrder } : {}),
+            },
+            mapApiCategory,
+        );
     }
 
     delete(id: string): Observable<void> {
