@@ -8,7 +8,7 @@ import {
 } from "../../shared/storage/object-storage";
 import { buildPaginationMeta } from "../../shared/validation/pagination";
 import { getDefaultStoreId } from "../../shared/utils/store";
-import type { CreateMediaInput, ListMediaQuery, UploadMediaInput } from "./media.validation";
+import type { CreateMediaInput, ListMediaQuery, UpdateMediaInput, UploadMediaInput } from "./media.validation";
 
 const mediaSelect = {
   id: true,
@@ -125,6 +125,35 @@ export const mediaService = {
         altText: input.altText ?? null,
       },
       select: mediaSelect,
+    });
+  },
+
+  async update(id: string, input: UpdateMediaInput) {
+    const storeId = await getDefaultStoreId();
+    const existing = await prisma.mediaAsset.findFirst({
+      where: { id, storeId, deletedAt: null },
+    });
+    if (!existing) throw new AppError(404, "Media asset not found", "MEDIA_NOT_FOUND");
+
+    return prisma.mediaAsset.update({
+      where: { id },
+      data: {
+        ...(input.altText !== undefined ? { altText: input.altText } : {}),
+      },
+      select: mediaSelect,
+    });
+  },
+
+  async delete(id: string) {
+    const storeId = await getDefaultStoreId();
+    const existing = await prisma.mediaAsset.findFirst({
+      where: { id, storeId, deletedAt: null },
+    });
+    if (!existing) throw new AppError(404, "Media asset not found", "MEDIA_NOT_FOUND");
+
+    await prisma.mediaAsset.update({
+      where: { id },
+      data: { deletedAt: new Date() },
     });
   },
 };

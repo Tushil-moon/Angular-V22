@@ -75,6 +75,12 @@ export class MediaApiService {
             .pipe(map((response) => (response.data ? mapApiMediaAsset(response.data) : null)));
     }
 
+    update(id: string, payload: { altText?: string | null }): Observable<MediaAsset | null> {
+        return this.http
+            .patch<ApiMediaPayload>(`/media/${id}`, payload)
+            .pipe(map((response) => (response.data ? mapApiMediaAsset(response.data) : null)));
+    }
+
     delete(id: string): Observable<void> {
         return this.http.delete(`/media/${id}`).pipe(map(() => undefined));
     }

@@ -42,3 +42,13 @@ export const uploadMedia = asyncHandler(async (req, res) => {
 
   return sendCreated(res, asset, "Image uploaded");
 });
+
+export const updateMedia = asyncHandler(async (req, res) => {
+  const asset = await mediaService.update(String(req.params.id), req.body);
+  return sendSuccess(res, asset, "Media asset updated");
+});
+
+export const deleteMedia = asyncHandler(async (req, res) => {
+  await mediaService.delete(String(req.params.id));
+  return sendSuccess(res, null, "Media asset deleted");
+});

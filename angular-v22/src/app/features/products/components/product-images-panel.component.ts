@@ -2,7 +2,7 @@
  * Product images — gallery management with upload and media library integration.
  */
 
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import type { MediaAsset } from '@features/media/models/media.model';
 import { MediaApiService } from '@features/media/services/media-api.service';
 import { apiErrorMessage, resolveMediaUrl } from '@features/shared/admin-list.util';
@@ -260,12 +260,21 @@ const DROP_ACTIVE =
                                         [attr.aria-label]="'Add ' + asset.fileName"
                                         (click)="addFromMedia(asset)"
                                     >
-                                        <img
-                                            class="size-full object-cover"
-                                            [src]="imageUrl(asset.url)"
-                                            [alt]="asset.altText || asset.fileName"
-                                            loading="lazy"
-                                        />
+                                        @if (failedMediaIds().has(asset.id)) {
+                                            <div
+                                                class="flex size-full flex-col items-center justify-center gap-0.5 text-muted-foreground"
+                                            >
+                                                <app-icon name="image" [size]="14" />
+                                            </div>
+                                        } @else {
+                                            <img
+                                                class="size-full object-cover"
+                                                [src]="imageUrl(asset.url)"
+                                                [alt]="asset.altText || asset.fileName"
+                                                loading="lazy"
+                                                (error)="onMediaThumbError(asset.id)"
+                                            />
+                                        }
                                     </button>
                                 } @empty {
                                     <p
@@ -305,7 +314,15 @@ export class ProductImagesPanelComponent {
     readonly busy = signal(false);
     readonly dragActive = signal(false);
     readonly failedThumbs = signal<ReadonlySet<number>>(new Set());
+    readonly failedMediaIds = signal<ReadonlySet<string>>(new Set());
     readonly gallery = computed(() => this.normalizeImages(this.images()));
+
+    constructor() {
+        effect(() => {
+            this.images();
+            this.failedThumbs.set(new Set());
+        });
+    }
 
     readonly imageUrl = (url: string): string => resolveMediaUrl(url);
 
@@ -315,6 +332,10 @@ export class ProductImagesPanelComponent {
 
     onThumbError(index: number): void {
         this.failedThumbs.update((current) => new Set(current).add(index));
+    }
+
+    onMediaThumbError(id: string): void {
+        this.failedMediaIds.update((current) => new Set(current).add(id));
     }
 
     onDragOver(event: DragEvent): void {
@@ -369,7 +390,7 @@ export class ProductImagesPanelComponent {
 
     addFromMedia(asset: MediaPickerAsset): void {
         this.addImage({
-            url: asset.url,
+            url: resolveMediaUrl(asset.url),
             altText: asset.altText,
             mediaId: asset.id,
         });
@@ -462,7 +483,7 @@ export class ProductImagesPanelComponent {
         if (productId) {
             return this.productApi
                 .addImage(productId, {
-                    url: asset.url,
+                    url: resolveMediaUrl(asset.url),
                     altText: asset.altText,
                     mediaId: asset.id,
                 })
@@ -475,7 +496,7 @@ export class ProductImagesPanelComponent {
         const next = [
             ...this.gallery(),
             {
-                url: asset.url,
+                url: resolveMediaUrl(asset.url),
                 altText: asset.altText,
                 mediaId: asset.id,
                 position: this.gallery().length,
